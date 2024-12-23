@@ -1,21 +1,15 @@
-#include <stdio.h>
-#include <sys/types.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
-#include <linux/serial.h>
-#include <termios.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
 #include <fcntl.h>
-#include <string.h>
-#include <termios.h>
-#include <unistd.h>
-#include <time.h>
-#include <stdarg.h>
-#include <sys/ioctl.h>
 #include <linux/serial.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <termios.h>
+#include <time.h>
+#include <unistd.h>
 
 #include "serial.h"
 

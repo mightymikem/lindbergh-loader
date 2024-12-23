@@ -2,7 +2,6 @@
 
 #include "config.h"
 
-#include <time.h>
 #include <string.h>
 #include <math.h>
 #include <pthread.h> /* POSIX threads API to create and manage threads in the program */
@@ -32,17 +31,41 @@ JVSIO io = {0};
  */
 int initJVS()
 {
-    io.capabilities.switches = 14;
-    io.capabilities.coins = 2;
-    io.capabilities.players = 2;
-    io.capabilities.analogueInBits = getConfig()->jvsAnalogueInBits;
-    io.capabilities.rightAlignBits = 0;
-    io.capabilities.analogueInChannels = 8;
-    io.capabilities.generalPurposeOutputs = 20;
-    io.capabilities.commandVersion = 19;
-    io.capabilities.jvsVersion = 48;
-    io.capabilities.commsVersion = 16;
-    strcpy(io.capabilities.name, "SEGA CORPORATION;I/O BD JVS;837-14572;Ver1.00;2005/10");
+    switch (getConfig()->jvsIOType)
+    {
+    case SEGA_TYPE_1:
+    {
+        io.capabilities.switches = 13;
+        io.capabilities.coins = 2;
+        io.capabilities.players = 2;
+        io.capabilities.analogueInBits = 8;
+        io.capabilities.rightAlignBits = 0;
+        io.capabilities.analogueInChannels = 8;
+        io.capabilities.generalPurposeOutputs = 6;
+        io.capabilities.commandVersion = 17;
+        io.capabilities.jvsVersion = 48;
+        io.capabilities.commsVersion = 16;
+        strcpy(io.capabilities.name, "SEGA ENTERPRISESLTD.;I/O BD JVS;837-13551;Ver1.00;98/10");
+    }
+    break;
+
+    default:
+    case SEGA_TYPE_3:
+    {
+        io.capabilities.switches = 14;
+        io.capabilities.coins = 2;
+        io.capabilities.players = 2;
+        io.capabilities.analogueInBits = 10;
+        io.capabilities.rightAlignBits = 0;
+        io.capabilities.analogueInChannels = 8;
+        io.capabilities.generalPurposeOutputs = 20;
+        io.capabilities.commandVersion = 19;
+        io.capabilities.jvsVersion = 48;
+        io.capabilities.commsVersion = 16;
+        strcpy(io.capabilities.name, "SEGA CORPORATION;I/O BD JVS;837-14572;Ver1.00;2005/10");
+    }
+    break;
+    }
 
     if (!io.capabilities.rightAlignBits)
     {
@@ -70,6 +93,13 @@ int initJVS()
     /* Float the sense line ready for connection */
     senseLine = 3;
 
+    /* Center the controller for after burner climax (ghost squad evo also uses this IO) */
+    if (getConfig()->jvsIOType == SEGA_TYPE_1)
+    {
+        setAnalogue(ANALOGUE_1, 0x80);
+        setAnalogue(ANALOGUE_2, 0x80);
+        setAnalogue(ANALOGUE_3, 0x80);
+    }
     return 0;
 }
 
@@ -126,7 +156,8 @@ void writeFeatures(JVSPacket *outputPacket, JVSCapabilities *capabilities)
         writeFeature(outputPacket, CAP_KEYPAD, 0x00, 0x00, 0x00);
 
     if (capabilities->gunChannels)
-        writeFeature(outputPacket, CAP_LIGHTGUN, capabilities->gunXBits, capabilities->gunYBits, capabilities->gunChannels);
+        writeFeature(outputPacket, CAP_LIGHTGUN, capabilities->gunXBits, capabilities->gunYBits,
+                     capabilities->gunChannels);
 
     if (capabilities->generalPurposeInputs)
         writeFeature(outputPacket, CAP_GPI, 0x00, capabilities->generalPurposeInputs, 0x00);
@@ -146,7 +177,8 @@ void writeFeatures(JVSPacket *outputPacket, JVSCapabilities *capabilities)
         writeFeature(outputPacket, CAP_ANALOG_OUT, capabilities->analogueOutChannels, 0x00, 0x00);
 
     if (capabilities->displayOutColumns)
-        writeFeature(outputPacket, CAP_DISPLAY, capabilities->displayOutColumns, capabilities->displayOutRows, capabilities->displayOutEncodings);
+        writeFeature(outputPacket, CAP_DISPLAY, capabilities->displayOutColumns, capabilities->displayOutRows,
+                     capabilities->displayOutEncodings);
 
     /* Other */
 
@@ -660,4 +692,9 @@ int setAnalogue(JVSInput channel, int value)
 void setSenseLine(int _senseLine)
 {
     senseLine = _senseLine;
+}
+
+JVSIO *getJVSIO()
+{
+    return &io;
 }

@@ -1,5 +1,11 @@
+bld
 build/
 test/
 tmp/
 *.bin
 /*.conf
+src/lindbergh/*.o
+src/libxdiff/xdiff/*.o
+src/libxdiff/*.a
+src/libkswapapi/*.o
+src/libsegaapi/*.o

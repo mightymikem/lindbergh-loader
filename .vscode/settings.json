@@ -1,14 +1,14 @@
 {
     "files.associations": {
-        "string.h": "c",
-        "rideboard.h": "c",
-        "serial.h": "c",
-        "jvs.h": "c",
-        "time.h": "c",
-        "stdarg.h": "c",
+        "input.h": "c",
+        "stddef.h": "c",
         "ioctl.h": "c",
-        "segaeax.h": "c",
-        "passthrough.h": "c"
+        "array": "c",
+        "__tuple": "c",
+        "evdevinput.h": "c",
+        "input-event-codes.h": "c",
+        "pthread.h": "c",
+        "xf86vmode.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "C_Cpp.default.intelliSenseMode": "linux-gcc-x86",

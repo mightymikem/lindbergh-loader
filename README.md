@@ -1,83 +1,60 @@
+[![Actions Status](https://github.com/dkeruza-neo/lindbergh-loader/actions/workflows/ci.yml/badge.svg)](https://github.com/dkeruza-neo/lindbergh-loader/actions)
+
 # SEGA Lindbergh Emulator
 
-This project emulates the SEGA Lindbergh, allowing games to run on modern Linux computers with an NVIDIA graphics card to be used as replacement hardware for broken Lindbergh systems in physical arcade machines.
-
-You can view the supported titles [here.](docs/supported.md)
-
-## Dependencies
-
-First make sure you have up-to-date NVIDIA drivers and then install the following:
-
-```
-sudo dpkg --add-architecture i386
-sudo apt update
-sudo apt install gcc-multilib
-sudo apt install build-essential
-sudo apt install freeglut3:i386
-sudo apt install freeglut3-dev:i386
-sudo apt install libglew-dev
-sudo apt install xorg-dev
-sudo apt install libopenal1:i386 libopenal-dev:i386
-sudo apt install libalut-dev:i386 // You will need to find libalut-dev:i386, libalut0:i386 and multiarch-support:i386 from Ubuntu Xenial.
-sudo apt install libxmu6:i386
-sudo apt install libstdc++5:i386
-sudo apt install libasound2-dev:i386
-```
-
-For Ubuntu 22.04 and above you'll need to download manually from Xenial.
-
-```
-wget -q http://launchpadlibrarian.net/534757982/multiarch-support_2.23-0ubuntu11.3_i386.deb \
-    && dpkg -i multiarch-support_2.23-0ubuntu11.3_i386.deb
-wget -q http://launchpadlibrarian.net/184146495/libalut0_1.1.0-5_i386.deb \
-    && dpkg -i libalut0_1.1.0-5_i386.deb
-wget -q http://launchpadlibrarian.net/184146496/libalut-dev_1.1.0-5_i386.deb \
-    && dpkg -i libalut-dev_1.1.0-5_i386.deb
-
-```
-
-Note: The project has been tested to work on Ubuntu 22.04, and doesn't currently work on Ubuntu 23.10. Multiple packages such as `freeglut3:i386` are not available anymore on Debian Trixxie or Ubuntu 23.10.
+This project emulates the SEGA Lindbergh, allowing games to run on modern Linux computers to be used as replacement hardware for broken Lindbergh systems in physical arcade machines. It supports both Intel and AMD CPUs as well as Intel, NVIDIA and AMD GPUs, surround sound audio, networking and JVS pass through.
 
 ## Building & Running
 
-This emulator will need access to the input devices and serial devices on Linux. Before running this emulator you should add your user account to the following groups and then _restart your computer_.
+First you will need to install the following dependencies.
 
+```shell
+sudo dpkg --add-architecture i386
+sudo apt update
+sudo apt install git build-essential gcc-multilib freeglut3-dev:i386 libsdl2-dev:i386 libfaudio-dev:i386
 ```
+
+This emulator will need access to the input devices and serial devices on your computer. You should add your user account to the following groups and then _restart your computer_.
+
+```shell
 sudo usermod -a -G dialout,input $USER
 ```
 
-To build, run the makefile, and then copy the contents of the build directory into the game directory and run.
+Then you should clone the repository, change directory into it and run make.
 
-```
+```shell
+git clone git@github.com:dkeruza-neo/lindbergh-loader.git
+cd lindbergh-loader
 make
-cp build/* ~/the-house-of-the-dead-4/disk0/elf/.
-cd ~/the-house-of-the-dead-4/disk0/elf
+```
+
+You should then copy the contents of the build directory to your game directory and run `./lindbergh` for the game, or `./lindbergh -t` for test mode.
+
+```shell
+cp -a build/* /home/games/the-house-of-the-dead-4/disk0/elf/.
+cd /home/games/the-house-of-the-dead-4/disk0/elf/.
 ./lindbergh
 ```
 
-Some games will require extra libraries like `libposixtime.so`, which can be found in dumps of the Lindbergh CF image.
+If you'd like to change game settings copy the default configuration file from the repository to your game directory.
 
-A default configuration file is provided in `docs/lindbergh.conf`. It should be placed in the same folder the game is run from. If no config file is present a default setting will be used.
+```shell
+cp build/docs/lindbergh.conf /home/games/the-house-of-the-dead-4/disk0/elf/.
+nano lindbergh.conf
+```
 
-Do not run this as root, instead use the usergroups for input/dialout to give the emulator access to what it needs. Lindbergh games expect full control of the Linux OS and with root privilages it is possible that they could cause damage to your computer.
+Configuration options and supported games are explained in the [guide](docs/guide.md).
 
-A `lindbergh` executable is provided in the build directory to easily run the games. Place it in the same directory as the game elf, and run `./lindbergh` to automatically start the game with the correct environment variables set, or run `./lindbergh -t` for test mode.
+## License
 
-## Controls
+<p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://github.com/lindbergh-loader/">Lindbergh Loader</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://github.com/lindbergh-loader/">Lindbergh Loader Development Team</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1" alt=""><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1" alt=""><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/nc.svg?ref=chooser-v1" alt=""><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1" alt=""></a></p>
 
-Currently the controls are set up for The House of the Dead 4.
-
-| Key         | Mapping        |
-|-------------|----------------|
-| t           | Test           |
-| s           | Service        |
-| 5           | Coin 1         |
-| 1           | Player 1 Start |
-| Right Click | Reload         |
-| Left Click  | Shoot          |
-
-Controls can be modified in the `lindbergh.conf` file.
+Our project is open source, and our primary goal is to preserve and maintain Lindbergh arcade machines, ensuring they continue to operate in arcades. We encourage individuals to use the information provided for their own open source projects and contribute to the development of the loader to improve it for the benefit of the community. However, we do not permit the use of any of our code in commercial ventures without prior consent from the Lindbergh Loader Development Team. If we become aware of any such use, we reserve the right to take legal action.
 
 ## Thanks
 
-This project has been built by referencing earlier projects by Teknoparrot and JayFoxRox and from contributions by Doozer, Rolel, dkeruza-neo, Caviar-X and RetroFan with extensive testing by Francesco - thanks to all of them!
+This project has been built by referencing various earlier projects and would like to extend it's thanks to everyone that has contributed to the Lindbergh scene.
+
+## Takedown Notices
+
+The Lindbergh Loader Development Team respects intellectual property rights and is committed to ensuring that no copyrighted material is shared without proper authorization. If you believe that we are infringing on your intellectual property or have any concerns regarding our activities, please email us at bobby [at] dilley [dot] uk. We are more than happy to address any issues and discuss them further.

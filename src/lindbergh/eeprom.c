@@ -1,10 +1,10 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
+#include "config.h"
 #include "eeprom.h"
 #include "eeprom_settings.h"
-#include "config.h"
 
 #define I2C_SMBUS_BLOCK_MAX 32
 #define I2C_GET_FUNCTIONS 0x705
@@ -15,8 +15,7 @@
 #define I2C_SEEK 2
 #define I2C_WRITE 3
 
-union i2c_smbus_data
-{
+union i2c_smbus_data {
     uint8_t byte;
     uint16_t word;
     uint8_t block[I2C_SMBUS_BLOCK_MAX + 2];
@@ -68,9 +67,22 @@ int initEeprom()
             setFreeplay(eeprom, getConfig()->freeplay);
     }
 
-    if ((getConfig()->crc32 == LETS_GO_JUNGLE_SPECIAL) || (getConfig()->crc32 == THE_HOUSE_OF_THE_DEAD_EX) || (getConfig()->crc32 == THE_HOUSE_OF_THE_DEAD_4_SPECIAL))
+    if ((getConfig()->crc32 == LETS_GO_JUNGLE_SPECIAL) || (getConfig()->crc32 == THE_HOUSE_OF_THE_DEAD_EX) ||
+        (getConfig()->crc32 == THE_HOUSE_OF_THE_DEAD_4_SPECIAL) ||
+        (getConfig()->crc32 == THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB))
     {
         if (fixCreditSection(eeprom) != 0)
+        {
+            printf("Error initializing eeprom settings.");
+            fclose(eeprom);
+            return 1;
+        }
+    }
+
+    if (getConfig()->crc32 == HUMMER || getConfig()->crc32 == HUMMER_SDLX || getConfig()->crc32 == HUMMER_EXTREME ||
+        getConfig()->crc32 == HUMMER_EXTREME_MDX)
+    {
+        if (fixCoinAssignmentsHummer(eeprom) != 0)
         {
             printf("Error initializing eeprom settings.");
             fclose(eeprom);
@@ -95,7 +107,8 @@ int eepromIoctl(int fd, unsigned int request, void *data)
         functions[0] = 0x20000 | 0x40000 | 0x100000 | 0x400000 | 0x8000000;
 
         // The following is taken from the eeprom init sequence in The House Of The Dead 4 so let's add em on!
-        functions[0] = functions[0] | 0x20000 | 0x40000 | 0x80000 | 0x100000 | 0x200000 | 0x400000 | 0x1000000 | 0x2000000;
+        functions[0] =
+            functions[0] | 0x20000 | 0x40000 | 0x80000 | 0x100000 | 0x200000 | 0x400000 | 0x1000000 | 0x2000000;
     }
     break;
 

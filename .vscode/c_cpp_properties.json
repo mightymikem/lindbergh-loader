@@ -10,7 +10,7 @@
                 "__USE_MISC"
             ],
             "cppStandard": "gnu++17",
-            "cStandard": "c99",
+            "cStandard": "gnu99",
             "intelliSenseMode": "linux-gcc-x86",
             "forcedInclude": [
                 "${workspaceFolder}/../vscode-preinclude.h"

@@ -2,13 +2,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+
+#include "evdevinput.h"
+#include "version.h"
 
 #define LD_LIBRARY_PATH "LD_LIBRARY_PATH"
 #define LD_PRELOAD "LD_PRELOAD"
 #define PRELOAD_FILE_NAME "lindbergh.so"
+#define TEAM "bobbydilley, retrofan, dkeruza-neo, doozer, francesco, rolel, caviar-x"
+
+uint32_t elf_crc = 0;
 
 // List of all lindbergh executables known, not including the test executables
-char *games[] = {"main.exe", "ramboM.elf", "vt3_Lindbergh", "hummer_Master.elf", "drive.elf", "chopperM.elf", "vsg", "Jennifer", "amiM.elf", "abc", "hod4M.elf", "lgj_final", "vt3", "id4.elf", "id5.elf", "lgjsp_app", "gsevo", "vf5", "apacheM.elf", "segaboot", "END"};
+char *games[] = {"main.exe",
+                 "ramboM.elf",
+                 "vt3_Lindbergh",
+                 "hummer_Master.elf",
+                 "drive.elf",
+                 "chopperM.elf",
+                 "vsg",
+                 "Jennifer",
+                 "dsr",
+                 "abc",
+                 "hod4M.elf",
+                 "lgj_final",
+                 "vt3",
+                 "id4.elf",
+                 "id5.elf",
+                 "lgjsp_app",
+                 "gsevo",
+                 "vf5",
+                 "apacheM.elf",
+                 "hodexRI.elf",
+                 "segaboot",    // SEGABOOT should always be at the end
+                 "END"};
 
 /**
  * Tests if the game uses a seperate elf for test mode
@@ -22,6 +50,12 @@ void testModePath(char *name)
     if (strcmp(name, "./hod4M.elf") == 0)
     {
         strcpy(name, "./hod4testM.elf");
+        return;
+    }
+
+    if (strcmp(name, "./hodexRI.elf") == 0)
+    {
+        strcpy(name, "./hodextestR.elf");
         return;
     }
 
@@ -69,10 +103,6 @@ void setEnvironmentVariables()
 
     // Ensure the preload path is set correctly
     setenv(LD_PRELOAD, PRELOAD_FILE_NAME, 1);
-
-    // Ensure the game runs on the NVidia Graphics Card
-    setenv("__NV_PRIME_RENDER_OFFLOAD", "1", 1);
-    setenv("__GLX_VENDOR_LIBRARY_NAME", "nvidia", 1);
 }
 
 /**
@@ -82,9 +112,54 @@ void printUsage(char *argv[])
 {
     printf("%s [GAME_PATH] [OPTIONS]\n", argv[0]);
     printf("Options:\n");
-    printf("  --test | -t    Runs the test mode\n");
-    printf("  --gdb          Runs with GDB\n");
-    printf("  --help         Displays this usage text\n");
+    printf("  --test | -t         Runs the test mode\n");
+    printf("  --segaboot | -s     Runs segaboot\n");
+    printf("  --gdb               Runs with GDB\n");
+    printf("  --list-controllers  Lists available controllers and inputs\n");
+    printf("  --version           Displays the version of the loader and team's names\n");
+    printf("  --help              Displays this usage text\n");
+}
+
+/**
+ * Lists available evdev controllers and their inputs
+ */
+int listControllers()
+{
+    Controllers controllers;
+
+    ControllerStatus status = initControllers(&controllers);
+    if (status != CONTROLLER_STATUS_SUCCESS)
+    {
+        printf("Failed to list controllers\n");
+        return EXIT_FAILURE;
+    }
+
+    for (int i = 0; i < controllers.count; i++)
+    {
+        Controller controller = controllers.controller[i];
+        if (!controller.enabled)
+            continue;
+
+        printf("%s\n", controller.name);
+
+        for (int i = 0; i < controller.inputCount; i++)
+        {
+            printf("  - %s\n", controller.inputs[i].inputName);
+        }
+    }
+    
+    stopControllers(&controllers);
+
+    return EXIT_SUCCESS;
+}
+
+/**
+ * Small utility to automatically detect the game and run it without
+ * having to type a long string in.
+ */
+void printVersion() {
+    printf("Lindbergh Loader v%d.%d\n", MAJOR_VERSION, MINOR_VERSION);
+    printf("Created by: %s\n", TEAM);
 }
 
 /**
@@ -93,9 +168,14 @@ void printUsage(char *argv[])
  */
 int main(int argc, char *argv[])
 {
-
     // Ensure environment variables are set correctly
     setEnvironmentVariables();
+
+    // Check for --version before directory operations
+    if (argc > 1 && strcmp(argv[1], "--version") == 0) {
+        printVersion();
+        return EXIT_SUCCESS;
+    }
 
     // Look for the games
     struct dirent *ent;
@@ -150,6 +230,11 @@ int main(int argc, char *argv[])
         return EXIT_SUCCESS;
     }
 
+    if (argc > 1 && strcmp(argv[1], "--list-controllers") == 0)
+    {
+        return listControllers();
+    }
+
     if (!lindberghSharedObjectFound)
     {
         printf("Error: The preload object lindbergh.so was not found in this directory.\n");
@@ -161,6 +246,7 @@ int main(int argc, char *argv[])
     int testMode = 0;
     int gdb = 0;
     int forceGame = 0;
+    int segaboot = 0;
 
     char forceGamePath[128] = {0};
     for (int i = 1; i < argc; i++)
@@ -168,6 +254,12 @@ int main(int argc, char *argv[])
         if (strcmp(argv[i], "-t") == 0 || strcmp(argv[i], "--test") == 0)
         {
             testMode = 1;
+            continue;
+        }
+
+        if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--segaboot") == 0)
+        {
+            segaboot = 1;
             continue;
         }
 
@@ -187,6 +279,10 @@ int main(int argc, char *argv[])
     if (forceGame)
     {
         strcat(command, forceGamePath);
+    }
+    else if (segaboot)
+    {
+       strcat(command, "segaboot -t");
     }
     else
     {

@@ -238,6 +238,7 @@ int getSenseLine();
 void setSenseLine(int senseLine);
 
 int initIO();
+JVSIO* getJVSIO();
 int setSwitch(JVSPlayer player, JVSInput switchNumber, int value);
 int incrementCoin(JVSPlayer player, int amount);
 int setAnalogue(JVSInput channel, int value);

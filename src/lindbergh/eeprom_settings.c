@@ -213,6 +213,19 @@ int fixCreditSection(FILE *eeprom)
     return 0;
 }
 
+int fixCoinAssignmentsHummer(FILE *eeprom)
+{
+    eepromBuffer[eepromOffsetTable[CREDIT].offset + 35] = 0;
+    eepromBuffer[eepromOffsetTable[CREDIT].offset + 36] = 0;
+    addCRCtoBuffer(CREDIT);
+    if (writeSectiontoFile(eeprom, CREDIT) != 0)
+    {
+        printf("Error writing to eeprom.");
+        return 1;
+    }
+    return 0;
+}
+
 int eepromSettingsInit( FILE *eeprom)
 {
     build_crc32_table();

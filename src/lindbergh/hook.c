@@ -1,22 +1,34 @@
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
-#include <link.h>
+#include <libgen.h>
+#include <time.h>
+#endif
+
+#ifndef __i386__
+#define __i386__
+#endif
+
+#undef __x86_64__
+#include <arpa/inet.h>
 #include <dlfcn.h>
 #include <errno.h>
+#include <link.h>
 #include <linux/sockios.h>
 #include <math.h>
+#include <netinet/in.h>
+#include <semaphore.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <ucontext.h>
-#include <semaphore.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <cpuid.h>
 #include <unistd.h>
+#include <signal.h>
+#include <ifaddrs.h>
+#include <dirent.h>
 
 #include "hook.h"
 
@@ -24,21 +36,17 @@
 #include "config.h"
 #include "driveboard.h"
 #include "eeprom.h"
+#include "gpuvendor.h"
+#include "input.h"
 #include "jvs.h"
-#include "rideboard.h"
-#include "securityboard.h"
 #include "patch.h"
 #include "pcidata.h"
-#include "input.h"
-#include "soundcard.h"
-
-#include "alsa/global.h"
-#include "alsa/input.h"
-#include "alsa/output.h" 
-#include "alsa/conf.h"
-#include "alsa/pcm.h"
-#include "alsa/control.h"
-#include "alsa/error.h"
+#include "resolution.h"
+#include "rideboard.h"
+#include "securityboard.h"
+#include "shader_patches.h"
+#include "fps_limiter.h"
+#include "evdevinput.h"
 
 #define HOOK_FILE_NAME "/dev/zero"
 
@@ -51,14 +59,23 @@
 #define CPUINFO 0
 #define OSRELEASE 1
 #define PCI_CARD_1F0 2
+#define FILE_RW1 3
+#define FILE_RW2 4
+#define FILE_HARLEY 5
 
 int hooks[5] = {-1, -1, -1, -1, -1};
-FILE *fileHooks[3] = {NULL, NULL, NULL};
-int fileRead[3] = {0, 0, 0};
+FILE *fileHooks[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
+int fileRead[6] = {0, 0, 0, 0, 0, 0};
 char envpath[100];
+
 uint32_t elf_crc = 0;
 
-cpuvendor cpu_vendor = {0};
+extern int hummerExtremeShaderFileIndex;
+extern bool cachedShaderFilesLoaded;
+extern char vf5StageNameAbbr[5];
+
+extern fps_limit fpsLimit;
+Controllers controllers = {0};
 
 static int callback(struct dl_phdr_info *info, size_t size, void *data);
 
@@ -79,7 +96,7 @@ static void handleSegfault(int signal, siginfo_t *info, void *ptr)
 
     switch (*code)
     {
-    case 0xED:
+    case 0xED: // IN
     {
         // Get the port number from the EDX register
         uint16_t port = ctx->uc_mcontext.gregs[REG_EDX] & 0xFFFF;
@@ -149,9 +166,6 @@ void __attribute__((constructor)) hook_init()
     // Get offsets of the Game's ELF and calculate CRC32.
     dl_iterate_phdr(callback, NULL);
 
-    // Get CPU ID
-    getCPUID();
-
     // Implement SIGSEGV handler
     struct sigaction act;
     act.sa_sigaction = handleSegfault;
@@ -160,7 +174,17 @@ void __attribute__((constructor)) hook_init()
 
     initConfig();
 
+    if (getConfig()->fpsLimiter == 1)
+    {
+        fpsLimit.targetFrameTime = 1000000 / getConfig()->fpsTarget;
+        fpsLimit.frameEnd = Clock_now();
+    }
+    getGPUVendor();
+
     if (initPatch() != 0)
+        exit(1);
+
+    if (initResolutionPatches() != 0)
         exit(1);
 
     if (initEeprom() != 0)
@@ -190,42 +214,92 @@ void __attribute__((constructor)) hook_init()
     if (initInput() != 0)
         exit(1);
 
+    if (initControllers(&controllers) != 0)
+        exit(1);
+
     securityBoardSetDipResolution(getConfig()->width, getConfig()->height);
 
-    printf("\nSEGA Lindbergh Emulator\nRobert Dilley 2023\n\n");
+    printf("\nSEGA Lindbergh Emulator\nBy the Lindbergh Development Team 2024\n\n");
     printf("  GAME:       %s\n", getGameName());
     printf("  GAME ID:    %s\n", getGameID());
     printf("  DVP:        %s\n", getDVPName());
     printf("  STATUS:     %s\n", getConfig()->gameStatus == WORKING ? "WORKING" : "NOT WORKING");
+    printf("  GPU VENDOR: %s\n\n", getConfig()->GPUVendorString);
+
+    for (int i = 0; i < controllers.count; i++)
+    {
+        if (controllers.controller[i].inUse)
+        {
+            printf("  CONTROLLER: %s\n", controllers.controller[i].name);
+        }
+    }
+    printf("\n");
+
+    if (getConfig()->lgjRenderWithMesa &&
+        ((getConfig()->crc32 == LETS_GO_JUNGLE) || (getConfig()->crc32 == LETS_GO_JUNGLE_REVA) ||
+         (getConfig()->crc32 == LETS_GO_JUNGLE_SPECIAL)))
+    {
+        getConfig()->GPUVendor = AMD_GPU;
+    }
 }
 
-int open(const char *pathname, int flags)
+DIR *opendir(const char *dirname)
 {
-    int (*_open)(const char *pathname, int flags) = dlsym(RTLD_NEXT, "open");
+    DIR *(*_opendir)(const char *dirname) = dlsym(RTLD_NEXT, "opendir");
 
-    // printf("Open %s\n", pathname);
+    int gId = getConfig()->crc32;
+    if (gId == INITIALD_5_EXP_30 || gId == INITIALD_5_EXP_40 || gId == INITIALD_5_JAP_REVA ||
+        gId == INITIALD_5_JAP_REVF)
+    {
+        if (strcmp(dirname, "/tmp/") == 0)
+        {
+            return _opendir(dirname + 1);
+        }
+    }
+    return _opendir(dirname);
+}
+
+int __xstat64(int ver, const char *path, struct stat64 *stat_buf)
+{
+    int (*___xstat64)(int ver, const char *path, struct stat64 *stat_buf) = dlsym(RTLD_NEXT, "__xstat64");
+
+    if (strcmp("/var/tmp/warning", path) == 0)
+    {
+        return ___xstat64(ver, "warning", stat_buf);
+    }
+    return ___xstat64(ver, path, stat_buf);
+}
+
+int open(const char *pathname, int flags, ...)
+{
+    va_list args;
+    va_start(args, flags);
+    int mode = va_arg(args, int);
+    va_end(args);
+
+    int (*_open)(const char *pathname, int flags, ...) = dlsym(RTLD_NEXT, "open");
 
     if (strcmp(pathname, "/dev/lbb") == 0)
     {
-        hooks[BASEBOARD] = _open(HOOK_FILE_NAME, flags);
+        hooks[BASEBOARD] = _open(HOOK_FILE_NAME, flags, mode);
         return hooks[BASEBOARD];
     }
 
     if (strcmp(pathname, "/dev/i2c/0") == 0)
     {
-        hooks[EEPROM] = _open(HOOK_FILE_NAME, flags);
+        hooks[EEPROM] = _open(HOOK_FILE_NAME, flags, mode);
         return hooks[EEPROM];
     }
 
     if (strcmp(pathname, "/dev/ttyS0") == 0 || strcmp(pathname, "/dev/tts/0") == 0)
     {
         if (getConfig()->emulateDriveboard == 0 && getConfig()->emulateRideboard == 0)
-            return _open(getConfig()->serial1Path, flags);
+            return _open(getConfig()->serial1Path, flags, mode);
 
         if (hooks[SERIAL0] != -1)
             return -1;
 
-        hooks[SERIAL0] = _open(HOOK_FILE_NAME, flags);
+        hooks[SERIAL0] = _open(HOOK_FILE_NAME, flags, mode);
         printf("Warning: SERIAL0 Opened %d\n", hooks[SERIAL0]);
         return hooks[SERIAL0];
     }
@@ -233,34 +307,50 @@ int open(const char *pathname, int flags)
     if (strcmp(pathname, "/dev/ttyS1") == 0 || strcmp(pathname, "/dev/tts/1") == 0)
     {
         if (getConfig()->emulateMotionboard == 0)
-            return _open(getConfig()->serial2Path, flags);
+            return _open(getConfig()->serial2Path, flags, mode);
 
         if (hooks[SERIAL1] != -1)
             return -1;
 
-        hooks[SERIAL1] = _open(HOOK_FILE_NAME, flags);
+        hooks[SERIAL1] = _open(HOOK_FILE_NAME, flags, mode);
         printf("Warning: SERIAL1 opened %d\n", hooks[SERIAL1]);
         return hooks[SERIAL1];
     }
 
+    if (strcmp(pathname, "/var/tmp/warning") == 0)
+    {
+        return _open("warning", flags, mode);
+    }
+
     if (strncmp(pathname, "/tmp/", 5) == 0)
     {
-        mkdir("tmp", 0777);
-        return _open(pathname + 1, flags);
+        struct stat info;
+        if (!(stat("./tmp", &info) == 0 && (info.st_mode & S_IFDIR)))
+        {
+            mkdir("tmp", 0777);
+        }
+        return _open(pathname + 1, flags, mode);
     }
 
     if (strcmp(pathname, "/proc/bus/pci/01/00.0") == 0)
     {
-        hooks[PCI_CARD_000] = _open(HOOK_FILE_NAME, flags);
+        hooks[PCI_CARD_000] = _open(HOOK_FILE_NAME, flags, mode);
         return hooks[PCI_CARD_000];
     }
 
-    return _open(pathname, flags);
+    // printf("Open %s\n", pathname);
+
+    return _open(pathname, flags, mode);
 }
 
-int open64(const char *pathname, int flags)
+int open64(const char *pathname, int flags, ...)
 {
-    return open(pathname, flags);
+    va_list args;
+    va_start(args, flags);
+    int mode = va_arg(args, int);
+    va_end(args);
+
+    return open(pathname, flags, mode);
 }
 
 FILE *fopen(const char *restrict pathname, const char *restrict mode)
@@ -315,12 +405,72 @@ FILE *fopen(const char *restrict pathname, const char *restrict mode)
         return fileHooks[PCI_CARD_1F0];
     }
 
-    char *result;
-    if ((result = strstr(pathname, "/home/disk0")) != NULL)
+    if (strcmp(pathname, "/var/tmp/warning") == 0)
     {
-        memmove(result + 2, result + 11, strlen(result + 11) + 1);
-        memcpy(result, "..", 2);
-        return _fopen(result, mode);
+        return _fopen("warning", "wb");
+    }
+
+    char *newPathname;
+    if ((newPathname = strstr(pathname, "/home/disk0")) != NULL)
+    {
+        memmove(newPathname + 2, newPathname + 11, strlen(newPathname + 11) + 1);
+        memcpy(newPathname, "..", 2);
+        pathname = newPathname;
+    }
+
+    // This forces LGJ games and ID games to not use the pre-compiled shaders.
+    if ((strstr(pathname, "asm_lbg") != NULL) || (strstr(pathname, "asm_gl") != NULL))
+    {
+        return 0;
+    }
+
+    if (strcmp("./../fs/data/cse_credit.bnk", pathname) == 0)
+    {
+        void *addr = __builtin_return_address(0);
+        fileHooks[FILE_HARLEY] = _fopen(pathname, mode);
+        return fileHooks[FILE_HARLEY];
+    }
+
+    if (cachedShaderFilesLoaded)
+    {
+        void *addr = __builtin_return_address(0);
+        Dl_info info;
+        if (!dladdr(addr, &info))
+        {
+            printf("dladdr failed\n");
+            exit(1);
+        }
+        int idx;
+        if ((strcmp(info.dli_fname, "libstdc++.so.5") != 0) && (shaderFileInList(pathname, &idx)))
+        {
+            if (fileHooks[FILE_RW1] == NULL)
+            {
+                fileRead[FILE_RW1] = idx;
+                fileHooks[FILE_RW1] = _fopen(pathname, mode);
+                return fileHooks[FILE_RW1];
+            }
+            else if (fileHooks[FILE_RW2] == NULL)
+            {
+                fileRead[FILE_RW2] = idx;
+                fileHooks[FILE_RW2] = _fopen(pathname, mode);
+                return fileHooks[FILE_RW2];
+            }
+            else
+            {
+                printf("Error intercepting fopen.\n");
+                exit(1);
+            }
+        }
+    }
+
+    int gId = getConfig()->crc32;
+    if (gId == INITIALD_5_EXP_30 || gId == INITIALD_5_EXP_40 || gId == INITIALD_5_JAP_REVA ||
+        gId == INITIALD_5_JAP_REVF)
+    {
+        if (strncmp(pathname, "/tmp/", 5) == 0)
+        {
+            return fopen(pathname + 1, mode);
+        }
     }
 
     // printf("Path= %s\n", pathname);
@@ -331,7 +481,6 @@ FILE *fopen(const char *restrict pathname, const char *restrict mode)
 FILE *fopen64(const char *pathname, const char *mode)
 {
     FILE *(*_fopen64)(const char *restrict pathname, const char *restrict mode) = dlsym(RTLD_NEXT, "fopen64");
-    // printf("fopen64 %s\n", pathname);
 
     if (strcmp(pathname, "/proc/sys/kernel/osrelease") == 0)
     {
@@ -360,29 +509,58 @@ FILE *fopen64(const char *pathname, const char *mode)
     {
         return _fopen64("SEGA_KakuGothic-DB-Roman_12.abc", mode);
     }
+
+    if ((getConfig()->crc32 == HUMMER) || (getConfig()->crc32 == HUMMER_SDLX) ||
+        (getConfig()->crc32 == HUMMER_EXTREME) || (getConfig()->crc32 == HUMMER_EXTREME_MDX))
+    {
+        int idx;
+        if (shaderFileInList(pathname, &idx))
+        {
+            hummerExtremeShaderFileIndex = idx;
+        }
+    }
+
+    if ((getConfig()->crc32 == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVA || getConfig()->crc32 == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB ||
+         getConfig()->crc32 == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB_6000) &&
+        (getConfig()->GPUVendor != NVIDIA_GPU && getConfig()->GPUVendor != ATI_GPU))
+    {
+        char *filename = basename((char *)pathname);
+        if (strstr(filename, "light_") || strstr(filename, "glow_"))
+        {
+            printf("Stage: %s\n", filename);
+            char *start = strchr(filename, '_') + 1;
+            char *end = strstr(filename, ".txt");
+            strncpy(vf5StageNameAbbr, start, end - start);
+            vf5StageNameAbbr[end - start] = '\0';
+        }
+    }
+
+    // printf("fopen64 %s\n", pathname);
     return _fopen64(pathname, mode);
 }
 
 int fclose(FILE *stream)
 {
     int (*_fclose)(FILE *stream) = dlsym(RTLD_NEXT, "fclose");
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 7; i++)
     {
         if (fileHooks[i] == stream)
         {
             int r = _fclose(stream);
             fileHooks[i] = NULL;
+            fileRead[i] = 0;
             return r;
         }
     }
     return _fclose(stream);
 }
-int openat(int dirfd, const char *pathname, int flags)
+int openat(int dirfd, const char *pathname, int flags, ...)
 {
     int (*_openat)(int dirfd, const char *pathname, int flags) = dlsym(RTLD_NEXT, "openat");
     // printf("openat %s\n", pathname);
 
-    if (strcmp(pathname, "/dev/ttyS0") == 0 || strcmp(pathname, "/dev/ttyS1") == 0 || strcmp(pathname, "/dev/tts/0") == 0 || strcmp(pathname, "/dev/tts/1") == 0)
+    if (strcmp(pathname, "/dev/ttyS0") == 0 || strcmp(pathname, "/dev/ttyS1") == 0 ||
+        strcmp(pathname, "/dev/tts/0") == 0 || strcmp(pathname, "/dev/tts/1") == 0)
     {
         return open(pathname, flags);
     }
@@ -483,7 +661,39 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
         memcpy(buf, pci_1f0, size * count);
         return size * count;
     }
+
+    if (stream == fileHooks[FILE_RW1])
+    {
+        return freadReplace(buf, size, count, fileRead[FILE_RW1]);
+    }
+
+    if (stream == fileHooks[FILE_RW2])
+    {
+        return freadReplace(buf, size, count, fileRead[FILE_RW2]);
+    }
+
+    if (stream == fileHooks[FILE_HARLEY])
+    {
+        return harleyFreadReplace(buf, size, count, fileHooks[FILE_HARLEY]);
+    }
+
     return _fread(buf, size, count, stream);
+}
+
+long int ftell(FILE *stream)
+{
+    long int (*_ftell)(FILE *stream) = dlsym(RTLD_NEXT, "ftell");
+
+    if (stream == fileHooks[FILE_RW1])
+    {
+        return ftellGetShaderSize(fileRead[FILE_RW1]);
+    }
+    if (stream == fileHooks[FILE_RW2])
+    {
+        return ftellGetShaderSize(fileRead[FILE_RW2]);
+    }
+
+    return _ftell(stream);
 }
 
 ssize_t write(int fd, const void *buf, size_t count)
@@ -513,7 +723,9 @@ int ioctl(int fd, unsigned int request, void *data)
     int (*_ioctl)(int fd, int request, void *data) = dlsym(RTLD_NEXT, "ioctl");
 
     // Attempt to stop access to the ethernet ports
-    if ((request == SIOCSIFADDR) || (request == SIOCSIFFLAGS) || (request == SIOCSIFHWADDR) || (request == SIOCSIFHWBROADCAST) || (request == SIOCDELRT) || (request == SIOCADDRT) || (request == SIOCSIFNETMASK))
+    if ((request == SIOCSIFADDR) || (request == SIOCSIFFLAGS) || (request == SIOCSIFHWADDR) ||
+        (request == SIOCSIFHWBROADCAST) || (request == SIOCDELRT) || (request == SIOCADDRT) ||
+        (request == SIOCSIFNETMASK))
     {
         errno = ENXIO;
         return -1;
@@ -540,9 +752,11 @@ int ioctl(int fd, unsigned int request, void *data)
     return _ioctl(fd, request, data);
 }
 
-int select(int nfds, fd_set *restrict readfds, fd_set *restrict writefds, fd_set *restrict exceptfds, struct timeval *restrict timeout)
+int select(int nfds, fd_set *restrict readfds, fd_set *restrict writefds, fd_set *restrict exceptfds,
+           struct timeval *restrict timeout)
 {
-    int (*_select)(int nfds, fd_set *restrict readfds, fd_set *restrict writefds, fd_set *restrict exceptfds, struct timeval *restrict timeout) = dlsym(RTLD_NEXT, "select");
+    int (*_select)(int nfds, fd_set *restrict readfds, fd_set *restrict writefds, fd_set *restrict exceptfds,
+                   struct timeval *restrict timeout) = dlsym(RTLD_NEXT, "select");
 
     if (readfds != NULL && FD_ISSET(hooks[BASEBOARD], readfds))
     {
@@ -624,6 +838,37 @@ int sem_wait(sem_t *sem)
 }
 */
 
+int get_machine_ip(struct sockaddr_in *addr)
+{
+    struct ifaddrs *ifaddr, *ifa;
+    char ip_buffer[INET_ADDRSTRLEN];
+
+    if (getifaddrs(&ifaddr) == -1)
+    {
+        perror("getifaddrs");
+        return -1;
+    }
+
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
+    {
+        if (ifa->ifa_addr && ifa->ifa_addr->sa_family == AF_INET)
+        {
+            if (inet_ntop(AF_INET, &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr, ip_buffer, sizeof(ip_buffer)))
+            {
+                if (strcmp(ifa->ifa_name, "lo") != 0)
+                {
+                    addr->sin_addr.s_addr = inet_addr(ip_buffer);
+                    freeifaddrs(ifaddr);
+                    return 0;
+                }
+            }
+        }
+    }
+
+    freeifaddrs(ifaddr);
+    return -1;
+}
+
 /**
  * Hook function used by Harley Davidson to change IPs to localhost
  * Currently does nothing.
@@ -638,12 +883,27 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 
     struct sockaddr_in *in_pointer = (struct sockaddr_in *)addr;
 
-    // Change the IP to connect to 127.0.0.1
-    // in_pointer->sin_addr.s_addr = inet_addr("127.0.0.1");
-    char *some_addr = inet_ntoa(in_pointer->sin_addr);
-    if (getConfig()->showDebugMessages)
+    // IP addresses to replace
+    const char *specific_ips[] = {"192.168.1.1", "192.168.1.5", "192.168.1.9"};
+    int num_specific_ips = sizeof(specific_ips) / sizeof(specific_ips[0]);
+
+    if (getConfig()->crc32 == HARLEY_DAVIDSON)
     {
-        printf("Connecting to %s\n", some_addr);
+        char *ip_address = inet_ntoa(in_pointer->sin_addr);
+        for (int i = 0; i < num_specific_ips; ++i)
+        {
+            if (strcmp(ip_address, specific_ips[i]) == 0)
+            {
+                // Change the IP to connect to 127.0.0.1
+                in_pointer->sin_addr.s_addr = inet_addr("127.0.0.1");
+                if (getConfig()->showDebugMessages)
+                {
+                    char *some_addr = inet_ntoa(in_pointer->sin_addr);
+                    printf("Connecting to %s\n", some_addr);
+                }
+                break;
+            }
+        }
     }
 
     return _connect(sockfd, addr, addrlen);
@@ -678,21 +938,9 @@ static int callback(struct dl_phdr_info *info, size_t size, void *data)
 {
     if ((info->dlpi_phnum >= 3) && (info->dlpi_phdr[2].p_type == PT_LOAD) && (info->dlpi_phdr[2].p_flags == 5))
     {
-        elf_crc = get_crc32((void *)(info->dlpi_addr + info->dlpi_phdr[2].p_vaddr + 10), 128);
+        elf_crc = get_crc32((void *)(size_t)(info->dlpi_addr + info->dlpi_phdr[2].p_vaddr + 10), 0x4000);
     }
     return 1;
-}
-
-void getCPUID()
-{
-    unsigned eax;
-    eax = 0;
-    __get_cpuid(0, &eax, &cpu_vendor.ebx, &cpu_vendor.ecx, &cpu_vendor.edx);
-    sprintf(cpu_vendor.cpuid, "%.4s%.4s%.4s", (const char *)&cpu_vendor.ebx, (const char *)&cpu_vendor.edx, (const char *)&cpu_vendor.ecx);
-    if (getConfig()->showDebugMessages)
-    {
-        printf("Detected CPU Vendor: %s\n", cpu_vendor.cpuid);
-    }
 }
 
 /**
@@ -716,9 +964,11 @@ int setenv(const char *name, const char *value, int overwrite)
 char *getenv(const char *name)
 {
     char *(*_getenv)(const char *name) = dlsym(RTLD_NEXT, "getenv");
-
-    if ((strcmp(name, "TEA_DIR") == 0) && ((getConfig()->crc32 == VIRTUA_TENNIS_3) || (getConfig()->crc32 == VIRTUA_TENNIS_3_TEST) ||
-                                           ((getConfig()->crc32 == RAMBO)) || (getConfig()->crc32 == TOO_SPICY)))
+    int gId = getConfig()->crc32;
+    if ((strcmp(name, "TEA_DIR") == 0) &&
+        ((gId == VIRTUA_TENNIS_3) || (gId == VIRTUA_TENNIS_3_TEST) || (gId == VIRTUA_TENNIS_3_REVA) ||
+         (gId == VIRTUA_TENNIS_3_REVA_TEST) || (gId == VIRTUA_TENNIS_3_REVB) || (gId == VIRTUA_TENNIS_3_REVB_TEST) ||
+         (gId == VIRTUA_TENNIS_3_REVC) || (gId == VIRTUA_TENNIS_3_REVC_TEST) || ((gId == RAMBO)) || (gId == TOO_SPICY)))
     {
         if (getcwd(envpath, 100) == NULL)
             return "";
@@ -734,7 +984,10 @@ char *getenv(const char *name)
             return "";
         return envpath;
     }
-
+    if (strcmp(name, "__GL_SYNC_TO_VBLANK") == 0)
+    {
+        return "";
+    }
     return _getenv(name);
 }
 
@@ -753,8 +1006,15 @@ int unsetenv(const char *name)
     return _unsetenv(name);
 }
 
-int snd_pcm_open(snd_pcm_t **pcmp, const char *name, snd_pcm_stream_t stream, int mode)
+/**
+ * Patches the hardcoded sound card device name
+ */
+char *__strdup(const char *string)
 {
-    int (*_snd_pcm_open)(snd_pcm_t **pcmp, const char *name, snd_pcm_stream_t stream, int mode) = dlsym(RTLD_NEXT, "snd_pcm_open");
-    return _snd_pcm_open(pcmp, get_sndcard(), stream, mode);
+    char *(*___strdup)(const char *string) = dlsym(RTLD_NEXT, "__strdup");
+    if (strcmp(string, "plughw:0, 0") == 0)
+    {
+        return ___strdup("default");
+    }
+    return ___strdup(string);
 }
