@@ -2,6 +2,20 @@
 
 All configurable options are set and explained in the `lindbergh.conf` file, and should be resonably easy to understand. This document further explains some of those setup options.
 
+## Libraries
+
+Additional libraries that you might need to install to get all games running are listed here:
+
+```
+sudo apt install build-essential freeglut3:i386 freeglut3-dev:i386 libglew-dev xorg-dev libopenal1:i386 libopenal-dev:i386 libxmu6:i386 libstdc++5:i386 libsdl2-dev:i386 libfaudio0:i386 libfaudio-dev:i386 libncurses5:i386 libasound2-dev:i386 alsa-utils:i386 libasound2-plugins:i386
+```
+
+## Game Issues
+
+### Let's Go Jungle Rev A
+
+- The game must be run in export mode to have the stereo sound option.
+
 ## Controller Setup
 
 There are 2 modes for the controller setup in the emulator, these are set using the `INPUT_MODE` flag in the configuration file.

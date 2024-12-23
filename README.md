@@ -1,8 +1,10 @@
-[![Actions Status](https://github.com/dkeruza-neo/lindbergh-loader/actions/workflows/ci.yml/badge.svg)](https://github.com/dkeruza-neo/lindbergh-loader/actions)
+[![Actions Status](https://github.com/lindbergh-loader/lindbergh-loader/actions/workflows/ci.yml/badge.svg)](https://github.com/lindbergh-loader/lindbergh-loader/actions)
 
 # SEGA Lindbergh Emulator
 
 This project emulates the SEGA Lindbergh, allowing games to run on modern Linux computers to be used as replacement hardware for broken Lindbergh systems in physical arcade machines. It supports both Intel and AMD CPUs as well as Intel, NVIDIA and AMD GPUs, surround sound audio, networking and JVS pass through.
+
+If you'd like to support the development work of this emulator, see early development builds or get support from the authors please consider [becoming a patreon here](https://www.patreon.com/LindberghLoader).
 
 ## Building & Running
 
@@ -23,7 +25,7 @@ sudo usermod -a -G dialout,input $USER
 Then you should clone the repository, change directory into it and run make.
 
 ```shell
-git clone git@github.com:dkeruza-neo/lindbergh-loader.git
+git clone git@github.com:lindbergh-loader/lindbergh-loader.git
 cd lindbergh-loader
 make
 ```
