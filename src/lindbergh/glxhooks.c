@@ -91,7 +91,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 
     int gId = getConfig()->crc32;
     if (getConfig()->noSDL && (gId == OUTRUN_2_SP_SDX || gId == OUTRUN_2_SP_SDX_REVA ||
-                               gId == OUTRUN_2_SP_SDX_REVA_TEST || gId == OUTRUN_2_SP_SDX_TEST))
+                               gId == OUTRUN_2_SP_SDX_REVA_TEST || gId == OUTRUN_2_SP_SDX_REVA_TEST2 || gId == OUTRUN_2_SP_SDX_TEST))
     {
         XEvent event;
         while (XPending(dpy))
