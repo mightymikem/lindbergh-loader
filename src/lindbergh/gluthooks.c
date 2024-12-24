@@ -96,7 +96,7 @@ void FGAPIENTRY glutSwapBuffers(void)
     }
 
     int gId = getConfig()->crc32;
-    if (gId == OUTRUN_2_SP_SDX || gId == OUTRUN_2_SP_SDX_REVA || gId == OUTRUN_2_SP_SDX_REVA_TEST ||
+    if (gId == OUTRUN_2_SP_SDX || gId == OUTRUN_2_SP_SDX_REVA || gId == OUTRUN_2_SP_SDX_REVA_TEST || gId == OUTRUN_2_SP_SDX_REVA_TEST2 ||
         gId == OUTRUN_2_SP_SDX_TEST)
     {
         pollEvents();
