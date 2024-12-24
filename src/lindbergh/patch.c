@@ -667,6 +667,7 @@ int initPatch()
     }
     break;
     case OUTRUN_2_SP_SDX_REVA_TEST:
+    case OUTRUN_2_SP_SDX_REVA_TEST2:
     {
         // Security
         detourFunction(0x08066220, amDongleInit);
