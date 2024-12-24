@@ -37,6 +37,7 @@
 #define OUTRUN_2_SP_SDX 0x92c196d5                           // DVP-0015
 #define OUTRUN_2_SP_SDX_REVA 0x4debd5f0                      // DVP-0015A
 #define OUTRUN_2_SP_SDX_REVA_TEST 0x6b2d5c46                 // DVP-0015A
+#define OUTRUN_2_SP_SDX_REVA_TEST2 0x4ee20716                // DVP-0015A
 #define OUTRUN_2_SP_SDX_TEST 0xf1c89eae                      // DVP-0015
 #define PRIMEVAL_HUNT 0x6868215c                             // DVP-0048A
 #define RAMBO 0x48f49dd                                      // DVP-0069
