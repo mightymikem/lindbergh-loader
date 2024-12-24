@@ -129,6 +129,7 @@ static int detectGame(uint32_t elf_crc)
 
     case OUTRUN_2_SP_SDX_REVA:
     case OUTRUN_2_SP_SDX_REVA_TEST:
+    case OUTRUN_2_SP_SDX_REVA_TEST2:
     {
         config.gameTitle = "Outrun 2 SP SDX Rev A";
         config.gameDVP = "DVP-0015A";
