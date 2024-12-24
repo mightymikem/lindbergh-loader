@@ -52,7 +52,7 @@ void glutInitSDL(int *argcp, char **argv)
         return;
     }
     // || gId == R_TUNED || gId == VIRTUA_FIGHTER_5_R || gId == VIRTUA_FIGHTER_5_R_REVD
-    if (gId == OUTRUN_2_SP_SDX_TEST || gId == OUTRUN_2_SP_SDX_REVA_TEST)
+    if (gId == OUTRUN_2_SP_SDX_TEST || gId == OUTRUN_2_SP_SDX_REVA_TEST || gId == OUTRUN_2_SP_SDX_REVA_TEST2)
     {
         _glutInit(argcp, argv);
     }
