@@ -199,6 +199,7 @@ void glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
     case OUTRUN_2_SP_SDX_TEST:
     case OUTRUN_2_SP_SDX_REVA:
     case OUTRUN_2_SP_SDX_REVA_TEST:
+    case OUTRUN_2_SP_SDX_REVA_TEST2:
     {
         if ((width >= 800) && (width != 1024))
         {
@@ -1314,6 +1315,7 @@ int initResolutionPatches()
     }
     break;
     case OUTRUN_2_SP_SDX_REVA_TEST:
+    case OUTRUN_2_SP_SDX_REVA_TEST2:
     {
         setVariable(0x0804a490, getConfig()->width);
         setVariable(0x0804a4ad, getConfig()->height);
