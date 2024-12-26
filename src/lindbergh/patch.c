@@ -1325,6 +1325,39 @@ int initPatch()
         }
     }
     break;
+    case VIRTUA_FIGHTER_5_R_REVG:
+    {
+        // Security
+        detourFunction(0x0885ab46, amDongleInit);
+        detourFunction(0x08859601, amDongleIsAvailable);
+        detourFunction(0x0885961e, amDongleIsDevelop);
+        detourFunction(0x08859ff7, amDongleUpdate);
+        // detourFunction(0x08740ce1, amDongleUserInfoEx);
+
+        // Fixes and patches to bypss network check
+        amDipswContextAddr = (void *)0x09351b08; // Address of amDipswContext
+        detourFunction(0x08859394, amDipswInit);
+        detourFunction(0x08859418, amDipswExit);
+        detourFunction(0x0885948d, amDipswGetData);
+        detourFunction(0x08859503, amDipswSetLed);
+        detourFunction(0x080dc9d6, stubRetZero);
+        detourFunction(0x080fe46c, stubRetZero);
+        detourFunction(0x0856a01c, stubRetZero);
+        detourFunction(0x0856aab0, stubRetZero);
+        patchMemory(0x08118358, "b800000000");
+
+        detourFunction(0x080dc0ac, stubRetZero);
+        patchMemory(0x08117fd6, "02");
+        patchMemory(0x08118020, "909090909090");
+        patchMemory(0x08119384, "ffffffff");
+        patchMemory(0x0811938b, "ffffffff");
+
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x08052a70, gl_ProgramStringARB);
+        }
+    }
+    break;	
     case LETS_GO_JUNGLE_REVA:
     {
         if (config->showDebugMessages == 1)
