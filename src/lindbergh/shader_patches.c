@@ -943,7 +943,7 @@ void gl_ProgramStringARB(int target, int program_fmt, int program_len, char *pro
     }
     else if (gId == VIRTUA_FIGHTER_5 || gId == VIRTUA_FIGHTER_5_REVA || gId == VIRTUA_FIGHTER_5_REVB ||
              gId == VIRTUA_FIGHTER_5_REVE || gId == VIRTUA_FIGHTER_5_REVE || gId == VIRTUA_FIGHTER_5_EXPORT ||
-             gId == VIRTUA_FIGHTER_5_R || gId == VIRTUA_FIGHTER_5_R_REVD ||
+             gId == VIRTUA_FIGHTER_5_R || gId == VIRTUA_FIGHTER_5_R_REVD || gId == VIRTUA_FIGHTER_5_R_REVG ||
              gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVA || gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB ||
              gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB_6000)
     {
@@ -994,7 +994,7 @@ void gl_ProgramStringARB(int target, int program_fmt, int program_len, char *pro
 
     if ((gId == VIRTUA_FIGHTER_5 || gId == VIRTUA_FIGHTER_5_REVA || gId == VIRTUA_FIGHTER_5_REVB ||
          gId == VIRTUA_FIGHTER_5_REVE || gId == VIRTUA_FIGHTER_5_REVE || gId == VIRTUA_FIGHTER_5_EXPORT ||
-         gId == VIRTUA_FIGHTER_5_R || gId == VIRTUA_FIGHTER_5_R_REVD || gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVA ||
+         gId == VIRTUA_FIGHTER_5_R || gId == VIRTUA_FIGHTER_5_R_REVD || gId == VIRTUA_FIGHTER_5_R_REVG || gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVA ||
          gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB || gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB_6000) &&
         getConfig()->GPUVendor == ATI_GPU)
     {
@@ -1370,7 +1370,7 @@ void glBindTexture(GLenum target, GLuint texture)
     int gId = getConfig()->crc32;
     if ((gId == VIRTUA_FIGHTER_5 || gId == VIRTUA_FIGHTER_5_REVA || gId == VIRTUA_FIGHTER_5_REVB ||
          gId == VIRTUA_FIGHTER_5_REVE || gId == VIRTUA_FIGHTER_5_EXPORT || gId == VIRTUA_FIGHTER_5_R ||
-         gId == VIRTUA_FIGHTER_5_R_REVD || gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVA ||
+         gId == VIRTUA_FIGHTER_5_R_REVD ||  gId == VIRTUA_FIGHTER_5_R_REVG ||gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVA ||
          gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB || gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB_6000) &&
         getConfig()->GPUVendor != NVIDIA_GPU)
     {
