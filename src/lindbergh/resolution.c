@@ -264,6 +264,7 @@ void glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
     case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB_6000:
     case VIRTUA_FIGHTER_5_R:
     case VIRTUA_FIGHTER_5_R_REVD:
+	case VIRTUA_FIGHTER_5_R_REVG:
     {
         if (width == vf5FSwidth)
         {
@@ -1500,6 +1501,17 @@ int initResolutionPatches()
         setVariable(0x08822b30, getConfig()->height);
     }
     break;
+	case VIRTUA_FIGHTER_5_R_REVG:
+    {
+        patchMemory(0x0805436a, "01");         // Enable Anti Alias
+        patchMemory(0x0805577c, "b80a000000"); // Skips resolution set by the Dip Switches.
+        vf5FSwidth = (getConfig()->height * 5) / 3;
+        setVariable(0x0887d4d8, vf5FSwidth);
+        setVariable(0x0887d4dc, getConfig()->height);
+        setVariable(0x0887d4ec, getConfig()->width);
+        setVariable(0x0887d4f0, getConfig()->height);
+    }
+    break;	
     case LETS_GO_JUNGLE_REVA:
     {
         setVariable(0x082e1323, getConfig()->width);  // Set ResX
