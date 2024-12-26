@@ -226,6 +226,16 @@ static int detectGame(uint32_t elf_crc)
     }
     break;
 
+    case VIRTUA_FIGHTER_5_R_REVG:
+    {
+        config.gameTitle = "Virtua Fighter 5 R Rev G";
+        config.gameDVP = "DVP-XXXX";
+        config.gameID = "SBQU";
+        config.gameStatus = WORKING;
+        return 0;
+    }
+    break;
+	
     case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN:
     {
         config.gameTitle = "Virtua Fighter 5 Final Showdown";
