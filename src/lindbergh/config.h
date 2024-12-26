@@ -74,6 +74,7 @@
 #define VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB_6000 0x34c0d02  // DVP-5020 ver 6.00 (Weird public version)
 #define VIRTUA_FIGHTER_5_R 0x79db39d                         // DVP-5004
 #define VIRTUA_FIGHTER_5_R_REVD 0x443b6d07                   // DVP-5004D
+#define VIRTUA_FIGHTER_5_R_REVG 0x4702ae73                   // DVP-5004G
 #define VIRTUA_TENNIS_3 0x7a021b5                            // DVP-0005
 #define VIRTUA_TENNIS_3_TEST 0x3bfbd11e                      // DVP-0005
 #define VIRTUA_TENNIS_3_REVA 0xa9a10e32                      // DVP-0005A
