@@ -953,6 +953,41 @@ int readConfig(FILE *configFile, EmulatorConfig *config)
         else if (strcmp(command, "ANALOGUE_8") == 0)
             strncpy(config->arcadeInputs.analogue_8, getNextToken(NULL, " ", &saveptr), INPUT_STRING_LENGTH - 1);
 
+        // Analogue deadzone
+        else if (strcmp(command, "ANALOGUE_DEADZONE_1") == 0) {
+            config->arcadeInputs.analogue_deadzone_start[0] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_middle[0] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_end[0] = atoi(getNextToken(NULL, " ", &saveptr));
+        } else if (strcmp(command, "ANALOGUE_DEADZONE_2") == 0) {
+            config->arcadeInputs.analogue_deadzone_start[1] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_middle[1] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_end[1] = atoi(getNextToken(NULL, " ", &saveptr));
+        } else if (strcmp(command, "ANALOGUE_DEADZONE_3") == 0) {
+            config->arcadeInputs.analogue_deadzone_start[2] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_middle[2] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_end[2] = atoi(getNextToken(NULL, " ", &saveptr));
+        } else if (strcmp(command, "ANALOGUE_DEADZONE_4") == 0) {
+            config->arcadeInputs.analogue_deadzone_start[3] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_middle[3] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_end[3] = atoi(getNextToken(NULL, " ", &saveptr));
+        } else if (strcmp(command, "ANALOGUE_DEADZONE_5") == 0) {
+            config->arcadeInputs.analogue_deadzone_start[4] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_middle[4] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_end[4] = atoi(getNextToken(NULL, " ", &saveptr));
+        } else if (strcmp(command, "ANALOGUE_DEADZONE_6") == 0) {
+            config->arcadeInputs.analogue_deadzone_start[5] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_middle[5] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_end[5] = atoi(getNextToken(NULL, " ", &saveptr));
+        } else if (strcmp(command, "ANALOGUE_DEADZONE_7") == 0) {
+            config->arcadeInputs.analogue_deadzone_start[6] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_middle[6] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_end[6] = atoi(getNextToken(NULL, " ", &saveptr));
+        } else if (strcmp(command, "ANALOGUE_DEADZONE_8") == 0) {
+            config->arcadeInputs.analogue_deadzone_start[7] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_middle[7] = atoi(getNextToken(NULL, " ", &saveptr));
+            config->arcadeInputs.analogue_deadzone_end[7] = atoi(getNextToken(NULL, " ", &saveptr));
+        }
+
         else if (strcmp(command, "INPUT_MODE") == 0)
             config->inputMode = atoi(getNextToken(NULL, " ", &saveptr));
 
@@ -1030,6 +1065,9 @@ int initConfig()
     config.lgjRenderWithMesa = 1;
     config.noSDL = 0;
     config.phMode = 1;
+    memset(&config.arcadeInputs.analogue_deadzone_start, 0, sizeof(config.arcadeInputs.analogue_deadzone_start));
+    memset(&config.arcadeInputs.analogue_deadzone_middle, 0, sizeof(config.arcadeInputs.analogue_deadzone_middle));
+    memset(&config.arcadeInputs.analogue_deadzone_end, 0, sizeof(config.arcadeInputs.analogue_deadzone_end));
     config.crc32 = elf_crc;
     if (detectGame(config.crc32) != 0)
     {

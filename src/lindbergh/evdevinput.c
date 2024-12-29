@@ -777,7 +777,18 @@ typedef struct
 {
     Controller *controller;
     Controllers *controllers;
+    int analogue_deadzone_start[8];
+    int analogue_deadzone_middle[8];
+    int analogue_deadzone_end[8];
 } ThreadArguments;
+
+typedef struct
+{
+    double start_max;
+    double middle_min;
+    double middle_max;
+    double end_min;
+} AnalogueDeadzones;
 
 static inline const char *typename(unsigned int type)
 {
@@ -991,6 +1002,7 @@ void *controllerThread(void *_args)
     }
 
     struct input_event event;
+    AnalogueDeadzones analogue_deadzones[8];
 
     int flags = fcntl(fd, F_GETFL, 0);
     fcntl(fd, F_SETFL, flags | O_NONBLOCK);
@@ -999,6 +1011,13 @@ void *controllerThread(void *_args)
     struct timeval tv;
 
     args->controllers->threadsRunning = 1;
+
+    for (int i = 0; i < 8; ++i) {
+        analogue_deadzones[i].start_max = args->analogue_deadzone_start[i] / 100.0;
+        analogue_deadzones[i].middle_min = 0.5 - (args->analogue_deadzone_middle[i] / 100.0);
+        analogue_deadzones[i].middle_max = 0.5 + (args->analogue_deadzone_middle[i] / 100.0);
+        analogue_deadzones[i].end_min = 1.0 - (args->analogue_deadzone_end[i] / 100.0);
+    }
 
     while (args->controllers->threadsRunning)
     {
@@ -1041,7 +1060,16 @@ void *controllerThread(void *_args)
 
                 if (args->controller->absTriggers[event.code].enabled)
                 {
-                    setAnalogue(args->controller->absTriggers[event.code].channel, scaled * (pow(2, jvsBits) - 1));
+                    int channel = args->controller->absTriggers[event.code].channel;
+                    // Deadzone handling
+                    if (scaled < analogue_deadzones[channel].start_max)
+                        scaled = 0.0;
+                    if (scaled > analogue_deadzones[channel].middle_min && scaled < analogue_deadzones[channel].middle_max)
+                        scaled = 0.5;
+                    if (scaled > analogue_deadzones[channel].end_min)
+                        scaled = 1.0;
+
+                    setAnalogue(channel, scaled * (pow(2, jvsBits) - 1));
                 }
 
                 if (args->controller->absTriggers[event.code].minEnabled)
@@ -1309,9 +1337,13 @@ ControllerStatus startControllerThreads(Controllers *controllers)
         if (!controllerHasInputsEnabled)
             continue;
 
+        EmulatorConfig *config = getConfig();
         ThreadArguments *args = malloc(sizeof(ThreadArguments));
         args->controller = &controllers->controller[i];
         args->controllers = controllers;
+        memcpy(args->analogue_deadzone_start, config->arcadeInputs.analogue_deadzone_start, sizeof(config->arcadeInputs.analogue_deadzone_start));
+        memcpy(args->analogue_deadzone_middle, config->arcadeInputs.analogue_deadzone_middle, sizeof(config->arcadeInputs.analogue_deadzone_middle));
+        memcpy(args->analogue_deadzone_end, config->arcadeInputs.analogue_deadzone_end, sizeof(config->arcadeInputs.analogue_deadzone_end));
         pthread_create(&controllers->thread[controllers->threadIndex++], NULL, controllerThread, args);
         controllers->controller[i].inUse = 1;
     }
