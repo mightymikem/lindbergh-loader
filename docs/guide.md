@@ -81,7 +81,7 @@ There are currently no audio options that you can set. If you have a stereo soun
 The follow list of games are supported. It is worth noting that there are multiple releases of these games, and some specific releases may not be supported.
 
 | Game Name                       | Game ID | DVP      | NVidia | Intel (Mesa) | AMD (Mesa) | AMD (proprietary) |
-| ------------------------------- | ------- | -------- | ------ | ------------ | ---------- | ----------------- |
+|---------------------------------|---------|----------|--------|--------------|------------|-------------------|
 | 2 Spicy                         | SBMV    | DVP-0027 | ✓      | ✓            | ✓          | ✓                 |
 | After Burner Climax             | SBLR    | DVP-0009 | ✓      | ✓            | ✓          |                   |
 | Ghost Squad Evolution           | SBNJ    | DVP-0029 | ✓      | ✓            | ✓          | ✓                 |
