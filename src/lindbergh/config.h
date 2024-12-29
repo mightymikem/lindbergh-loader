@@ -204,6 +204,10 @@ typedef struct {
     char analogue_6[INPUT_STRING_LENGTH];
     char analogue_7[INPUT_STRING_LENGTH];
     char analogue_8[INPUT_STRING_LENGTH];
+
+    int analogue_deadzone_start[8];
+    int analogue_deadzone_middle[8];
+    int analogue_deadzone_end[8];
 } ArcadeInputs;
 
 

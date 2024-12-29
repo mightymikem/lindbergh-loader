@@ -60,6 +60,18 @@ PLAYER_1_BUTTON_LEFT XBOX_CONTROLLER_ABS_X_MIN
 PLAYER_1_BUTTON_RIGHT XBOX_CONTROLLER_ABS_X_MAX
 ```
 
+You can set a deadzone for analogue axis. Each anaolgue input has 3 potential deadzones: start, middle, and end. The deadzone is a percentage of the range from the start, middle, or end that should snap to its respective extreme. This is useful for input devices that don't perfectly center, or pedals that don't perfectly return to 0. For instance.
+
+```
+ANALOGUE_DEADZONE_1 10 13 10
+```
+
+Will cause input on analogue input 1 to be clamped as follows:
+
+  * At the start of the range the first 10% of the range will be set to 0%. In the case of a steering wheel where left is 0%, center is 50%, and right is 100% this will set steering percentages 0-10% to 0%.
+  * In the middle of the range the center 13% of the left of middle, and 13% of the right of middle will snap to the middle.
+  * At the end of the range the last 10% of the range will be set to 100%, similarly to the start case.
+
 ## Audio
 
 There are currently no audio options that you can set. If you have a stereo sound card installed then the audio will be downmixed to stereo. If you have a 5.1 sound card installed and the game supports surround sound, each surround channel should be passed through properly and should play sound as it was originally intended.
