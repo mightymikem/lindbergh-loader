@@ -857,6 +857,10 @@ int readConfig(FILE *configFile, EmulatorConfig *config)
         else if (strcmp(command, "PLAYER_1_BUTTON_8_KEY") == 0)
             config->keymap.player1.button8 = atoi(getNextToken(NULL, " ", &saveptr));
 
+        // Evdev TEST button
+        else if (strcmp(command, "TEST_BUTTON") == 0)
+            strncpy(config->arcadeInputs.test, getNextToken(NULL, " ", &saveptr), INPUT_STRING_LENGTH - 1);
+
         // Player 1 controls
         else if (strcmp(command, "PLAYER_1_BUTTON_START") == 0)
             strncpy(config->arcadeInputs.player1_button_start, getNextToken(NULL, " ", &saveptr),
