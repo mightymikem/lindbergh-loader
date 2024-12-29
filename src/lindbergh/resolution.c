@@ -2209,7 +2209,7 @@ int initResolutionPatches()
         break;
         case 3: // 3ds Mode 1 (Small screen to the right)
         {
-            // We always force 4:3 aspect ration for this mode.
+            // We always force 4:3 aspect ratio for this mode.
             phX = 0;
             phW = (getConfig()->height / 3) * 4;
             phH2 = ((getConfig()->width - phW) / 4) * 3;
@@ -2221,7 +2221,7 @@ int initResolutionPatches()
         break;
         case 4:
         {
-            // We always force 4:3 aspect ration for this mode.
+            // We always force 4:3 aspect ratio for this mode.
             phW = (getConfig()->height / 3) * 4;
             phX2 = (getConfig()->width / 2) - ((getConfig()->width - phW) / 2);
             phW2 = getConfig()->width - phW;
