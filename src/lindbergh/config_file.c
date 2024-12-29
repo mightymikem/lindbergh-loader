@@ -23,7 +23,6 @@ char *getConfigErrorString(ConfigStatus status)
     default:
         return "This config status enum doesn't have an error string associated.";
     }
-    return "This config status enum doesn't have an error string associated.";
 }
 
 static char *getNextToken(char *buffer, char *seperator, char **saveptr)
