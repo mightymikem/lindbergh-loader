@@ -35,7 +35,6 @@ char *games[] = {"main.exe",
                  "vf5",
                  "apacheM.elf",
                  "hodexRI.elf",
-                 "segaboot",    // SEGABOOT should always be at the end
                  "END"};
 
 /**
