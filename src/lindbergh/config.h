@@ -109,7 +109,6 @@ typedef enum
     DRIVING,
     HARLEY,
     FIGHTING,
-    VT3,
     ABC
 } GameType;
 

@@ -549,7 +549,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Tennis 3 Rev A";
         config.gameDVP = "DVP-0005A";
         config.gameID = "SBKX";
-        config.gameType = VT3;
+        config.gameType = FIGHTING;
         config.gameStatus = WORKING;
         return 0;
     }
@@ -561,7 +561,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Tennis 3 Rev B";
         config.gameDVP = "DVP-0005B";
         config.gameID = "SBKX";
-        config.gameType = VT3;
+        config.gameType = FIGHTING;
         config.gameStatus = WORKING;
         return 0;
     }
@@ -573,7 +573,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Tennis 3 Rev C";
         config.gameDVP = "DVP-0005C";
         config.gameID = "SBKX";
-        config.gameType = VT3;
+        config.gameType = FIGHTING;
         config.gameStatus = WORKING;
         return 0;
     }
