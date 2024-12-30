@@ -1,7 +1,7 @@
 CC = gcc -m32 -pthread
 CFLAGS = -g -fPIC -m32 -Wall -Werror -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function -D_GNU_SOURCE -Wno-char-subscripts
-LD = g++ -m32 
-LDFLAGS = -Wl,-z,defs -rdynamic -static-libgcc -lc -ldl -lGL -lglut -lX11 -lSDL2 -lm -lpthread -shared -nostdlib -lasound -L./src/libxdiff -lxdiff 
+LD = g++ -m32
+LDFLAGS = -Wl,-z,defs -rdynamic -static-libgcc -lc -ldl -lGL -lglut -lX11 -lSDL2 -lm -lpthread -shared -nostdlib -lasound -L./src/libxdiff -lxdiff
 
 BUILD = build
 
@@ -24,7 +24,7 @@ libxdiff.a: $(XDIFF_OBJS)
 	ar rcs src/libxdiff/libxdiff.a $(XDIFF_OBJS)
 
 src/libxdiff/xdiff/%.o: src/libxdiff/xdiff/%.c
-	$(CC) -DHAVE_CONFIG_H -c $< -o $@
+	$(CC) -DHAVE_CONFIG_H -fPIC -c $< -o $@
 
 lindbergh.so: $(OBJS)
 	mkdir -p $(BUILD)
