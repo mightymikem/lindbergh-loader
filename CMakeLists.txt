@@ -47,7 +47,7 @@ target_link_libraries(lindbergh xdiff ${SHARED_LINKER_FLAGS})
 target_compile_options(lindbergh PRIVATE ${LINDBERGH_EXE})
 
 # Build shared library libsegaapi.so
-add_library(segaapi SHARED src/libsegaapi/opensegaapi.cpp)
+add_library(segaapi SHARED src/libsegaapi/libsegaapi.c)
 target_link_libraries(segaapi FAudio ${LIBSEGAAPI_LINKER_FLAGS})
 target_compile_options(segaapi PRIVATE ${LIBSEGAAPI_CXX_FLAGS})
 
