@@ -8,7 +8,8 @@ If you'd like to support the development work of this emulator, see early develo
 
 ## Building & Running
 
-First you will need to install the following dependencies.
+In order to build the loader you will need to install the following dependencies in a Linux environment. We recommend Ubuntu 22.04 LTS as default, but it may work in various configurations like WSL2, Debian, etc.  
+Please note other dependencies might be required to run games (see the [guide](docs/guide.md)).
 
 ```shell
 sudo dpkg --add-architecture i386
@@ -30,7 +31,7 @@ cd lindbergh-loader
 make
 ```
 
-You should then copy the contents of the build directory to your game directory and run `./lindbergh` for the game, or `./lindbergh -t` for test mode.
+You should then copy the contents of the build directory to your game directory and run `./lindbergh` for the game, or `./lindbergh -t` for test mode. Please note you might need to set the game executable as "executable" using `chmod +x`.
 
 ```shell
 cp -a build/* /home/games/the-house-of-the-dead-4/disk0/elf/.
@@ -38,14 +39,14 @@ cd /home/games/the-house-of-the-dead-4/disk0/elf/.
 ./lindbergh
 ```
 
-If you'd like to change game settings copy the default configuration file from the repository to your game directory.
+If you'd like to change game settings copy the [default configuration file](docs/lindbergh.conf) from the repository to your game directory.
 
 ```shell
 cp build/docs/lindbergh.conf /home/games/the-house-of-the-dead-4/disk0/elf/.
 nano lindbergh.conf
 ```
 
-Configuration options and supported games are explained in the [guide](docs/guide.md).
+Please take a look at the configuration options, supported games and known issues in the [guide](docs/guide.md).
 
 ## License
 
