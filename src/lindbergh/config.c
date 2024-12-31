@@ -763,7 +763,7 @@ int readConfig(FILE *configFile, EmulatorConfig *config)
             strcpy(config->eepromPath, getNextToken(NULL, " ", &saveptr));
 
         else if (strcmp(command, "SRAM_PATH") == 0)
-            strcpy(config->eepromPath, getNextToken(NULL, " ", &saveptr));
+            strcpy(config->sramPath, getNextToken(NULL, " ", &saveptr));
 
         else if (strcmp(command, "EMULATE_RIDEBOARD") == 0)
             config->emulateRideboard = atoi(getNextToken(NULL, " ", &saveptr));
