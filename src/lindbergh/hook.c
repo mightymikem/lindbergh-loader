@@ -219,7 +219,7 @@ void __attribute__((constructor)) hook_init()
 
     securityBoardSetDipResolution(getConfig()->width, getConfig()->height);
 
-    printf("\nSEGA Lindbergh Emulator\nBy the Lindbergh Development Team 2024\n\n");
+    printf("\nSEGA Lindbergh Emulator\nBy the Lindbergh Development Team 2024-2025\n\n");
 
     printf("  # GAME INFOS ##################### \n");
 
