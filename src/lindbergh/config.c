@@ -1005,8 +1005,13 @@ int readConfig(FILE *configFile, EmulatorConfig *config)
                 config->region = JP;
             else if (strcmp(region, "US") == 0)
                 config->region = US;
-            else
+            else if (strcmp(region, "EX") == 0)
                 config->region = EX;
+            else
+            {
+                // Print a warning and keep the default region
+                printf("Warning: Unknown Region '%s'. Keeping default value.\n", region);
+            }
         }
 
         else if (strcmp(command, "DEBUG_MSGS") == 0)
@@ -1279,11 +1284,13 @@ int initConfig()
     strcpy(config.serial2Path, "/dev/ttyS1");
     config.width = 640;
     config.height = 480;
-    config.region = -1;
+    config.region = 0;
     config.freeplay = -1;
     config.showDebugMessages = 0;
     config.hummerFlickerFix = 0;
     config.keepAspectRatio = 0;
+    config.outrunLensGlareEnabled = 1;
+    config.lgjRenderWithMesa = 1;
     config.gameTitle = "Unknown game";
     config.gameID = "XXXX";
     config.gameDVP = "DVP-XXXX";
@@ -1293,11 +1300,9 @@ int initConfig()
     config.gameNativeResolutions = "";
     config.keymap = getDefaultKeymap();
     config.jvsIOType = SEGA_TYPE_3;
-    config.outrunLensGlareEnabled = 1;
     config.GPUVendor = AUTO_DETECT_GPU;
     config.fpsLimiter = 0;
     config.fpsTarget = 60;
-    config.lgjRenderWithMesa = 1;
     config.noSDL = 0;
     config.phMode = 1;
     memset(&config.arcadeInputs.analogue_deadzone_start, 0, sizeof(config.arcadeInputs.analogue_deadzone_start));
