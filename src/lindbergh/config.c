@@ -96,6 +96,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameID = "SBLS";
         config.gameDVP = "DVP-0010";
         config.gameStatus = WORKING;
+        config.gameType = SHOOTING;
         config.width = 1024;
         config.height = 768;
         return 0;
@@ -109,6 +110,7 @@ static int detectGame(uint32_t elf_crc)
         config.emulateRideboard = 1;
         config.gameDVP = "DVP-0010B";
         config.gameStatus = WORKING;
+        config.gameType = SHOOTING;
         config.width = 1024;
         config.height = 768;
         return 0;
@@ -121,6 +123,7 @@ static int detectGame(uint32_t elf_crc)
     {
         config.gameTitle = "The House of the Dead EX";
         config.gameStatus = WORKING;
+        config.gameType = SHOOTING;
         config.gameDVP = "DVP-0063";
         config.gameID = "SBRC";
         return 0;
@@ -162,6 +165,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameDVP = "DVP-0008";
         config.gameID = "SBLM";
         config.gameStatus = WORKING;
+        config.gameType = FIGHTING;
         return 0;
     }
     break;
@@ -172,6 +176,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameDVP = "DVP-0008A";
         config.gameID = "SBLM";
         config.gameStatus = WORKING;
+        config.gameType = FIGHTING;
         return 0;
     }
     break;
@@ -182,6 +187,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameDVP = "DVP-0008B";
         config.gameID = "SBLM";
         config.gameStatus = WORKING;
+        config.gameType = FIGHTING;
         return 0;
     }
     break;
@@ -201,7 +207,9 @@ static int detectGame(uint32_t elf_crc)
     {
         config.gameTitle = "Virtua Fighter 5 Export";
         config.gameDVP = "DVP-0043";
+        config.gameID = "SBLM";
         config.gameStatus = WORKING;
+        config.gameType = FIGHTING;
         return 0;
     }
     break;
@@ -212,6 +220,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameDVP = "DVP-XXXX";
         config.gameID = "SBQU";
         config.gameStatus = WORKING;
+        config.gameType = FIGHTING;
         return 0;
     }
     break;
@@ -222,6 +231,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameDVP = "DVP-XXXX";
         config.gameID = "SBQU";
         config.gameStatus = WORKING;
+        config.gameType = FIGHTING;
         return 0;
     }
     break;
@@ -232,6 +242,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameDVP = "DVP-XXXX";
         config.gameID = "SBQU";
         config.gameStatus = WORKING;
+        config.gameType = FIGHTING;
         return 0;
     }
     break;
@@ -241,6 +252,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5 Final Showdown";
         config.gameDVP = "DVP-SBUV";
         config.gameID = "SBUV";
+        config.gameType = FIGHTING;
+        config.gameStatus = WORKING;
         return 0;
     }
     break;
@@ -250,6 +263,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5 Final Showdown REV A";
         config.gameDVP = "DVP-5019A";
         config.gameID = "SBUV";
+        config.gameType = FIGHTING;
+        config.gameStatus = WORKING;
         return 0;
     }
     break;
@@ -259,6 +274,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5 Final Showdown REV B";
         config.gameDVP = "DVP-5019B";
         config.gameID = "SBUV";
+        config.gameType = FIGHTING;
+        config.gameStatus = WORKING;
         return 0;
     }
     break;
@@ -268,6 +285,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5 Final Showdown REV B ver 6.0000";
         config.gameDVP = "DVP-5020";
         config.gameID = "SBUV";
+        config.gameType = FIGHTING;
+        config.gameStatus = WORKING;
         return 0;
     }
     break;
@@ -277,6 +296,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Let's Go Jungle! Lost on the Island of Spice!";
         config.gameDVP = "DVP-0011";
         config.gameID = "SBLU";
+        config.gameType = SHOOTING;
         config.gameStatus = WORKING;
         return 0;
     }
@@ -287,6 +307,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Let's Go Jungle! Special!";
         config.emulateRideboard = 1;
         config.gameID = "SBNR";
+        config.gameDVP = "DVP-0036";
+        config.gameType = SHOOTING;
         config.gameStatus = WORKING;
         return 0;
     }
@@ -468,6 +490,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "SEGA Race TV";
         config.emulateDriveboard = 1;
         config.gameDVP = "DVP-0044";
+        config.gameID = "SBPF";
         config.gameStatus = WORKING;
         config.gameType = DRIVING;
         return 0;
@@ -488,6 +511,8 @@ static int detectGame(uint32_t elf_crc)
     case R_TUNED:
     {
         config.gameTitle = "R Tuned";
+        config.gameDVP = "DVP-0060";
+        config.gameID = "SBQW";
         config.emulateDriveboard = 1;
         config.gameStatus = WORKING;
         config.gameType = DRIVING;
@@ -524,6 +549,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Tennis 3 Rev A";
         config.gameDVP = "DVP-0005A";
         config.gameID = "SBKX";
+        config.gameType = FIGHTING;
         config.gameStatus = WORKING;
         return 0;
     }
@@ -535,6 +561,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Tennis 3 Rev B";
         config.gameDVP = "DVP-0005B";
         config.gameID = "SBKX";
+        config.gameType = FIGHTING;
         config.gameStatus = WORKING;
         return 0;
     }
@@ -546,6 +573,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Tennis 3 Rev C";
         config.gameDVP = "DVP-0005C";
         config.gameID = "SBKX";
+        config.gameType = FIGHTING;
         config.gameStatus = WORKING;
         return 0;
     }
@@ -568,6 +596,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameStatus = WORKING;
         config.gameDVP = "DVP-0029A";
         config.gameID = "SBNJ";
+        config.gameType = SHOOTING;
         config.jvsIOType = SEGA_TYPE_1;
         return 0;
     }
@@ -666,6 +695,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Let's Go Jungle! Lost on the Island of Spice! Rev A";
         config.gameDVP = "DVP-0011A";
         config.gameID = "SBLU";
+        config.gameType = SHOOTING;
         config.gameStatus = WORKING;
         return 0;
     }
@@ -676,6 +706,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Harley Davidson";
         config.gameType = HARLEY;
         config.gameDVP = "DVP-5007";
+        config.gameID = "SBRG";
         config.gameStatus = WORKING;
         return 0;
     }

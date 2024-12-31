@@ -234,7 +234,16 @@ void __attribute__((constructor)) hook_init()
         }
     }
     printf("\n");
-
+    if (getConfig()->GPUVendor == ATI_GPU
+        && ((getConfig()->crc32 == LETS_GO_JUNGLE) || (getConfig()->crc32 == LETS_GO_JUNGLE_REVA) ||
+        (getConfig()->crc32 == LETS_GO_JUNGLE_SPECIAL) || (getConfig()->crc32 == AFTER_BURNER_CLIMAX) ||
+        (getConfig()->crc32 == AFTER_BURNER_CLIMAX_REVA) || (getConfig()->crc32 == AFTER_BURNER_CLIMAX_REVB) ||
+        (getConfig()->crc32 == AFTER_BURNER_CLIMAX_SDX) || (getConfig()->crc32 == AFTER_BURNER_CLIMAX_SDX_REVA) ||
+        (getConfig()->crc32 == AFTER_BURNER_CLIMAX_SE) || (getConfig()->crc32 == AFTER_BURNER_CLIMAX_SE_REVA) ||
+        (getConfig()->crc32 == INITIALD_5_JAP_REVA) || (getConfig()->crc32 == INITIALD_5_JAP_REVF) ||
+        (getConfig()->crc32 == INITIALD_5_EXP_30) || (getConfig()->crc32 == INITIALD_5_EXP_40))) {
+            printf("WARNING: Game %s is unsupported in AMD GPU with ATI driver\n",getGameName());
+    }
     if (getConfig()->lgjRenderWithMesa &&
         ((getConfig()->crc32 == LETS_GO_JUNGLE) || (getConfig()->crc32 == LETS_GO_JUNGLE_REVA) ||
          (getConfig()->crc32 == LETS_GO_JUNGLE_SPECIAL)))
