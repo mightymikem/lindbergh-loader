@@ -495,7 +495,7 @@ static int detectGame(uint32_t elf_crc)
         config.gameStatus = WORKING;
         config.gameType = DRIVING;
         config.width = 1280;
-        config.height = 700;
+        config.height = 768;
         return 0;
     }
     break;
