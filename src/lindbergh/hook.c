@@ -609,13 +609,16 @@ char *fgets(char *str, int n, FILE *stream)
     {
         char contents[4][256];
 
+        // Pentium 4 HT 3.0E : Prescott 3.0GHz L2 1Mo (SL8JZ, SL7L4, SL7E4, SL88J, SL79L, SL7KB, SL7PM)
         strcpy(contents[0], "processor	: 0");
         strcpy(contents[1], "vendor_id	: GenuineIntel");
         strcpy(contents[2], "model		: 142");
         strcpy(contents[3], "model name	: Intel(R) Pentium(R) CPU 3.00GHz");
 
-        if (getConfig()->lindberghColour == RED)
-            strcpy(contents[3], "model name	: Intel(R) Celeron(R) CPU 3.00GHz");
+        // Celeron D 335 : 2.8GHz NetBurst Prescott-256 (SL8HM, SL7NW, SL7VZ, SL7TJ, SL7DM, SL7L2, SL7C7) si 478 ?
+        if (getConfig()->lindberghColour == RED || getConfig()->lindberghColour == REDEX)
+            strcpy(contents[3], "model name	: Intel(R) Celeron(R) CPU 2.80GHz");
+
 
         if (fileRead[CPUINFO] == 4)
             return NULL;

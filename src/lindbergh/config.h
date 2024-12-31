@@ -87,7 +87,10 @@
 typedef enum
 {
     YELLOW,
-    RED
+    RED,
+    BLUE,
+    SILVER,
+    REDEX
 } Colour;
 
 typedef enum

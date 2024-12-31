@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "config.h"
 #include "gpuvendor.h"
@@ -799,8 +800,25 @@ int readConfig(FILE *configFile, EmulatorConfig *config)
         {
             char colour[256];
             strcpy(colour, getNextToken(NULL, " ", &saveptr));
+
+            // Convert colour to uppercase just to avoid case-sensitivity issues
+            for (char *p = colour; *p; ++p) *p = toupper(*p);
+
             if (strcmp(colour, "RED") == 0)
                 config->lindberghColour = RED;
+            else if (strcmp(colour, "YELLOW") == 0)
+                config->lindberghColour = YELLOW;
+            else if (strcmp(colour, "BLUE") == 0)
+                config->lindberghColour = BLUE;
+            else if (strcmp(colour, "SILVER") == 0)
+                config->lindberghColour = SILVER;
+            else if (strcmp(colour, "REDEX") == 0)
+                config->lindberghColour = REDEX;
+            else
+            {
+                // Print a warning and keep the default colour
+                printf("Warning: Unknown Lindbergh colour '%s'. Keeping default value.\n", colour);
+            }
         }
 
         else if (strcmp(command, "REGION") == 0)
