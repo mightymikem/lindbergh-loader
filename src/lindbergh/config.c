@@ -493,6 +493,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameID = "SBPF";
         config.gameStatus = WORKING;
         config.gameType = DRIVING;
+        config.width = 1280;
+        config.height = 700;
         return 0;
     }
     break;
