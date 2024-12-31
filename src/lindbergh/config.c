@@ -15,6 +15,30 @@ FILE *configFile = NULL;
 #define CONFIG_PATH "lindbergh.conf"
 #define MAX_LINE_LENGTH 1024
 
+const char* LindbergColourStrings [] = {
+    "Lindbergh Yellow",
+    "Lindbergh Red",
+    "Lindbergh Blue",
+    "Lindbergh Silver",
+    "Lindbergh RedEX"
+};
+
+const char* GameRegionStrings [] = {
+    "Japan",
+    "US",
+    "Export"
+};
+
+const char* GpuTypeStrings [] = {
+    "Auto Detection",
+    "NVIDIA",
+    "AMD",
+    "ATI",
+    "INTEL",
+    "Unknown",
+    "ERROR_GPU"
+};
+
 static char *getNextToken(char *buffer, char *seperator, char **saveptr)
 {
     char *token = strtok_r(buffer, seperator, saveptr);
@@ -59,6 +83,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "The House of the Dead 4 Rev A";
         config.gameID = "SBLC";
         config.gameDVP = "DVP-0003A";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "";
         config.gameType = SHOOTING;
         config.gameStatus = WORKING;
         return 0;
@@ -71,6 +97,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "The House of the Dead 4 Rev B";
         config.gameID = "SBLC";
         config.gameDVP = "DVP-0003B";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "";
         config.gameType = SHOOTING;
         config.gameStatus = WORKING;
         return 0;
@@ -83,6 +111,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "The House of the Dead 4 Rev C";
         config.gameID = "SBLC";
         config.gameDVP = "DVP-0003C";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "";
         config.gameType = SHOOTING;
         config.gameStatus = WORKING;
         return 0;
@@ -96,6 +126,8 @@ static int detectGame(uint32_t elf_crc)
         config.emulateRideboard = 1;
         config.gameID = "SBLS";
         config.gameDVP = "DVP-0010";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.gameType = SHOOTING;
         config.width = 1024;
@@ -109,7 +141,10 @@ static int detectGame(uint32_t elf_crc)
     {
         config.gameTitle = "The House of the Dead 4 Special Rev B";
         config.emulateRideboard = 1;
+        config.gameID = "SBLS";
         config.gameDVP = "DVP-0010B";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.gameType = SHOOTING;
         config.width = 1024;
@@ -122,11 +157,13 @@ static int detectGame(uint32_t elf_crc)
     case THE_HOUSE_OF_THE_DEAD_EX_TEST:
 
     {
-        config.gameTitle = "The House of the Dead EX";
+        config.gameTitle = "Ai Sareruyori Ai Shitai: The House of the Dead EX";
         config.gameStatus = WORKING;
         config.gameType = SHOOTING;
-        config.gameDVP = "DVP-0063";
         config.gameID = "SBRC";
+        config.gameDVP = "DVP-0063";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "";
         return 0;
     }
     break;
@@ -138,6 +175,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Outrun 2 SP SDX Rev A";
         config.gameDVP = "DVP-0015A";
         config.gameID = "SBMB";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "";
         config.emulateDriveboard = 1;
         config.emulateMotionboard = 1;
         config.gameStatus = WORKING;
@@ -152,6 +191,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Outrun 2 SP SDX";
         config.gameDVP = "DVP-0015";
         config.gameID = "SBMB";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "";
         config.emulateDriveboard = 1;
         config.emulateMotionboard = 1;
         config.gameStatus = WORKING;
@@ -165,6 +206,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5";
         config.gameDVP = "DVP-0008";
         config.gameID = "SBLM";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.gameType = FIGHTING;
         return 0;
@@ -176,6 +219,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5 Rev A";
         config.gameDVP = "DVP-0008A";
         config.gameID = "SBLM";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.gameType = FIGHTING;
         return 0;
@@ -187,6 +232,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5 Rev B";
         config.gameDVP = "DVP-0008B";
         config.gameID = "SBLM";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.gameType = FIGHTING;
         return 0;
@@ -198,6 +245,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5 Rev E (Public Version C)";
         config.gameDVP = "DVP-0008E";
         config.gameID = "SBLM";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.gameType = FIGHTING;
         return 0;
@@ -209,6 +258,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5 Export";
         config.gameDVP = "DVP-0043";
         config.gameID = "SBLM";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.gameType = FIGHTING;
         return 0;
@@ -220,6 +271,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5 R";
         config.gameDVP = "DVP-XXXX";
         config.gameID = "SBQU";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.gameType = FIGHTING;
         return 0;
@@ -231,6 +284,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5 R Rev D";
         config.gameDVP = "DVP-XXXX";
         config.gameID = "SBQU";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.gameType = FIGHTING;
         return 0;
@@ -242,6 +297,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5 R Rev G";
         config.gameDVP = "DVP-XXXX";
         config.gameID = "SBQU";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.gameType = FIGHTING;
         return 0;
@@ -253,6 +310,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5 Final Showdown";
         config.gameDVP = "DVP-SBUV";
         config.gameID = "SBUV";
+        config.gameReleaseYear = "2010";
+        config.gameNativeResolutions = "";
         config.gameType = FIGHTING;
         config.gameStatus = WORKING;
         return 0;
@@ -264,6 +323,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5 Final Showdown REV A";
         config.gameDVP = "DVP-5019A";
         config.gameID = "SBUV";
+        config.gameReleaseYear = "2010";
+        config.gameNativeResolutions = "";
         config.gameType = FIGHTING;
         config.gameStatus = WORKING;
         return 0;
@@ -275,6 +336,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5 Final Showdown REV B";
         config.gameDVP = "DVP-5019B";
         config.gameID = "SBUV";
+        config.gameReleaseYear = "2010";
+        config.gameNativeResolutions = "";
         config.gameType = FIGHTING;
         config.gameStatus = WORKING;
         return 0;
@@ -286,6 +349,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Fighter 5 Final Showdown REV B ver 6.0000";
         config.gameDVP = "DVP-5020";
         config.gameID = "SBUV";
+        config.gameReleaseYear = "2010";
+        config.gameNativeResolutions = "";
         config.gameType = FIGHTING;
         config.gameStatus = WORKING;
         return 0;
@@ -297,6 +362,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Let's Go Jungle! Lost on the Island of Spice!";
         config.gameDVP = "DVP-0011";
         config.gameID = "SBLU";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "";
         config.gameType = SHOOTING;
         config.gameStatus = WORKING;
         return 0;
@@ -309,6 +376,8 @@ static int detectGame(uint32_t elf_crc)
         config.emulateRideboard = 1;
         config.gameID = "SBNR";
         config.gameDVP = "DVP-0036";
+        config.gameReleaseYear = "2007";
+        config.gameNativeResolutions = "";
         config.gameType = SHOOTING;
         config.gameStatus = WORKING;
         return 0;
@@ -320,6 +389,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "After Burner Climax";
         config.gameDVP = "DVP-0009";
         config.gameID = "SBLR";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.jvsIOType = SEGA_TYPE_1;
         config.gameType = ABC;
@@ -332,6 +403,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "After Burner Climax Rev A";
         config.gameDVP = "DVP-0009A";
         config.gameID = "SBLR";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.jvsIOType = SEGA_TYPE_1;
         config.gameType = ABC;
@@ -344,6 +417,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "After Burner Climax Rev B";
         config.gameDVP = "DVP-0009B";
         config.gameID = "SBLR";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.jvsIOType = SEGA_TYPE_1;
         config.gameType = ABC;
@@ -356,6 +431,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "After Burner Climax SDX";
         config.gameDVP = "DVP-0018-SDX";
         config.gameID = "SBMN";
+        config.gameReleaseYear = "2006 ?";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.jvsIOType = SEGA_TYPE_1;
         config.gameType = ABC;
@@ -367,6 +444,9 @@ static int detectGame(uint32_t elf_crc)
     {
         config.gameTitle = "After Burner Climax SDX Rev A";
         config.gameDVP = "DVP-0018A-SDX";
+        config.gameID = "SBMN";
+        config.gameReleaseYear = "2006 ?";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.jvsIOType = SEGA_TYPE_1;
         config.gameType = ABC;
@@ -379,6 +459,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "After Burner Climax SE";
         config.gameDVP = "DVP-0031";
         config.gameID = "SBLR";
+        config.gameReleaseYear = "2006 ?";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.jvsIOType = SEGA_TYPE_1;
         config.gameType = ABC;
@@ -391,6 +473,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "After Burner Climax SE Rev A";
         config.gameDVP = "DVP-0031A";
         config.gameID = "SBLR";
+        config.gameReleaseYear = "2006 ?";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.jvsIOType = SEGA_TYPE_1;
         config.gameType = ABC;
@@ -401,9 +485,11 @@ static int detectGame(uint32_t elf_crc)
     case INITIALD_4_REVA:
     {
         config.gameTitle = "Initial D Arcade Stage 4 Rev A";
-        config.gameStatus = WORKING;
-        config.gameDVP = "DVP-0019A";
         config.gameID = "SBML";
+        config.gameDVP = "DVP-0019A";
+        config.gameReleaseYear = "2007";
+        config.gameNativeResolutions = "";
+        config.gameStatus = WORKING;
         config.gameType = DRIVING;
         return 0;
     }
@@ -412,9 +498,11 @@ static int detectGame(uint32_t elf_crc)
     case INITIALD_4_REVB:
     {
         config.gameTitle = "Initial D Arcade Stage 4 Rev B";
-        config.gameStatus = WORKING;
-        config.gameDVP = "DVP-0019B";
         config.gameID = "SBML";
+        config.gameDVP = "DVP-0019B";
+        config.gameReleaseYear = "2007";
+        config.gameNativeResolutions = "";
+        config.gameStatus = WORKING;
         config.gameType = DRIVING;
         return 0;
     }
@@ -423,9 +511,11 @@ static int detectGame(uint32_t elf_crc)
     case INITIALD_4_REVC:
     {
         config.gameTitle = "Initial D Arcade Stage 4 Rev C";
-        config.gameStatus = WORKING;
-        config.gameDVP = "DVP-0019C";
         config.gameID = "SBML";
+        config.gameDVP = "DVP-0019C";
+        config.gameReleaseYear = "2007";
+        config.gameNativeResolutions = "";
+        config.gameStatus = WORKING;
         config.gameType = DRIVING;
         return 0;
     }
@@ -434,9 +524,11 @@ static int detectGame(uint32_t elf_crc)
     case INITIALD_4_REVD:
     {
         config.gameTitle = "Initial D Arcade Stage 4 Rev D";
-        config.gameStatus = WORKING;
-        config.gameDVP = "DVP-0019D";
         config.gameID = "SBML";
+        config.gameDVP = "DVP-0019D";
+        config.gameReleaseYear = "2007";
+        config.gameNativeResolutions = "";
+        config.gameStatus = WORKING;
         config.gameType = DRIVING;
         return 0;
     }
@@ -445,9 +537,11 @@ static int detectGame(uint32_t elf_crc)
     case INITIALD_4_REVG:
     {
         config.gameTitle = "Initial D Arcade Stage 4 Rev G";
-        config.gameStatus = WORKING;
-        config.gameDVP = "DVP-0019G";
         config.gameID = "SBML";
+        config.gameDVP = "DVP-0019G";
+        config.gameReleaseYear = "2007";
+        config.gameNativeResolutions = "";
+        config.gameStatus = WORKING;
         config.gameType = DRIVING;
         return 0;
     }
@@ -456,9 +550,11 @@ static int detectGame(uint32_t elf_crc)
     case INITIALD_4_EXP_REVB:
     {
         config.gameTitle = "Initial D Arcade Stage 4 Export Rev B";
-        config.gameStatus = WORKING;
-        config.gameDVP = "DVP-0030B";
         config.gameID = "SBNK";
+        config.gameDVP = "DVP-0030B";
+        config.gameReleaseYear = "2007";
+        config.gameNativeResolutions = "";
+        config.gameStatus = WORKING;
         config.gameType = DRIVING;
         return 0;
     }
@@ -467,9 +563,11 @@ static int detectGame(uint32_t elf_crc)
     case INITIALD_4_EXP_REVC:
     {
         config.gameTitle = "Initial D Arcade Stage 4 Export Rev C";
-        config.gameStatus = WORKING;
-        config.gameDVP = "DVP-0030C";
         config.gameID = "SBNK";
+        config.gameDVP = "DVP-0030C";
+        config.gameReleaseYear = "2007";
+        config.gameNativeResolutions = "";
+        config.gameStatus = WORKING;
         config.gameType = DRIVING;
         return 0;
     }
@@ -478,9 +576,11 @@ static int detectGame(uint32_t elf_crc)
     case INITIALD_4_EXP_REVD:
     {
         config.gameTitle = "Initial D Arcade Stage 4 Export Rev D";
-        config.gameStatus = WORKING;
-        config.gameDVP = "DVP-0030D";
         config.gameID = "SBNK";
+        config.gameDVP = "DVP-0030D";
+        config.gameReleaseYear = "2007";
+        config.gameNativeResolutions = "";
+        config.gameStatus = WORKING;
         config.gameType = DRIVING;
         return 0;
     }
@@ -492,6 +592,8 @@ static int detectGame(uint32_t elf_crc)
         config.emulateDriveboard = 1;
         config.gameDVP = "DVP-0044";
         config.gameID = "SBPF";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "1280x768";
         config.gameStatus = WORKING;
         config.gameType = DRIVING;
         config.width = 1280;
@@ -505,6 +607,9 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Rambo";
         config.gameDVP = "DVP-0069";
         config.gameID = "SBQL";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "";
+        config.gameLindberghColour = REDEX;
         config.gameType = SHOOTING;
         config.gameStatus = WORKING;
         return 0;
@@ -513,9 +618,11 @@ static int detectGame(uint32_t elf_crc)
 
     case R_TUNED:
     {
-        config.gameTitle = "R Tuned";
+        config.gameTitle = "R-Tuned: Ultimate Street Racing";
         config.gameDVP = "DVP-0060";
         config.gameID = "SBQW";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "";
         config.emulateDriveboard = 1;
         config.gameStatus = WORKING;
         config.gameType = DRIVING;
@@ -529,6 +636,9 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Too Spicy";
         config.gameDVP = "DVP-0027A";
         config.gameID = "SBMV";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "";
+        config.gameLindberghColour = RED;
         config.gameStatus = WORKING;
         config.gameType = SHOOTING;
         return 0;
@@ -541,6 +651,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Tennis 3";
         config.gameDVP = "DVP-0005";
         config.gameID = "SBKX";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         return 0;
     }
@@ -552,6 +664,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Tennis 3 Rev A";
         config.gameDVP = "DVP-0005A";
         config.gameID = "SBKX";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "";
         config.gameType = FIGHTING;
         config.gameStatus = WORKING;
         return 0;
@@ -564,6 +678,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Tennis 3 Rev B";
         config.gameDVP = "DVP-0005B";
         config.gameID = "SBKX";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "";
         config.gameType = FIGHTING;
         config.gameStatus = WORKING;
         return 0;
@@ -576,6 +692,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Virtua Tennis 3 Rev C";
         config.gameDVP = "DVP-0005C";
         config.gameID = "SBKX";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "";
         config.gameType = FIGHTING;
         config.gameStatus = WORKING;
         return 0;
@@ -587,6 +705,9 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Primeval Hunt";
         config.gameDVP = "DVP-0048A";
         config.gameID = "SBPP";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "";
+        config.gameLindberghColour = RED;
         config.gameStatus = WORKING;
         config.gameType = SHOOTING;
         return 0;
@@ -599,6 +720,9 @@ static int detectGame(uint32_t elf_crc)
         config.gameStatus = WORKING;
         config.gameDVP = "DVP-0029A";
         config.gameID = "SBNJ";
+        config.gameReleaseYear = "2007";
+        config.gameNativeResolutions = "";
+        config.gameLindberghColour = RED;
         config.gameType = SHOOTING;
         config.jvsIOType = SEGA_TYPE_1;
         return 0;
@@ -610,6 +734,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Initial D Arcade Stage 5 Rev A";
         config.gameDVP = "DVP-0070A";
         config.gameID = "SBQZ";
+        config.gameReleaseYear = "2009";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.gameType = DRIVING;
         return 0;
@@ -621,6 +747,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Initial D Arcade Stage 5 Rev F";
         config.gameDVP = "DVP-0070F";
         config.gameID = "SBQZ";
+        config.gameReleaseYear = "2009";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.gameType = DRIVING;
         return 0;
@@ -633,6 +761,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameStatus = WORKING;
         config.gameDVP = "DVP-0075";
         config.gameID = "SBTS";
+        config.gameReleaseYear = "2009";
+        config.gameNativeResolutions = "";
         config.gameType = DRIVING;
         return 0;
     }
@@ -643,6 +773,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Initial D5 5 Ver 4.0";
         config.gameDVP = "DVP-0084A";
         config.gameID = "SBQN";
+        config.gameReleaseYear = "2009";
+        config.gameNativeResolutions = "";
         config.gameStatus = WORKING;
         config.gameType = DRIVING;
         return 0;
@@ -654,6 +786,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Hummer";
         config.gameID = "SBQN";
         config.gameDVP = "DVP-0057B";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "";
         config.gameType = DRIVING;
         config.gameStatus = WORKING;
         return 0;
@@ -665,6 +799,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Hummer SDLX";
         config.gameID = "SBST";
         config.gameDVP = "DVP-0057";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "";
         config.gameType = DRIVING;
         config.gameStatus = WORKING;
         return 0;
@@ -676,6 +812,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Hummer Extreme";
         config.gameID = "SBST";
         config.gameDVP = "DVP-0079";
+        config.gameReleaseYear = "2009";
+        config.gameNativeResolutions = "";
         config.gameType = DRIVING;
         config.gameStatus = WORKING;
         return 0;
@@ -687,6 +825,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Hummer Extreme MDX";
         config.gameID = "SBST";
         config.gameDVP = "DVP-0083";
+        config.gameReleaseYear = "2009";
+        config.gameNativeResolutions = "";
         config.gameType = DRIVING;
         config.gameStatus = WORKING;
         return 0;
@@ -698,6 +838,8 @@ static int detectGame(uint32_t elf_crc)
         config.gameTitle = "Let's Go Jungle! Lost on the Island of Spice! Rev A";
         config.gameDVP = "DVP-0011A";
         config.gameID = "SBLU";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "";
         config.gameType = SHOOTING;
         config.gameStatus = WORKING;
         return 0;
@@ -706,10 +848,13 @@ static int detectGame(uint32_t elf_crc)
 
     case HARLEY_DAVIDSON:
     {
-        config.gameTitle = "Harley Davidson";
-        config.gameType = HARLEY;
+        config.gameTitle = "Harley-Davidson: King of the Road";
         config.gameDVP = "DVP-5007";
         config.gameID = "SBRG";
+        config.gameReleaseYear = "2009";
+        config.gameNativeResolutions = "";
+        config.gameLindberghColour = RED;
+        config.gameType = HARLEY;
         config.gameStatus = WORKING;
         return 0;
     }
@@ -738,6 +883,37 @@ char *getDVPName()
 char *getGameID()
 {
     return config.gameID;
+}
+
+int getGameLindberghColour()
+{
+    return config.gameLindberghColour;
+}
+
+char *getGameReleaseYear()
+{
+    return config.gameReleaseYear;
+}
+
+char *getGameNativeResolutions()
+{
+    return config.gameNativeResolutions;
+}
+
+const char *getLindberghColourString(Colour lindberghColour)
+{
+    return LindbergColourStrings[lindberghColour];
+}
+
+
+const char *getGameRegionString(GameRegion region)
+{
+    return GameRegionStrings[region];
+}
+
+const char *getGpuTypeString(GpuType gpuType)
+{
+    return GpuTypeStrings[gpuType];
 }
 
 int readConfig(FILE *configFile, EmulatorConfig *config)
@@ -842,8 +1018,9 @@ int readConfig(FILE *configFile, EmulatorConfig *config)
         else if (strcmp(command, "KEEP_ASPECT_RATIO") == 0)
             config->keepAspectRatio = atoi(getNextToken(NULL, " ", &saveptr));
 
-        else if (strcmp(command, "GPU_VENDOR") == 0)
-            config->GPUVendor = atoi(getNextToken(NULL, " ", &saveptr));
+        else if (strcmp(command, "GPU_VENDOR") == 0) {
+            config->configGPUVendor = config->GPUVendor = atoi(getNextToken(NULL, " ", &saveptr));
+        }
 
         else if (strcmp(command, "OUTRUN_LENS_GLARE_ENABLED") == 0)
             config->outrunLensGlareEnabled = atoi(getNextToken(NULL, " ", &saveptr));
@@ -1111,6 +1288,9 @@ int initConfig()
     config.gameID = "XXXX";
     config.gameDVP = "DVP-XXXX";
     config.gameType = SHOOTING;
+    config.gameLindberghColour = YELLOW;
+    config.gameReleaseYear = "";
+    config.gameNativeResolutions = "";
     config.keymap = getDefaultKeymap();
     config.jvsIOType = SEGA_TYPE_3;
     config.outrunLensGlareEnabled = 1;

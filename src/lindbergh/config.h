@@ -239,7 +239,11 @@ typedef struct
     char *gameID;
     char *gameTitle;
     char *gameDVP;
+    Colour gameLindberghColour;
+    char  *gameReleaseYear;
+    char  *gameNativeResolutions;
     GpuType GPUVendor;
+    GpuType configGPUVendor;
     char *GPUVendorString;
     JVSIOType jvsIOType;
     int outrunLensGlareEnabled;
@@ -260,5 +264,11 @@ EmulatorConfig *getConfig();
 char *getGameName();
 char *getDVPName();
 char *getGameID();
+int getGameLindberghColour();
+char *getGameReleaseYear();
+char *getGameNativeResolutions();
+const char *getLindberghColourString(Colour lindberghColour);
+const char *getGameRegionString(GameRegion region);
+const char *getGpuTypeString(GpuType gpuType);
 
 #endif

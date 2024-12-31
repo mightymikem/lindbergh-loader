@@ -220,11 +220,27 @@ void __attribute__((constructor)) hook_init()
     securityBoardSetDipResolution(getConfig()->width, getConfig()->height);
 
     printf("\nSEGA Lindbergh Emulator\nBy the Lindbergh Development Team 2024\n\n");
-    printf("  GAME:       %s\n", getGameName());
-    printf("  GAME ID:    %s\n", getGameID());
-    printf("  DVP:        %s\n", getDVPName());
-    printf("  STATUS:     %s\n", getConfig()->gameStatus == WORKING ? "WORKING" : "NOT WORKING");
-    printf("  GPU VENDOR: %s\n\n", getConfig()->GPUVendorString);
+
+    printf("  # GAME INFOS ##################### \n");
+
+    printf("  GAME:        %s\n", getGameName());
+    printf("  GAME ID:     %s\n", getGameID());
+    printf("  DVP:         %s\n", getDVPName());
+    printf("  HARDWARE:    %s\n", getLindberghColourString(getGameLindberghColour()));
+    printf("  RELEASE:     %s\n", getGameReleaseYear());
+    printf("  NATIVE RES.: %s\n", getGameNativeResolutions());
+    printf("  STATUS:      %s\n", getConfig()->gameStatus == WORKING ? "WORKING" : "NOT WORKING");
+
+
+    printf("\n  # HARDWARE INFOS ################# \n");
+    printf("  GPU VENDOR:  %s\n", getConfig()->GPUVendorString);
+
+    printf("\n  # CONFIGURATION INFOS ############ \n");
+
+    printf("  HARDWARE:    %s\n", getLindberghColourString(getConfig()->lindberghColour));
+    printf("  REGION:      %s\n", getGameRegionString(getConfig()->region));
+    printf("  GPU:         %s\n", getGpuTypeString(getConfig()->configGPUVendor));
+    printf("  RESOLUTION:  %ix%i\n", getConfig()->width, getConfig()->height);
 
     for (int i = 0; i < controllers.count; i++)
     {
@@ -234,6 +250,7 @@ void __attribute__((constructor)) hook_init()
         }
     }
     printf("\n");
+
     if (getConfig()->GPUVendor == ATI_GPU
         && ((getConfig()->crc32 == LETS_GO_JUNGLE) || (getConfig()->crc32 == LETS_GO_JUNGLE_REVA) ||
         (getConfig()->crc32 == LETS_GO_JUNGLE_SPECIAL) || (getConfig()->crc32 == AFTER_BURNER_CLIMAX) ||
@@ -250,6 +267,8 @@ void __attribute__((constructor)) hook_init()
     {
         getConfig()->GPUVendor = AMD_GPU;
     }
+
+    printf("  ################################## \n\n");
 }
 
 DIR *opendir(const char *dirname)
