@@ -1313,6 +1313,23 @@ int initResolutionPatches()
         setVariable(0x080b913a, 0x44200000);
         setVariable(0x081dada8, 0x44200000);
         setVariable(0x081dadb0, 0x44200000);
+
+        // Cleans patched elf floating around
+        patchMemory(0x080b912e, "f043");
+        patchMemory(0x080f39de, "c0ef43");
+        patchMemory(0x080f3aa6, "2048");
+        patchMemory(0x080f3c94, "04b91c");
+        patchMemory(0x080f3cba, "20561b");
+        patchMemory(0x080f40cf, "c047");
+        patchMemory(0x080f40f8, "80ef43");
+        patchMemory(0x080f4d80, "04b91c");
+        patchMemory(0x080f4e52, "20561b");
+        patchMemory(0x080fed40, "80ef43");
+        patchMemory(0x080fed52, "c047");
+        setVariable(0x081dadb4, 0x43f00000);
+        setVariable(0x081dadbc, 0x43f00000);
+        patchMemory(0x081e7b3e, "7e");
+        patchMemory(0x081e7b46, "89");
     }
     break;
     case OUTRUN_2_SP_SDX_REVA_TEST:
