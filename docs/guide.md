@@ -46,18 +46,9 @@ On Debian, `libglut` might not be found. Adding a symbolic link will fix it.
 sudo ln -s /lib/i386-linux-gnu/libglut.so /lib/i386-linux-gnu/libglut.so.3
 ```
 
-
-### All Games: networking configuration
-
-
 ### Let's Go Jungle Rev A
 
 - The game must be run in export mode to have the stereo sound option.
-
-### Outrun 2 SP DX
-
-- To bypass the Driveboard error you can set the cabinet type to "uplight" (yes, upLight) in the Service Menu
-
 
 ## Configuration File : lindbergh.conf
 
