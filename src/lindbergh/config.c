@@ -1225,6 +1225,9 @@ int readConfig(FILE *configFile, EmulatorConfig *config)
             config->arcadeInputs.analogue_deadzone_end[7] = atoi(getNextToken(NULL, " ", &saveptr));
         }
 
+        else if (strcmp(command, "SKIP_OUTRUN_CABINET_CHECK") == 0)
+            config->skipOutrunCabinetCheck = atoi(getNextToken(NULL, " ", &saveptr));
+
         else if (strcmp(command, "INPUT_MODE") == 0)
             config->inputMode = atoi(getNextToken(NULL, " ", &saveptr));
 
@@ -1309,6 +1312,7 @@ int initConfig()
     memset(&config.arcadeInputs.analogue_deadzone_middle, 0, sizeof(config.arcadeInputs.analogue_deadzone_middle));
     memset(&config.arcadeInputs.analogue_deadzone_end, 0, sizeof(config.arcadeInputs.analogue_deadzone_end));
     config.crc32 = elf_crc;
+    config.skipOutrunCabinetCheck = 0;
     if (detectGame(config.crc32) != 0)
     {
         printf("Warning: Unsure what game with CRC 0x%X is. Please submit this new game to the GitHub repository: "

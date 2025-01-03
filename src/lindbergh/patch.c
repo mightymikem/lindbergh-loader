@@ -661,9 +661,12 @@ int initPatch()
         }
         detourFunction(0x0804d148, or2snprintf); // Fixes a bug in snprintf libc 2.39??
 
-        // Bypass checks for tower and Force Feedback?
-        detourFunction(0x08103eaa, stubRetOne);
-        detourFunction(0x08105d88, stubRetOne);
+        // Only apply these patches if skipOutrunCabinetCheck is enabled
+        if (config->skipOutrunCabinetCheck) {
+            // Bypass checks for tower and Force Feedback
+            detourFunction(0x08103eaa, stubRetOne);
+            detourFunction(0x08105d88, stubRetOne);
+        }
     }
     break;
     case OUTRUN_2_SP_SDX_REVA_TEST:

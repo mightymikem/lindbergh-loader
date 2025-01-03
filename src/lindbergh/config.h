@@ -256,6 +256,7 @@ typedef struct
     int phMode;
     ArcadeInputs arcadeInputs;
     int inputMode;  // 0 = both, 1 = SDL/X11 only, 2 = EVDEV only
+    int skipOutrunCabinetCheck;
 } EmulatorConfig;
 
 KeyMapping getDefaultKeymap();
