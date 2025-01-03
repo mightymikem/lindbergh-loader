@@ -39,6 +39,7 @@ int getGPUVendorID()
     }
 
     config->GPUVendorString = strdup((char *)glGetString(GL_VENDOR));
+    
     if (!config->GPUVendorString)
     {
         fprintf(stderr, "Error: Could not get renderer string\n");

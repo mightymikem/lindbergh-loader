@@ -250,8 +250,6 @@ void __attribute__((constructor)) hook_init()
     {
         getConfig()->GPUVendor = AMD_GPU;
     }
-
-    printf("  ################################## \n\n");
 }
 
 DIR *opendir(const char *dirname)
