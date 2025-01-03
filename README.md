@@ -6,6 +6,8 @@ This project emulates the SEGA Lindbergh, allowing games to run on modern Linux 
 
 If you'd like to support the development work of this emulator, see early development builds or get support from the authors please consider [becoming a patreon here](https://www.patreon.com/LindberghLoader).
 
+If you need any help please ask the community in the [arcade community discord](https://arcade.community).
+
 ## Building & Running
 
 In order to build the loader you will need to install the following dependencies in a Linux environment. We recommend Ubuntu 22.04 LTS as default, but it may work in various configurations like WSL2, Debian, etc.  
