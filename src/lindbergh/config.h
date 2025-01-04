@@ -103,9 +103,9 @@ typedef enum
 
 typedef enum
 {
-    JP,
-    US,
-    EX
+    JP = 0,
+    US = 1,
+    EX = 2
 } GameRegion;
 
 typedef enum
@@ -261,6 +261,9 @@ typedef struct
     ArcadeInputs arcadeInputs;
     int inputMode;  // 0 = both, 1 = SDL/X11 only, 2 = EVDEV only
     int skipOutrunCabinetCheck;
+    float whiteBorderPercentage;
+    float blackBorderPercentage;
+    int borderEnabled;
 } EmulatorConfig;
 
 KeyMapping getDefaultKeymap();
