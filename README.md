@@ -6,7 +6,7 @@ This project emulates the SEGA Lindbergh, allowing games to run on modern Linux 
 
 If you'd like to support the development work of this emulator, see early development builds or get support from the authors please consider [becoming a patreon here](https://www.patreon.com/LindberghLoader).
 
-If you need any help please ask the community in the [arcade community discord](https://arcade.community).
+If you need any help please ask the community in the [arcade community discord](https://arcade.community). Please only submit issues if they are bugs with the software, ask in the arcade community discord if you're not sure if it's a bug or you're not setting something up properly!
 
 ## Building & Running
 
