@@ -654,6 +654,97 @@ void sdlEventABC(SDL_Event *event)
     }
 }
 
+void sdlEventMahjong(SDL_Event *event)
+{
+    switch (event->type)
+    {
+    case SDL_KEYDOWN:
+    case SDL_KEYUP:
+    {
+        if (event->key.keysym.sym == SDLK_t)
+            setSwitch(SYSTEM, BUTTON_TEST, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_s)
+            setSwitch(PLAYER_1, BUTTON_SERVICE, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_5)
+            incrementCoin(PLAYER_1, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_1)
+            setSwitch(PLAYER_1, BUTTON_START, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_a)
+            setSwitch(PLAYER_1, BUTTON_RIGHT, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_b)
+            setSwitch(PLAYER_1, BUTTON_LEFT, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_c)
+            setSwitch(PLAYER_1, BUTTON_UP, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_d)
+            setSwitch(PLAYER_1, BUTTON_DOWN, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_e)
+            setSwitch(PLAYER_1, BUTTON_1, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_f)
+            setSwitch(PLAYER_1, BUTTON_2, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_g)
+            setSwitch(PLAYER_1, BUTTON_3, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_h)
+            setSwitch(PLAYER_1, BUTTON_4, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_i)
+            setSwitch(PLAYER_1, BUTTON_5, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_j)
+            setSwitch(PLAYER_1, BUTTON_6, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_k)
+            setSwitch(PLAYER_1, BUTTON_7, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_l)
+            setSwitch(PLAYER_2, BUTTON_RIGHT, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_m)
+            setSwitch(PLAYER_2, BUTTON_LEFT, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_n)
+            setSwitch(PLAYER_2, BUTTON_UP, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_o)
+            setSwitch(PLAYER_2, BUTTON_DOWN, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_p)
+            setSwitch(PLAYER_2, BUTTON_1, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_q)
+            setSwitch(PLAYER_2, BUTTON_2, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_r)
+            setSwitch(PLAYER_2, BUTTON_3, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_u)
+            setSwitch(PLAYER_2, BUTTON_4, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_v)
+            setSwitch(PLAYER_2, BUTTON_5, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_w)
+            setSwitch(PLAYER_2, BUTTON_6, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_x)
+            setSwitch(PLAYER_2, BUTTON_7, event->type == SDL_KEYDOWN);
+    }
+    break;
+    default:
+        break;
+    }
+}
+
 void handleSdlEvents(SDL_Event *event)
 {
     // Return now if we're not emulating JVS or if EVDEV-only mode is enabled
@@ -674,6 +765,9 @@ void handleSdlEvents(SDL_Event *event)
         break;
     case ABC:
         sdlEventABC(event);
+        break;
+    case MAHJONG:
+        sdlEventMahjong(event);
         break;
     default:
         // return XNextEventShooting(display, event_return, returnValue);

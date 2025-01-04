@@ -2167,15 +2167,15 @@ int initResolutionPatches()
     case RAMBO:
     {
         patchMemory(0x080c70d0, "9090909090"); // setresolutiontype
-        patchMemory(0x08416df0, "5005");       // render res
+        setVariable(0x08416df0, getConfig()->width); // render res
+        setVariable(0x08416d60, getConfig()->width); // main res
+        setVariable(0x08416d64, getConfig()->height);
+        patchMemory(0x08416d68, "5005"); // Allwinres
+        patchMemory(0x08416d6c, "0003");
 
-        // With this method you can get FullHD, but is very buggy.
-        // patchMemory(0x080c70d0, "9090909090"); // setresolutiontype
-        // patchMemory(0x08416df0, "8007");       // render res
-        // patchMemory(0x08416d60, "8007");       // main res
-        // patchMemory(0x08416d64, "3804");
-        // patchMemory(0x08416d68, "8002"); // Allwinres
-        // patchMemory(0x08416d6c, "E001");
+        patchMemory(0x080ef960, "66ff"); // 2d
+        patchMemory(0x0806b510, "b6");   // proper marker fix
+        //  patchMemory(0x0806b4f6, "c3");    //get rid of shot marker
     }
     break;
     case TOO_SPICY:
@@ -2336,6 +2336,25 @@ int initResolutionPatches()
         replaceCallAtAddress(0x081634e5, hummerRespatch);
         replaceCallAtAddress(0x0816353f, hummerRespatch);
         replaceCallAtAddress(0x0816355d, hummerRespatch);
+    }
+    break;
+    case MJ4_REVG:
+    {
+        // Not Supported yet.
+        //  patchMemory(0x080524a1, "01");         // Enable Anti Alias
+        //  patchMemory(0x08053668, "b80a000000"); // Skips resolution set by the Dip Switches.
+        //  vf5FSwidth = (getConfig()->height * 4) / 3;
+        //  setVariable(0x08901598, vf5FSwidth);
+        //  setVariable(0x0890159c, getConfig()->height);
+        //  setVariable(0x089015a4, vf5FSwidth);
+
+        // setVariable(0x089015a8, getConfig()->height);
+
+        // setVariable(0x08901544, vf5FSwidth);
+        // setVariable(0x08901548, getConfig()->height);
+
+        // setVariable(0x0890158c, vf5FSwidth);
+        // setVariable(0x08901590, getConfig()->height);
     }
     break;
     default:

@@ -860,6 +860,28 @@ static int detectGame(uint32_t elf_crc)
     }
     break;
 
+    case MJ4_REVG:
+    {
+        config.gameTitle = "SEGA Network Taisen Mahjong MJ4";
+        config.gameDVP = "DVP-0049G";
+        config.gameID = "SBPN";
+        config.gameStatus = WORKING;
+        config.gameType = MAHJONG;
+        return 0;
+    }
+    break;
+
+    case MJ4_EVO:
+    {
+        config.gameTitle = "SEGA Network Taisen Mahjong MJ4 Evolution";
+        config.gameDVP = "DVP-0081";
+        config.gameID = "SBTA";
+        config.gameStatus = WORKING;
+        config.gameType = MAHJONG;
+        return 0;
+    }
+    break;
+
     default:
     {
         config.crc32 = UNKNOWN;
@@ -1040,6 +1062,9 @@ int readConfig(FILE *configFile, EmulatorConfig *config)
             config->lgjRenderWithMesa = atoi(getNextToken(NULL, " ", &saveptr));
 
         else if (strcmp(command, "PRIMEVAL_HUNT_MODE") == 0)
+            config->phMode = atoi(getNextToken(NULL, " ", &saveptr));
+
+        else if (strcmp(command, "MJ4_ENABLED_ALL_THE_TIME") == 0)
             config->phMode = atoi(getNextToken(NULL, " ", &saveptr));
 
         else if (strcmp(command, "TEST_KEY") == 0)
@@ -1308,6 +1333,7 @@ int initConfig()
     config.fpsTarget = 60;
     config.noSDL = 0;
     config.phMode = 1;
+    config.mj4EnabledAtT = 0;
     memset(&config.arcadeInputs.analogue_deadzone_start, 0, sizeof(config.arcadeInputs.analogue_deadzone_start));
     memset(&config.arcadeInputs.analogue_deadzone_middle, 0, sizeof(config.arcadeInputs.analogue_deadzone_middle));
     memset(&config.arcadeInputs.analogue_deadzone_end, 0, sizeof(config.arcadeInputs.analogue_deadzone_end));

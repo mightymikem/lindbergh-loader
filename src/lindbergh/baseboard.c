@@ -10,7 +10,6 @@
 
 #include "config.h"
 #include "jvs.h"
-#include "serial.h"
 #include "passthrough.h"
 
 #define SERIAL_STRING "FE11-X018012022X"

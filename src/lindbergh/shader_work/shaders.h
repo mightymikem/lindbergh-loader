@@ -10,6 +10,7 @@
 #include "hummer.h"
 #include "id.h"
 #include "lgj.h"
+#include "mj4.h"
 #include "or2.h"
 #include "primeval.h"
 #include "rambo.h"

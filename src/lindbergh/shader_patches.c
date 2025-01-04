@@ -990,6 +990,21 @@ void gl_ProgramStringARB(int target, int program_fmt, int program_len, char *pro
         program = newProgram;
         program_len = newProgramLen;
     }
+    else if (gId == MJ4_REVG || gId == MJ4_EVO)
+    {
+        char *newProgram;
+        if (target == GL_VERTEX_PROGRAM_ARB)
+        {
+            newProgram = replaceInBlock(program, mj4VsMesa, mj4VsMesaCount, "", "");
+        }
+        else if (target == GL_FRAGMENT_PROGRAM_ARB)
+        {
+            newProgram = replaceInBlock(program, mj4FsMesa, mj4FsMesaCount, "", "");
+        }
+        int newProgramLen = strlen(newProgram);
+        program = newProgram;
+        program_len = newProgramLen;
+    }
     glProgramStringARB(target, program_fmt, program_len, program);
 
     if ((gId == VIRTUA_FIGHTER_5 || gId == VIRTUA_FIGHTER_5_REVA || gId == VIRTUA_FIGHTER_5_REVB ||

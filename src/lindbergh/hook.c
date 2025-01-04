@@ -1031,6 +1031,19 @@ char *__strdup(const char *string)
     return ___strdup(string);
 }
 
+struct tm *localtime_r(const time_t *timep, struct tm *result)
+{
+    struct tm *(*_localtime_r)(const time_t *, struct tm *) =
+        (struct tm * (*)(const time_t *, struct tm *)) dlsym(RTLD_NEXT, "localtime_r");
+
+    if ((getConfig()->crc32 == MJ4_REVG || getConfig()->crc32 == MJ4_EVO) && getConfig()->mj4EnabledAtT == 1)
+    {
+        time_t target_time = 1735286445;
+        struct tm *res = _localtime_r(&target_time, result);
+        return res;
+    }
+    return _localtime_r(timep, result);
+}
 
 /**
  * @brief Prints formatted text in a way that avoids spamming identical lines.

@@ -77,11 +77,11 @@ void glutInitSDL(int *argcp, char **argv)
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);   // Set the alpha size to 8 bits
     if (gId == AFTER_BURNER_CLIMAX || gId == AFTER_BURNER_CLIMAX_REVA || gId == AFTER_BURNER_CLIMAX_REVB ||
         gId == AFTER_BURNER_CLIMAX_SDX || gId == AFTER_BURNER_CLIMAX_SDX_REVA || gId == AFTER_BURNER_CLIMAX_SE ||
-        gId == AFTER_BURNER_CLIMAX_SE_REVA || gId == R_TUNED || gId == VIRTUA_FIGHTER_5 ||
-        gId == VIRTUA_FIGHTER_5_REVA || gId == VIRTUA_FIGHTER_5_REVB || gId == VIRTUA_FIGHTER_5_REVE ||
-        gId == VIRTUA_FIGHTER_5_EXPORT || gId == VIRTUA_FIGHTER_5_R || gId == VIRTUA_FIGHTER_5_R_REVD || gId == VIRTUA_FIGHTER_5_R_REVG ||
-        gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVA || gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB ||
-        gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB_6000 || gId == GHOST_SQUAD_EVOLUTION || gId == SEGA_RACE_TV)
+        gId == AFTER_BURNER_CLIMAX_SE_REVA || gId == R_TUNED || gId == VIRTUA_FIGHTER_5 || gId == VIRTUA_FIGHTER_5_REVA ||
+        gId == VIRTUA_FIGHTER_5_REVB || gId == VIRTUA_FIGHTER_5_REVE || gId == VIRTUA_FIGHTER_5_EXPORT || gId == VIRTUA_FIGHTER_5_R ||
+        gId == VIRTUA_FIGHTER_5_R_REVD || gId == VIRTUA_FIGHTER_5_R_REVG || gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVA ||
+        gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB || gId == VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB_6000 || gId == GHOST_SQUAD_EVOLUTION ||
+        gId == SEGA_RACE_TV || gId == MJ4_REVG || gId == MJ4_EVO)
     {
         SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1);
     }
@@ -104,18 +104,6 @@ void glutInitSDL(int *argcp, char **argv)
             fprintf(stderr, "OpenGL context could not be created! SDL_Error: %s\n", SDL_GetError());
             exit(1);
         }
-
-        // glEnable(GL_DEBUG_OUTPUT);
-        // glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS); // Make the callback synchronous
-
-        // // Set the callback function
-        // glDebugMessageCallback(openglDebugCallback2, NULL);
-
-        // // Example: generate a test message (optional, remove in production)
-        // glDebugMessageInsert(
-        //     GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_ERROR, 1, GL_DEBUG_SEVERITY_HIGH, -1,
-        //     "Test message from "
-        //     "application!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
 
         printf("  SDL RESOLUTION: %dx%d\n\n", getConfig()->width, getConfig()->height);
 
@@ -154,12 +142,6 @@ void pollEvents()
             {
                 SDL_Quit();
             }
-            // if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-            // {
-            //     int newWidth = event.window.data1;
-            //     int newHeight = event.window.data2;
-            //     handleResize(newWidth, newHeight);
-            // }
             break;
         default:
             break;
