@@ -1,8 +1,10 @@
 #include <dirent.h>
+#include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <limits.h>
 
 #include "evdevinput.h"
 #include "version.h"
@@ -249,7 +251,7 @@ int main(int argc, char *argv[])
     int forceGame = 0;
     int segaboot = 0;
     int extConfig = 0;
-    char envConfigPath[256] = {0};
+    char envConfigPath[PATH_MAX] = {0};
     char forceGamePath[128] = {0};
 
     for (int i = 1; i < argc; i++)
@@ -279,8 +281,10 @@ int main(int argc, char *argv[])
                 printf("Unable to read config file because it's the end of argument list\n");
                 break;
             }
+
             extConfig = 1;
             strcpy(envConfigPath, argv[i+1]);
+
             // skip the next argument
             i += 1;
             continue;

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 #include "config.h"
 #include "gpuvendor.h"
@@ -1348,20 +1349,18 @@ int initConfig(const char* configPath)
     }
 
     config.inputMode = 0; // Default to all inputs
+    char* configFilePath = CONFIG_PATH;
+    if (configPath != NULL)
+        strcpy(configFilePath, configPath);
 
-    // first we try to read the external config path
-    configFile = fopen(configPath, "r");
-    if (configFile != NULL) {
-        printf("Found lindbergh loader config at %s in system environment\n",configPath);
-    } else {
-        // then we try to read through default config path
-        configFile = fopen(CONFIG_PATH, "r");
-        if (configFile == NULL)
-        {
-            printf("Warning: Cannot open %s, using default values.\n", CONFIG_PATH);
-            return 1;
-        }
+    configFile = fopen(configFilePath, "r");
+
+    if (configFile == NULL)
+    {
+        printf("Warning: Cannot open %s, using default config values.\n", configFilePath);
+        return 1;
     }
+
 
 
     readConfig(configFile, &config);
