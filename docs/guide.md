@@ -78,7 +78,7 @@ In the second input mode, inputs are taken directly from the evdev library in li
 To list the available inputs you should type:
 
 ```
-./lindbergh --list-inputs
+./lindbergh --list-controllers
 ```
 
 From there you will be able to see the controllers and all of the inputs support. Then in the config file you should map an arcade input to a controller input as follows.
