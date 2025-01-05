@@ -35,6 +35,7 @@ char *games[] = {"main.exe",
                  "vf5",
                  "apacheM.elf",
                  "hodexRI.elf",
+                  "a.elf",
                  "END"};
 
 /**
