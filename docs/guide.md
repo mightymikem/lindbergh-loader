@@ -58,6 +58,7 @@ sudo ln -s /lib/i386-linux-gnu/libglut.so /lib/i386-linux-gnu/libglut.so.3
 
 All configurable options are set and explained in the [`lindbergh.conf`](lindbergh.conf) file itself, and should be reasonably easy to understand. This chapter further explains some of those setup options.
 
+You will see the value `AUTO` by default for some of the config options. This is present when the emulator might set that config value to multiple different things itself. For example rideboard emulation is set to `AUTO` so that the emulator doesn't enable it for all games, and only turns it on for the special games that require it. If it was set to `1` it would always emulate the rideboard on serial port 2, and if it was set to `0` it would never emulate it.
 
 ### Controller Setup
 
