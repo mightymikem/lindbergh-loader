@@ -1297,7 +1297,7 @@ KeyMapping getDefaultKeymap()
     return defaultKeyMapping;
 }
 
-int initConfig()
+int initConfig(const char* configPath)
 {
     config.emulateRideboard = 0;
     config.emulateDriveboard = 0;
@@ -1348,14 +1348,19 @@ int initConfig()
     }
 
     config.inputMode = 0; // Default to all inputs
+    char* configFilePath = CONFIG_PATH;
+    if (configPath != NULL)
+        strcpy(configFilePath, configPath);
 
-    configFile = fopen(CONFIG_PATH, "r");
+    configFile = fopen(configFilePath, "r");
 
     if (configFile == NULL)
     {
-        printf("Warning: Cannot open %s, using default values.\n", CONFIG_PATH);
+        printf("Warning: Cannot open %s, using default config values.\n", configFilePath);
         return 1;
     }
+
+
 
     readConfig(configFile, &config);
 
