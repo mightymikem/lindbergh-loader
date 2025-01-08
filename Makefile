@@ -1,6 +1,6 @@
 CC = gcc -m32 -pthread
 CFLAGS = -g -fPIC -m32 -Wall -Werror -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function -D_GNU_SOURCE -Wno-char-subscripts
-LD = g++ -m32
+LD = gcc -m32
 LDFLAGS = -Wl,-z,defs -rdynamic -static-libgcc -lc -ldl -lGL -lglut -lX11 -lSDL2 -lm -lpthread -shared -nostdlib -lasound -L./src/libxdiff -lxdiff
 
 BUILD = build
