@@ -49,6 +49,7 @@
 #include "evdevinput.h"
 
 #define HOOK_FILE_NAME "/dev/zero"
+
 #define BASEBOARD 0
 #define EEPROM 1
 #define SERIAL0 2
@@ -170,11 +171,8 @@ void __attribute__((constructor)) hook_init()
     act.sa_sigaction = handleSegfault;
     act.sa_flags = SA_SIGINFO;
     sigaction(SIGSEGV, &act, NULL);
-    // use unmodified version of getenv
-    char *(*_getenv)(const char *name) = dlsym(RTLD_NEXT, "getenv");
-    char* envPath = _getenv("LINDBERGH_CONFIG_PATH");
 
-    initConfig(envPath);
+    initConfig();
 
     if (getConfig()->fpsLimiter == 1)
     {
