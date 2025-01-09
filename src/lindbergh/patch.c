@@ -913,6 +913,7 @@ int initPatch()
         // Shader Fixes
         cacheModedShaderFiles();
     }
+    break;
     case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_TEST:
     {
         detourFunction(0x0806e9ec, amDongleInit);
@@ -928,6 +929,7 @@ int initPatch()
         // CPU patch to support AMD processors
         patchMemory(0x08054bf0, "9090909090"); //__intel_new_proc_init_P
     }
+    break;
     case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB:
     {
         detourFunction(0x08363438, amDongleInit);
