@@ -15,4 +15,5 @@ WORKDIR /lindbergh-loader
 
 COPY . .
 
-RUN make
+# Explicitly set the output directory
+RUN make && mkdir -p /output && cp -r ./build /output
