@@ -29,20 +29,23 @@ jobs:
         run: |
           docker build --target lindbergh-build -t lindbergh-loader .
 
+      # Extract build artifacts
       - name: Extract build artifacts
         run: |
           docker create --name lindbergh-builder lindbergh-loader
           docker cp lindbergh-builder:/output ./build
           docker rm lindbergh-builder
 
+      # Archive the build directory
       - name: Archive build directory
         uses: actions/upload-artifact@v3
         with:
           name: build-output
           path: ./build
 
-      # Create a GitHub release and upload the artifact
+      # Create a GitHub release and capture the upload URL
       - name: Create Release
+        id: create_release  # Assign an ID to reference the output
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -52,6 +55,7 @@ jobs:
           draft: false
           prerelease: false
 
+      # Upload the build artifact to the release
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
