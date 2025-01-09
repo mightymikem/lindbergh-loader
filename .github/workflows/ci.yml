@@ -12,38 +12,42 @@ permissions:
   contents: write
 
 jobs:
-  build-and-release:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Build the Docker image
       - name: Build Docker image
         run: |
           docker build --target lindbergh-build -t lindbergh-loader .
 
-      # Run the Docker container to extract the build output
-      - name: Run container and extract build output
+      - name: Extract build artifacts
         run: |
           docker create --name lindbergh-builder lindbergh-loader
-          docker cp lindbergh-builder:/lindbergh-loader/build ./build
+          docker cp lindbergh-builder:/output ./build
           docker rm lindbergh-builder
 
-      # Archive the build directory as an artifact
       - name: Archive build directory
         uses: actions/upload-artifact@v3
         with:
           name: build-output
           path: ./build
 
-      # Create a GitHub release and upload the artifact
+  release:
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build-output
+          path: ./build
+
       - name: Create Release
         uses: actions/create-release@v1
         env:
