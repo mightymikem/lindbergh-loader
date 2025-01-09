@@ -46,17 +46,6 @@ libposixtime.so:
 
 # Clean rule
 clean:
-	rm -f $(BUILD)/lindbergh.so
-	rm -f $(BUILD)/libsegaapi.so
-	rm -f $(BUILD)/lindbergh
-	rm -f src/lindbergh/*.o
-	rm -f src/libsegaapi/*.o
-
-#clean all rule
-cleanall:
 	rm -rf $(BUILD)
 	rm -f src/lindbergh/*.o
 	rm -f src/libsegaapi/*.o
-	rm -f src/libkswapapi/*.o
-	rm -f src/libxdiff/*.a
-	rm -f src/libxdiff/xdiff/*.o
