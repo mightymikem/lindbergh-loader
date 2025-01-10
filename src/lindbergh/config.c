@@ -1,4 +1,5 @@
 #include <limits.h>
+#include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1397,10 +1398,11 @@ int initConfig(const char* configFilePath)
 
     config.inputMode = 0; // Default to all inputs
 
-    char filePath[PATH_MAX] = CONFIG_PATH;
+    char filePath[PATH_MAX];
+    strncpy(filePath, CONFIG_PATH, PATH_MAX);
     if (configFilePath != NULL && configFilePath[0] != '\0')
     {
-        strcpy(filePath, configFilePath);
+        strncpy(filePath, configFilePath, PATH_MAX);
     }
 
     configFile = fopen(filePath, "r");

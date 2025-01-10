@@ -279,7 +279,7 @@ int main(int argc, char *argv[])
             {
                 break;
             }
-            strcpy(extConfigPath, argv[i+1]);
+            strncpy(extConfigPath, argv[i+1], PATH_MAX);
             i += 1;
             continue;
         }
