@@ -479,10 +479,12 @@ static int detectGame(uint32_t elf_crc)
         config.gameDVP = "DVP-0018-SDX";
         config.gameID = "SBMN";
         config.gameReleaseYear = "2006 ?";
-        config.gameNativeResolutions = "";
+        config.gameNativeResolutions = "1280x768";
         config.gameStatus = WORKING;
         config.jvsIOType = SEGA_TYPE_1;
         config.gameType = ABC;
+        config.width = 1280;
+        config.height = 768;
         return 0;
     }
     break;
@@ -493,10 +495,12 @@ static int detectGame(uint32_t elf_crc)
         config.gameDVP = "DVP-0018A-SDX";
         config.gameID = "SBMN";
         config.gameReleaseYear = "2006 ?";
-        config.gameNativeResolutions = "";
+        config.gameNativeResolutions = "1280x768";
         config.gameStatus = WORKING;
         config.jvsIOType = SEGA_TYPE_1;
         config.gameType = ABC;
+        config.width = 1280;
+        config.height = 768;
         return 0;
     }
     break;
