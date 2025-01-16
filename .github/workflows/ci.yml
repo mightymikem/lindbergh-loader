@@ -47,8 +47,9 @@ jobs:
           name: build-output
           path: ./build
 
-      # Create a GitHub release and capture the upload URL
+      # Create a GitHub release and capture the upload URL (only on push events)
       - name: Create Release
+        if: github.event_name == 'push'
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -59,8 +60,9 @@ jobs:
           draft: false
           prerelease: false
 
-      # Upload the compressed build artifact to the release
+      # Upload the compressed build artifact to the release (only on push events)
       - name: Upload Release Asset
+        if: github.event_name == 'push'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
