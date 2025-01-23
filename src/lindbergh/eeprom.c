@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "config.h"
 #include "eeprom.h"
@@ -85,6 +86,16 @@ int initEeprom()
         if (fixCoinAssignmentsHummer(eeprom) != 0)
         {
             printf("Error initializing eeprom settings.");
+            fclose(eeprom);
+            return 1;
+        }
+    }
+
+    if ((getConfig()->crc32 == OUTRUN_2_SP_SDX || getConfig()->crc32 == OUTRUN_2_SP_SDX_REVA) && strcmp(getConfig()->or2IP, "") != 0)
+    {
+        if (setIP(eeprom, getConfig()->or2IP, "255.255.255.0") != 0)
+        {
+            printf("Error setting the new IP address.");
             fclose(eeprom);
             return 1;
         }

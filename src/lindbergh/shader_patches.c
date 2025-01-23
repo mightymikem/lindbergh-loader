@@ -433,7 +433,7 @@ void srtvElfShaderPatcher()
  */
 bool shaderFileInList(const char *pathname, int *idx)
 {
-    int gId = getConfig()->crc32;
+    uint32_t gId = getConfig()->crc32;
     char cwd[256];
     if (gId == GHOST_SQUAD_EVOLUTION)
     {
@@ -668,7 +668,7 @@ bool shaderFileInList(const char *pathname, int *idx)
  */
 long int ftellGetShaderSize(int idx)
 {
-    int gId = getConfig()->crc32;
+    uint32_t gId = getConfig()->crc32;
     if (gId == GHOST_SQUAD_EVOLUTION)
     {
         if (getConfig()->GPUVendor != NVIDIA_GPU)
@@ -747,7 +747,7 @@ long int ftellGetShaderSize(int idx)
  */
 size_t freadReplace(void *buf, size_t size, size_t count, int idx)
 {
-    int gId = getConfig()->crc32;
+    uint32_t gId = getConfig()->crc32;
     if (gId == GHOST_SQUAD_EVOLUTION)
     {
         if (getConfig()->GPUVendor != NVIDIA_GPU)
@@ -1148,7 +1148,7 @@ char *cgCreateProgram(uint32_t context, int program_type, const char *program, i
 
 void gl_ShaderSourceARB(GLhandleARB shaderObj, GLsizei count, const GLcharARB **const string, const GLint *length)
 {
-    int gId = getConfig()->crc32;
+    uint32_t gId = getConfig()->crc32;
     if ((gId != SEGA_RACE_TV) && (gId != HUMMER) && (gId != HUMMER_SDLX) && (gId != HUMMER_EXTREME) &&
         (gId != HUMMER_EXTREME_MDX))
     {
@@ -1608,7 +1608,7 @@ int xdlt_load_mmfile(char const *path, mmfile_t *mf)
     int pos = 0;
     long size;
     char *blk;
-    int gId = getConfig()->crc32;
+    uint32_t gId = getConfig()->crc32;
     if (xdl_init_mmfile(mf, XDLT_STD_BLKSIZE, XDL_MMF_ATOMIC) < 0)
     {
         exit(1);
@@ -1673,7 +1673,7 @@ int handle_patch(void *priv, mmbuffer_t *mb, int nbuf)
  */
 void cacheModedShaderFiles()
 {
-    int gId = getConfig()->crc32;
+    uint32_t gId = getConfig()->crc32;
     char cwd[256];
     char fullPath[512];
     char shaderBuffer[100000];

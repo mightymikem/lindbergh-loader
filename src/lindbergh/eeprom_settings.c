@@ -226,6 +226,23 @@ int fixCoinAssignmentsHummer(FILE *eeprom)
     return 0;
 }
 
+int setIP(FILE *eeprom, char *ipAddress, char *netMask)
+{
+    uint32_t ipHex = inet_addr(ipAddress);
+    uint32_t nMask = inet_addr(netMask);
+    uint32_t dhcp = 0;
+    memcpy(&eepromBuffer[eepromOffsetTable[ETH0].offset + 8], &dhcp, sizeof(uint32_t));
+    memcpy(&eepromBuffer[eepromOffsetTable[ETH0].offset + 12], &ipHex, sizeof(uint32_t));
+    memcpy(&eepromBuffer[eepromOffsetTable[ETH0].offset + 16], &nMask, sizeof(uint32_t));
+    addCRCtoBuffer(ETH0);
+    if (writeSectiontoFile(eeprom, ETH0) != 0)
+    {
+        printf("Error writing to eeprom.");
+        return 1;
+    }
+    return 0;
+}
+
 int eepromSettingsInit( FILE *eeprom)
 {
     build_crc32_table();

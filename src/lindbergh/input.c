@@ -654,6 +654,64 @@ void sdlEventABC(SDL_Event *event)
     }
 }
 
+void sdlEventHarley(SDL_Event *event)
+{
+    switch (event->type)
+    {
+    case SDL_KEYDOWN:
+    case SDL_KEYUP:
+    {
+        if (event->key.keysym.sym == SDLK_t)
+            setSwitch(SYSTEM, BUTTON_TEST, event->type == SDL_KEYDOWN);
+        else if (event->key.keysym.sym == SDLK_s)
+            setSwitch(PLAYER_1, BUTTON_SERVICE, event->type == SDL_KEYDOWN);
+        else if (event->key.keysym.sym == SDLK_5)
+            incrementCoin(PLAYER_1, event->type == SDL_KEYDOWN);
+        else if (event->key.keysym.sym == SDLK_1)
+            setSwitch(PLAYER_1, BUTTON_START, event->type == SDL_KEYDOWN);
+        else if (event->key.keysym.sym == SDLK_UP)
+            setAnalogue(ANALOGUE_1, event->type == SDL_KEYDOWN ? pow(2, jvsAnalogueInBits) - 1 : 0);
+        else if (event->key.keysym.sym == SDLK_DOWN)
+            setAnalogue(ANALOGUE_4, event->type == SDL_KEYDOWN ? pow(2, jvsAnalogueInBits) - 1 : 0);
+        else if (event->key.keysym.sym == SDLK_LEFT)
+            setAnalogue(ANALOGUE_2, event->type == SDL_KEYDOWN ? pow(2, jvsAnalogueInBits) * 0.2 : pow(2, jvsAnalogueInBits) * 0.5);
+        else if (event->key.keysym.sym == SDLK_RIGHT)
+            setAnalogue(ANALOGUE_2, event->type == SDL_KEYDOWN ? pow(2, jvsAnalogueInBits) * 0.8 : pow(2, jvsAnalogueInBits) * 0.5);
+        else if (event->key.keysym.sym == SDLK_q)
+            setSwitch(PLAYER_1, BUTTON_1, event->type == SDL_KEYDOWN);
+        else if (event->key.keysym.sym == SDLK_w)
+            setSwitch(PLAYER_1, BUTTON_2, event->type == SDL_KEYDOWN);
+        else if (event->key.keysym.sym == SDLK_e)
+            setSwitch(PLAYER_1, BUTTON_3, event->type == SDL_KEYDOWN);
+        else if (event->key.keysym.sym == SDLK_r)
+            setSwitch(PLAYER_1, BUTTON_4, event->type == SDL_KEYDOWN);
+        else if (event->key.keysym.sym == SDLK_z)
+            setSwitch(PLAYER_1, BUTTON_DOWN, event->type == SDL_KEYDOWN); // Hummer - SegaTV view change
+
+        else if (event->key.keysym.sym == SDLK_x)
+            setSwitch(PLAYER_1, BUTTON_UP, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_c)
+            setSwitch(PLAYER_1, BUTTON_LEFT, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_v)
+            setSwitch(PLAYER_1, BUTTON_RIGHT, event->type == SDL_KEYDOWN);
+
+        else if (event->key.keysym.sym == SDLK_a)
+            setSwitch(PLAYER_2, BUTTON_1, event->type == SDL_KEYDOWN); // SegaTV boost
+
+        else if (event->key.keysym.sym == SDLK_LCTRL)
+            setSwitch(PLAYER_2, BUTTON_DOWN, event->type == SDL_KEYDOWN); // Hummer boost
+
+        else if (event->key.keysym.sym == SDLK_SPACE)
+            setSwitch(PLAYER_2, BUTTON_UP, event->type == SDL_KEYDOWN);
+    }
+    break;
+    default:
+        break;
+    }
+}
+
 void sdlEventMahjong(SDL_Event *event)
 {
     switch (event->type)
@@ -765,6 +823,9 @@ void handleSdlEvents(SDL_Event *event)
         break;
     case ABC:
         sdlEventABC(event);
+        break;
+    case HARLEY:
+        sdlEventHarley(event);
         break;
     case MAHJONG:
         sdlEventMahjong(event);

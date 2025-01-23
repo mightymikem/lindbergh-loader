@@ -1,6 +1,7 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #include <libgen.h>
+#include <stdint.h>
 #include <time.h>
 #endif
 
@@ -47,7 +48,10 @@
 #include "shader_patches.h"
 #include "fps_limiter.h"
 #include "evdevinput.h"
+#include "card_reader.h"
 #include "log.h"
+#include "resources/font.h"
+#include "resources/logo.h"
 
 #define HOOK_FILE_NAME "/dev/zero"
 
@@ -63,11 +67,19 @@
 #define FILE_RW1 3
 #define FILE_RW2 4
 #define FILE_HARLEY 5
+#define FILE_FONT_ABC 6
+#define FILE_FONT_TGA 7
+#define FILE_LOGO_TGA 8
+#define ROUTE 9
 
 int hooks[5] = {-1, -1, -1, -1, -1};
-FILE *fileHooks[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
-int fileRead[6] = {0, 0, 0, 0, 0, 0};
+FILE *fileHooks[10] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+int fileRead[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 char envpath[100];
+
+int fontABCidx = 0;
+int fontTGAidx = 0;
+int logoTGAidx = 0;
 
 uint32_t elf_crc = 0;
 
@@ -213,6 +225,12 @@ void __attribute__((constructor)) hook_init()
             exit(1);
     }
 
+    if (getConfig()->emulateCardreader)
+    {
+        if (initCardReader() != 0)
+            exit(1);
+    }
+
     if (initInput() != 0)
         exit(1);
 
@@ -306,27 +324,39 @@ int open(const char *pathname, int flags, ...)
 
     if (strcmp(pathname, "/dev/ttyS0") == 0 || strcmp(pathname, "/dev/tts/0") == 0)
     {
-        if (getConfig()->emulateDriveboard == 0 && getConfig()->emulateRideboard == 0)
+        if (getConfig()->emulateDriveboard == 0 && getConfig()->emulateRideboard == 0 && getConfig()->emulateCardreader == 0)
             return _open(getConfig()->serial1Path, flags, mode);
 
-        if (hooks[SERIAL0] != -1)
-            return -1;
+        if (hooks[SERIAL0] != -1 && getConfig()->emulateCardreader && getConfig()->crc32 != R_TUNED)
+        {
+            return hooks[SERIAL0];
+        }
 
         hooks[SERIAL0] = _open(HOOK_FILE_NAME, flags, mode);
-        log_warn("SERIAL0 Opened %d\n", hooks[SERIAL0]);
+        printf("Warning: SERIAL0 Opened %d\n", hooks[SERIAL0]);
+
+        if (getConfig()->emulateCardreader == 1 && getConfig()->crc32 != R_TUNED)
+            cardReaderSetFd(0, hooks[SERIAL0], getConfig()->cardFile1);
+
         return hooks[SERIAL0];
     }
 
     if (strcmp(pathname, "/dev/ttyS1") == 0 || strcmp(pathname, "/dev/tts/1") == 0)
     {
-        if (getConfig()->emulateMotionboard == 0)
+        if (getConfig()->emulateDriveboard == 0 && getConfig()->emulateMotionboard == 0 && getConfig()->emulateCardreader == 0)
             return _open(getConfig()->serial2Path, flags, mode);
 
-        if (hooks[SERIAL1] != -1)
-            return -1;
+        if (hooks[SERIAL1] != -1 && getConfig()->emulateCardreader && getConfig()->crc32 != R_TUNED)
+        {
+            return hooks[SERIAL1];
+        }
 
         hooks[SERIAL1] = _open(HOOK_FILE_NAME, flags, mode);
         log_warn("SERIAL1 opened %d\n", hooks[SERIAL1]);
+
+        if (getConfig()->emulateCardreader == 1)
+            cardReaderSetFd(1, hooks[SERIAL1], getConfig()->cardFile2);
+
         return hooks[SERIAL1];
     }
 
@@ -375,19 +405,60 @@ FILE *fopen(const char *restrict pathname, const char *restrict mode)
         return _fopen("lindbergrc", mode);
     }
 
-    if ((strcmp(pathname, "/usr/lib/boot/logo.tga") == 0) || (strcmp(pathname, "/usr/lib/boot/logo.tga") == 0))
+    if ((strcmp(pathname, "/usr/lib/boot/logo.tga") == 0))
     {
-        return _fopen("logo.tga", mode);
+        if (!getConfig()->disableBuiltinLogos)
+        {
+            fileRead[FILE_LOGO_TGA] = 0;
+            fileHooks[FILE_LOGO_TGA] = _fopen(HOOK_FILE_NAME, mode);
+            return fileHooks[FILE_LOGO_TGA];
+        }
+        else
+        {
+            return _fopen("logo.tga", mode);
+        }
+    }
+
+    if (strcmp(pathname, "/usr/lib/boot/logo_red.tga") == 0)
+    {
+        if (!getConfig()->disableBuiltinLogos)
+        {
+            fileRead[FILE_LOGO_TGA] = 1;
+            fileHooks[FILE_LOGO_TGA] = _fopen(HOOK_FILE_NAME, mode);
+            return fileHooks[FILE_LOGO_TGA];
+        }
+        else
+        {
+            return _fopen("logo_red.tga", mode);
+        }
     }
 
     if (strcmp(pathname, "/usr/lib/boot/LucidaConsole_12.tga") == 0)
     {
-        return _fopen("LucidaConsole_12.tga", mode);
+        if (!getConfig()->disableBuiltinFont)
+        {
+            fileRead[FILE_FONT_TGA] = 0;
+            fileHooks[FILE_FONT_TGA] = _fopen(HOOK_FILE_NAME, mode);
+            return fileHooks[FILE_FONT_TGA];
+        }
+        else
+        {
+            return _fopen("LucidaConsole_12.tga", mode);
+        }
     }
 
     if (strcmp(pathname, "/usr/lib/boot/LucidaConsole_12.abc") == 0)
     {
-        return _fopen("LucidaConsole_12.abc", mode);
+        if (!getConfig()->disableBuiltinFont)
+        {
+            fileRead[FILE_FONT_ABC] = 0;
+            fileHooks[FILE_FONT_ABC] = _fopen(HOOK_FILE_NAME, mode);
+            return fileHooks[FILE_FONT_ABC];
+        }
+        else
+        {
+            return _fopen("LucidaConsole_12.abc", mode);
+        }
     }
 
     if (strcmp(pathname, "/proc/cpuinfo") == 0)
@@ -403,12 +474,30 @@ FILE *fopen(const char *restrict pathname, const char *restrict mode)
     }
     if (strcmp(pathname, "/usr/lib/boot/SEGA_KakuGothic-DB-Roman_12.tga") == 0)
     {
-        return _fopen("SEGA_KakuGothic-DB-Roman_12.tga", mode);
+        if (!getConfig()->disableBuiltinFont)
+        {
+            fileRead[FILE_FONT_TGA] = 0;
+            fileHooks[FILE_FONT_TGA] = _fopen(HOOK_FILE_NAME, mode);
+            return fileHooks[FILE_FONT_TGA];
+        }
+        else
+        {
+            return _fopen("SEGA_KakuGothic-DB-Roman_12.tga", mode);
+        }
     }
 
     if (strcmp(pathname, "/usr/lib/boot/SEGA_KakuGothic-DB-Roman_12.abc") == 0)
     {
-        return _fopen("SEGA_KakuGothic-DB-Roman_12.abc", mode);
+        if (!getConfig()->disableBuiltinFont)
+        {
+            fileRead[FILE_FONT_ABC] = 0;
+            fileHooks[FILE_FONT_ABC] = _fopen(HOOK_FILE_NAME, mode);
+            return fileHooks[FILE_FONT_ABC];
+        }
+        else
+        {
+            return _fopen("SEGA_KakuGothic-DB-Roman_12.abc", mode);
+        }
     }
 
     if (strcmp(pathname, "/proc/bus/pci/00/1f.0") == 0)
@@ -505,22 +594,58 @@ FILE *fopen64(const char *pathname, const char *mode)
 
     if (strcmp(pathname, "/usr/lib/boot/logo_red.tga") == 0)
     {
-        return _fopen64("logo_red.tga", mode);
+        if (!getConfig()->disableBuiltinLogos)
+        {
+            fileRead[FILE_LOGO_TGA] = 1;
+            fileHooks[FILE_LOGO_TGA] = _fopen64(HOOK_FILE_NAME, mode);
+            return fileHooks[FILE_LOGO_TGA];
+        }
+        else
+        {
+            return _fopen64("logo_red.tga", mode);
+        }
     }
 
     if (strcmp(pathname, "/usr/lib/boot/logo.tga") == 0)
     {
-        return _fopen64("logo.tga", mode);
+        if (!getConfig()->disableBuiltinLogos)
+        {
+            fileRead[FILE_LOGO_TGA] = 0;
+            fileHooks[FILE_LOGO_TGA] = _fopen64(HOOK_FILE_NAME, mode);
+            return fileHooks[FILE_LOGO_TGA];
+        }
+        else
+        {
+            return _fopen64("logo.tga", mode);
+        }
     }
 
     if (strcmp(pathname, "/usr/lib/boot/SEGA_KakuGothic-DB-Roman_12.tga") == 0)
     {
-        return _fopen64("SEGA_KakuGothic-DB-Roman_12.tga", mode);
+        if (!getConfig()->disableBuiltinFont)
+        {
+            fileRead[FILE_FONT_TGA] = 0;
+            fileHooks[FILE_FONT_TGA] = _fopen64(HOOK_FILE_NAME, mode);
+            return fileHooks[FILE_FONT_TGA];
+        }
+        else
+        {
+            return _fopen64("SEGA_KakuGothic-DB-Roman_12.tga", mode);
+        }
     }
 
     if (strcmp(pathname, "/usr/lib/boot/SEGA_KakuGothic-DB-Roman_12.abc") == 0)
     {
-        return _fopen64("SEGA_KakuGothic-DB-Roman_12.abc", mode);
+        if (!getConfig()->disableBuiltinFont)
+        {
+            fileRead[FILE_FONT_ABC] = 0;
+            fileHooks[FILE_FONT_ABC] = _fopen64(HOOK_FILE_NAME, mode);
+            return fileHooks[FILE_FONT_ABC];
+        }
+        else
+        {
+            return _fopen64("SEGA_KakuGothic-DB-Roman_12.abc", mode);
+        }
     }
 
     if ((getConfig()->crc32 == HUMMER) || (getConfig()->crc32 == HUMMER_SDLX) ||
@@ -555,13 +680,19 @@ FILE *fopen64(const char *pathname, const char *mode)
 int fclose(FILE *stream)
 {
     int (*_fclose)(FILE *stream) = dlsym(RTLD_NEXT, "fclose");
-    for (int i = 0; i < 7; i++)
+    for (int i = 0; i < 9; i++)
     {
         if (fileHooks[i] == stream)
         {
             int r = _fclose(stream);
             fileHooks[i] = NULL;
             fileRead[i] = 0;
+            if (stream == fileHooks[FILE_FONT_ABC])
+                fontABCidx = 0;
+            if (stream == fileHooks[FILE_FONT_TGA])
+                fontTGAidx = 0;
+            if (stream == fileHooks[FILE_LOGO_TGA])
+                logoTGAidx = 0;
             return r;
         }
     }
@@ -653,6 +784,16 @@ ssize_t read(int fd, void *buf, size_t count)
         return driveboardRead(fd, buf, count);
     }
 
+    if (fd == hooks[SERIAL0] && getConfig()->emulateCardreader)
+    {
+        return cardReaderRead(fd, buf, count);
+    }
+
+    if (fd == hooks[SERIAL1] && getConfig()->emulateCardreader)
+    {
+        return cardReaderRead(fd, buf, count);
+    }
+
     // If we don't hook the serial just reply with nothing
     if (fd == hooks[SERIAL0] || fd == hooks[SERIAL1])
     {
@@ -693,6 +834,30 @@ size_t fread(void *buf, size_t size, size_t count, FILE *stream)
         return harleyFreadReplace(buf, size, count, fileHooks[FILE_HARLEY]);
     }
 
+    if (stream == fileHooks[FILE_FONT_ABC])
+    {
+        memcpy(buf, fontABC + fontABCidx, size * count);
+        fontABCidx += (size * count);
+        return size * count;
+    }
+
+    if (stream == fileHooks[FILE_FONT_TGA])
+    {
+        memcpy(buf, fontTGA + fontTGAidx, size * count);
+        fontTGAidx += (size * count);
+        return size * count;
+    }
+
+    if (stream == fileHooks[FILE_LOGO_TGA])
+    {
+        if (fileRead[FILE_LOGO_TGA] == 0)
+            memcpy(buf, logoLL + logoTGAidx, size * count);
+        else
+            memcpy(buf, logoLLRed + logoTGAidx, size * count);
+        logoTGAidx += (size * count);
+        return size * count;
+    }
+
     return _fread(buf, size, count, stream);
 }
 
@@ -709,7 +874,48 @@ long int ftell(FILE *stream)
         return ftellGetShaderSize(fileRead[FILE_RW2]);
     }
 
+    if (stream == fileHooks[FILE_FONT_ABC])
+    {
+        return fontABClen;
+    }
+
     return _ftell(stream);
+}
+
+int fseek(FILE *stream, long int offset, int whence)
+{
+    int (*_fseek)(FILE *stream, long int offset, int whence) = dlsym(RTLD_NEXT, "fseek");
+
+    if (stream == fileHooks[FILE_FONT_ABC])
+    {
+        switch (whence)
+        {
+        case SEEK_CUR:
+            break;
+        case SEEK_SET:
+            fontABCidx = 0;
+            break;
+        case SEEK_END:
+            fontABCidx = fontABClen;
+            break;
+        }
+        return fontABCidx;
+    }
+
+    return _fseek(stream, offset, whence);
+}
+
+void rewind(FILE *stream)
+{
+    void (*_rewind)(FILE *stream) = dlsym(RTLD_NEXT, "rewind");
+
+    if (stream == fileHooks[FILE_FONT_ABC])
+    {
+        fontABCidx = 0;
+        return;
+    }
+
+    _rewind(stream);
 }
 
 ssize_t write(int fd, const void *buf, size_t count)
@@ -728,7 +934,23 @@ ssize_t write(int fd, const void *buf, size_t count)
 
     if (fd == hooks[SERIAL0] && getConfig()->emulateDriveboard)
     {
+        // printf("Write addr: %p\n", addr);
         return driveboardWrite(fd, buf, count);
+    }
+
+    if (fd == hooks[SERIAL1] && getConfig()->emulateDriveboard && getConfig()->crc32 != R_TUNED)
+    {
+        return driveboardWrite(fd, buf, count);
+    }
+
+    if (fd == hooks[SERIAL0] && getConfig()->emulateCardreader)
+    {
+        return cardReaderWrite(fd, buf, count);
+    }
+
+    if (fd == hooks[SERIAL1] && getConfig()->emulateCardreader)
+    {
+        return cardReaderWrite(fd, buf, count);
     }
 
     return _write(fd, buf, count);
@@ -737,15 +959,6 @@ ssize_t write(int fd, const void *buf, size_t count)
 int ioctl(int fd, unsigned int request, void *data)
 {
     int (*_ioctl)(int fd, int request, void *data) = dlsym(RTLD_NEXT, "ioctl");
-
-    // Attempt to stop access to the ethernet ports
-    if ((request == SIOCSIFADDR) || (request == SIOCSIFFLAGS) || (request == SIOCSIFHWADDR) ||
-        (request == SIOCSIFHWBROADCAST) || (request == SIOCDELRT) || (request == SIOCADDRT) ||
-        (request == SIOCSIFNETMASK))
-    {
-        errno = ENXIO;
-        return -1;
-    }
 
     if (fd == hooks[EEPROM])
     {
@@ -762,10 +975,75 @@ int ioctl(int fd, unsigned int request, void *data)
     // Just accept any IOCTL on serial ports and ignore it
     if (fd == hooks[SERIAL0] || fd == hooks[SERIAL1])
     {
+        if (request == 0x541b && getConfig()->crc32 == R_TUNED && fd == hooks[SERIAL1])
+        {
+            uint8_t d = 1;
+            memcpy(data, &d, sizeof(uint8_t));
+        }
         return 0;
     }
 
     return _ioctl(fd, request, data);
+}
+
+int tcgetattr(int fd, struct termios *termios_p)
+{
+    int (*_tcgetattr)(int fd, struct termios *termios_p) = dlsym(RTLD_NEXT, "tcgetattr");
+
+    if (fd == hooks[SERIAL0] && getConfig()->emulateDriveboard == 1)
+        return 0;
+
+    return _tcgetattr(fd, termios_p);
+}
+
+int tcsetattr(int fd, int optional_actions, const struct termios *termios_p)
+{
+    int (*_tcsetattr)(int fd, int optional_actions, const struct termios *termios_p) = dlsym(RTLD_NEXT, "tcsetattr");
+
+    if (fd == hooks[SERIAL0] && getConfig()->emulateDriveboard == 1)
+        return 0;
+
+    return _tcsetattr(fd, optional_actions, termios_p);
+}
+
+speed_t cfgetispeed(const struct termios *termios_p)
+{
+    speed_t (*_cfgetispeed)(const struct termios *termios_p) = dlsym(RTLD_NEXT, "cfgetispeed");
+
+    if (getConfig()->emulateDriveboard == 1)
+        return B9600;
+
+    return _cfgetispeed(termios_p);
+}
+
+speed_t cfgetospeed(const struct termios *termios_p)
+{
+    speed_t (*_cfgetospeed)(const struct termios *termios_p) = dlsym(RTLD_NEXT, "cfgetospeed");
+
+    if (getConfig()->emulateDriveboard == 1)
+        return B9600;
+
+    return _cfgetospeed(termios_p);
+}
+
+int cfsetispeed(struct termios *termios_p, speed_t speed)
+{
+    int (*_cfsetispeed)(struct termios *termios_p, speed_t speed) = dlsym(RTLD_NEXT, "cfsetispeed");
+
+    if (getConfig()->emulateDriveboard == 1)
+        return 0;
+
+    return _cfsetispeed(termios_p, speed);
+}
+
+int cfsetospeed(struct termios *termios_p, speed_t speed)
+{
+    int (*_cfsetospeed)(struct termios *termios_p, speed_t speed) = dlsym(RTLD_NEXT, "cfsetospeed");
+
+    if (getConfig()->emulateDriveboard == 1)
+        return 0;
+
+    return _cfsetospeed(termios_p, speed);
 }
 
 int select(int nfds, fd_set *restrict readfds, fd_set *restrict writefds, fd_set *restrict exceptfds,
@@ -782,6 +1060,11 @@ int select(int nfds, fd_set *restrict readfds, fd_set *restrict writefds, fd_set
     if (writefds != NULL && FD_ISSET(hooks[BASEBOARD], writefds))
     {
         return baseboardSelect(nfds, readfds, writefds, exceptfds, timeout);
+    }
+
+    if (getConfig()->emulateCardreader == 1 || getConfig()->emulateDriveboard == 1)
+    {
+        return 1;
     }
 
     return _select(nfds, readfds, writefds, exceptfds, timeout);
@@ -816,6 +1099,9 @@ int system(const char *command)
         return 0;
 
     if (strstr(command, "losetup") != NULL)
+        return 0;
+
+    if (strstr(command, "check_ip.sh") != NULL)
         return 0;
 
     return _system(command);

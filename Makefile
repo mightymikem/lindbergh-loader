@@ -1,6 +1,6 @@
 CC = gcc -m32 -pthread
-CFLAGS = -g -fPIC -m32 -Wall -Werror -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function -D_GNU_SOURCE -Wno-char-subscripts
-LD = gcc -m32
+CFLAGS = -g -fPIC -m32 -Wall -Werror -Wno-misleading-indentation -Wno-unused-but-set-variable -Wno-unused-variable -Wno-unused-function -D_GNU_SOURCE -Wno-char-subscripts
+LD = g++ -m32
 LDFLAGS = -Wl,-z,defs -rdynamic -static-libgcc -lc -ldl -lGL -lglut -lX11 -lSDL2 -lm -lpthread -shared -nostdlib -lasound -L./src/libxdiff -lxdiff
 
 BUILD = build
@@ -46,6 +46,17 @@ libposixtime.so:
 
 # Clean rule
 clean:
+	rm -f $(BUILD)/lindbergh.so
+	rm -f $(BUILD)/libsegaapi.so
+	rm -f $(BUILD)/lindbergh
+	rm -f src/lindbergh/*.o
+	rm -f src/libsegaapi/*.o
+
+#clean all rule
+cleanall:
 	rm -rf $(BUILD)
 	rm -f src/lindbergh/*.o
 	rm -f src/libsegaapi/*.o
+	rm -f src/libkswapapi/*.o
+	rm -f src/libxdiff/*.a
+	rm -f src/libxdiff/xdiff/*.o

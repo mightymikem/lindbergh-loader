@@ -1,11 +1,13 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#include <SDL2/SDL_events.h>
 #endif
 #include <time.h>
 #define GL_GLEXT_PROTOTYPES
 #include "patch.h"
 
 #include <GL/glx.h>
+#include <SDL2/SDL.h>
 
 #include <dlfcn.h>
 #include <stdarg.h>
@@ -28,6 +30,7 @@ char elfID[4];
 void *amDipswContextAddr;
 extern void *glVertex3fPatchRetAddrABC[4];
 extern void *glVertex3fNoPatchRetAddrABC[4];
+void *hod4CursorHideShowCAVEAddress;
 
 void setVariable(size_t address, size_t value)
 {
@@ -173,7 +176,7 @@ int amDongleUpdate()
 
 int amDongleUserInfoEx(int a, int b, char *_arcadeContext)
 {
-    int gId = getConfig()->crc32;
+    uint32_t gId = getConfig()->crc32;
     char *gameID;
     switch (gId)
     {
@@ -342,6 +345,75 @@ int patchedPuts(char *s)
     int ret = log_game("%s\n", s);
 
     return ret;
+}
+
+__attribute__((naked)) void hod4CursorHideShowFixCAVE(int param1)
+{
+    __asm__ volatile("push %%edi\n\tpush %%esi\n\tpush %%ebx\n\tsub $0x18, %%esp\n\tjmp *%0\n\t" ::"m"(hod4CursorHideShowCAVEAddress));
+}
+
+uint32_t hod4PrevValue;
+bool hod4InTutorial = false;
+
+void hod4CursorHideShow(int param1)
+{
+
+    uint32_t value = *(unsigned int *)(uintptr_t)(param1 + 0x38);
+    if (!getConfig()->hideCursor)
+    {
+
+        switch (value)
+        {
+        case 0:
+        {
+            if (hod4PrevValue != 3 || hod4InTutorial)
+            {
+                SDL_ShowCursor(SDL_DISABLE);
+            }
+            hod4PrevValue = 0;
+        }
+        break;
+        case 3:
+        {
+            if (!hod4InTutorial)
+            {
+                SDL_ShowCursor(SDL_ENABLE);
+                hod4PrevValue = 3;
+            }
+        }
+        break;
+        case 4:
+        {
+            hod4InTutorial = false;
+        }
+        case 2:
+        case 5:
+        case 11:
+        {
+            SDL_ShowCursor(SDL_DISABLE);
+        }
+        }
+    }
+    hod4CursorHideShowFixCAVE(param1);
+}
+
+int hod4VsPrintf(char *str, const char *format, va_list arg)
+{
+    int (*_vsprintf)(char *str, const char *format, va_list arg) = dlsym(RTLD_NEXT, "vsprintf");
+
+    int res = _vsprintf(str, format, arg);
+
+    if (strcmp(str, "free : tutorial\n") == 0)
+    {
+        hod4InTutorial = false;
+    }
+
+    if (strcmp(str, "entry : tutorial\n") == 0)
+    {
+        hod4InTutorial = true;
+    }
+
+    return res;
 }
 
 int initPatch()
@@ -773,6 +845,19 @@ int initPatch()
         // patchMemory(0x0828a92a, "9090909090");  // IzPadServerExecute
         // patchMemory(0x0828a936, "9090909090");  // IzMouseServerExecute
         // patchMemory(0x0828a942, "9090909090");  // IzKeybdServerExecute
+
+        if (!getConfig()->hideCursor)
+        {
+            hod4CursorHideShowCAVEAddress = (void *)0x08161c98 + 6;
+            detourFunction(0x08161c98, hod4CursorHideShow);
+            detourFunction(0x0804be14, hod4VsPrintf);
+        }
+
+        if (getConfig()->cpuFreqMhz != 0.0f)
+        {
+            uint32_t cpuFreq = (uint32_t)(getConfig()->cpuFreqMhz * 998000000.0);
+            setVariable(0x0828ea13, cpuFreq);
+        }
     }
     break;
     case THE_HOUSE_OF_THE_DEAD_4_REVA_TEST:
@@ -843,10 +928,33 @@ int initPatch()
         // patchMemory(0x082852b2, "9090909090");  // IzPadServerExecute
         // patchMemory(0x082852be, "9090909090");  // IzMouseServerExecute
         // patchMemory(0x082852ca, "9090909090");  // IzKeybdServerExecute
+
+        if (!getConfig()->hideCursor)
+        {
+            hod4CursorHideShowCAVEAddress = (void *)0x08162494 + 6;
+            detourFunction(0x08162494, hod4CursorHideShow);
+            detourFunction(0x0804be04, hod4VsPrintf);
+        }
+
+        if (getConfig()->cpuFreqMhz != 0.0f)
+        {
+            uint32_t cpuFreq = (uint32_t)(getConfig()->cpuFreqMhz * 998000000.0);
+            setVariable(0x08289353, cpuFreq);
+        }
     }
     break;
     case THE_HOUSE_OF_THE_DEAD_4_REVB_TEST:
     {
+        detourFunction(0x0806228c, amDongleInit);
+        detourFunction(0x0806259f, amDongleIsAvailable);
+        detourFunction(0x08062506, amDongleUpdate);
+        // //  Fixes
+        amDipswContextAddr = (void *)0x080980e8; // Address of amDipswContext
+        detourFunction(0x08062034, amDipswInit);
+        detourFunction(0x080620c9, amDipswExit);
+        detourFunction(0x0806213f, amDipswGetData);
+        detourFunction(0x080621b7, amDipswSetLed);
+
         // CPU patch to support AMD processors
         patchMemory(0x08049f4d, "9090909090"); //__intel_new_proc_init_P
     }
@@ -885,10 +993,33 @@ int initPatch()
         // patchMemory(0x082852b2, "9090909090");  // IzPadServerExecute
         // patchMemory(0x082852be, "9090909090");  // IzMouseServerExecute
         // patchMemory(0x082852ca, "9090909090");  // IzKeybdServerExecute
+
+        if (!getConfig()->hideCursor)
+        {
+            hod4CursorHideShowCAVEAddress = (void *)0x08162494 + 6;
+            detourFunction(0x08162494, hod4CursorHideShow);
+            detourFunction(0x0804be04, hod4VsPrintf);
+        }
+
+        if (getConfig()->cpuFreqMhz != 0.0f)
+        {
+            uint32_t cpuFreq = (uint32_t)(getConfig()->cpuFreqMhz * 998000000.0);
+            setVariable(0x08289353, cpuFreq);
+        }
     }
     break;
     case THE_HOUSE_OF_THE_DEAD_4_REVC_TEST:
     {
+        detourFunction(0x0806226c, amDongleInit);
+        detourFunction(0x0806257f, amDongleIsAvailable);
+        detourFunction(0x080624e6, amDongleUpdate);
+        //  Fixes
+        amDipswContextAddr = (void *)0x080980c8; // Address of amDipswContext
+        detourFunction(0x08062014, amDipswInit);
+        detourFunction(0x080620a9, amDipswExit);
+        detourFunction(0x0806211f, amDipswGetData);
+        detourFunction(0x08062197, amDipswSetLed);
+
         // CPU patch to support AMD processors
         patchMemory(0x08049f4d, "9090909090"); //__intel_new_proc_init_P
     }
@@ -920,7 +1051,7 @@ int initPatch()
         detourFunction(0x0806ecff, amDongleIsAvailable);
         detourFunction(0x0806ec66, amDongleUpdate);
         // Fixes
-        amDipswContextAddr = (void *)0x0a6f3f0c; // Address of amDipswContext
+        amDipswContextAddr = (void *)0x080b2e88; // Address of amDipswContext
         detourFunction(0x0806e794, amDipswInit);
         detourFunction(0x0806e829, amDipswExit);
         detourFunction(0x0806e89f, amDipswGetData);
@@ -1961,7 +2092,7 @@ int initPatch()
         detourFunction(0x0870efbd, amDipswGetData);
         detourFunction(0x0870f034, stubRetZero); // amDipswSetLed
         detourFunction(0x08230fde, stubRetOne);  // isEthLinkUp
-        // patchMemory(0x082df87d, "e954010000");   // tickWaitDHCP
+        patchMemory(0x082df87d, "e954010000");   // tickWaitDHCP
         patchMemory(0x082e0ec9, "eb60");        // tickInitAddress
         detourFunction(0x0821b3ea, stubRetOne); // Skip Kickback initialization
         setVariable(0x08580979, 0x000126e9);    // Avoid Full Screen set from Game
@@ -2285,8 +2416,6 @@ int initPatch()
         detourFunction(0x0831bf2f, amDipswGetData);
         detourFunction(0x0831bfa7, stubRetZero);
         setVariable(0x0827a7c7, 0x34891beb);     // Disable Fullscreen set from the game
-        detourFunction(0x081164b6, stubReturn);  // patch cards to skip SIGFAULT
-        detourFunction(0x08116366, stubRetZero); // patch cards to skip SIGFAULT
 
         detourFunction(0x08177acc, stubRetOne); // Patch seterror
 
@@ -2357,8 +2486,6 @@ int initPatch()
         detourFunction(0x0831bfd3, amDipswGetData);
         detourFunction(0x0831c04b, stubRetZero);
         setVariable(0x0827a7f7, 0x34891beb);     // Disable Fullscreen set from the game
-        detourFunction(0x081164e6, stubReturn);  // patch cards to skip SIGFAULT
-        detourFunction(0x08116396, stubRetZero); // patch cards to skip SIGFAULT
         detourFunction(0x08177afc, stubRetOne);  // Patch seterror
 
         // Mesa
@@ -2428,8 +2555,6 @@ int initPatch()
         detourFunction(0x0831c1bf, amDipswGetData);
         detourFunction(0x0831c237, stubRetZero);
         setVariable(0x0827a9e3, 0x34891beb);     // Disable Fullscreen set from the game
-        detourFunction(0x081165c2, stubReturn);  // patch cards to skip SIGFAULT
-        detourFunction(0x08116472, stubRetZero); // patch cards to skip SIGFAUL
         detourFunction(0x08177bf0, stubRetOne);  // Patch seterror
 
         // Mesa
@@ -2499,8 +2624,6 @@ int initPatch()
         detourFunction(0x0831c5d7, amDipswGetData);
         detourFunction(0x0831c64f, stubRetZero);
         setVariable(0x0827ae1b, 0x34891beb);     // Disable Fullscreen set from the game
-        detourFunction(0x081165ee, stubReturn);  // patch cards to skip SIGFAULT
-        detourFunction(0x0811649e, stubRetZero); // patch cards to skip SIGFAULT
         detourFunction(0x08177c1c, stubRetOne);  // Patch seterror
 
         // Mesa

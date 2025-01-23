@@ -22,10 +22,12 @@
 #include "fps_limiter.h"
 #include "sdlcalls.h"
 #include "border.h"
+#include "resolution.h"
 
 extern SDL_Window *SDLwindow;
 extern char SDLgameTitle[];
 extern fps_limit fpsLimit;
+bool GLUTGame = false;
 
 void *displayFunc = NULL;
 void *reshapeFunc = NULL;
@@ -36,17 +38,16 @@ void FGAPIENTRY glutInit(int *argcp, char **argv)
 {
     if (*argcp > 1 && getConfig()->crc32 == SEGA_RACE_TV)
     {
-        for (int x = 0; x < *argcp; x++)
+        if (isTestMode())
         {
-            if (strcmp(argv[x], "-t") == 0)
-            {
-                EmulatorConfig *config = getConfig();
-                config->noSDL = 0;
-                printf("Forced to use SDL to make Test mode render fine.");
-            }
+            EmulatorConfig *config = getConfig();
+            config->noSDL = 0;
+            printf("Forced to use SDL to make Test mode render fine.\n");
         }
     }
-    glutInitSDL(argcp, argv);
+    GLUTGame = true;
+
+    initSDL(argcp, argv);
 }
 
 void FGAPIENTRY glutMainLoop(void)
@@ -296,7 +297,8 @@ void FGAPIENTRY glutKeyboardFunc(void (*callback)(unsigned char, int, int))
 {
     if (getConfig()->noSDL)
     {
-        void FGAPIENTRY (*_glutKeyboardFunc)(void (*callback)(unsigned char, int, int)) = dlsym(RTLD_NEXT, "glutKeyboardFunc");
+        void FGAPIENTRY (*_glutKeyboardFunc)(void (*callback)(unsigned char, int, int)) =
+            dlsym(RTLD_NEXT, "glutKeyboardFunc");
         _glutKeyboardFunc(callback);
         return;
     }
@@ -307,7 +309,8 @@ void FGAPIENTRY glutKeyboardUpFunc(void (*callback)(unsigned char, int, int))
 {
     if (getConfig()->noSDL)
     {
-        void FGAPIENTRY (*_glutKeyboardUpFunc)(void (*callback)(unsigned char, int, int)) = dlsym(RTLD_NEXT, "glutKeyboardUpFunc");
+        void FGAPIENTRY (*_glutKeyboardUpFunc)(void (*callback)(unsigned char, int, int)) =
+            dlsym(RTLD_NEXT, "glutKeyboardUpFunc");
         _glutKeyboardUpFunc(callback);
         return;
     }
@@ -362,7 +365,8 @@ void FGAPIENTRY glutPassiveMotionFunc(void (*callback)(int, int))
 {
     if (getConfig()->noSDL)
     {
-        void FGAPIENTRY (*_glutPassiveMotionFunc)(void (*callback)(int, int)) = dlsym(RTLD_NEXT, "glutPassiveMotionFunc");
+        void FGAPIENTRY (*_glutPassiveMotionFunc)(void (*callback)(int, int)) =
+            dlsym(RTLD_NEXT, "glutPassiveMotionFunc");
         _glutPassiveMotionFunc(callback);
         return;
     }
@@ -417,7 +421,8 @@ void FGAPIENTRY glutSolidSphere(double radius, GLint slices, GLint stacks)
 {
     if (getConfig()->noSDL)
     {
-        void FGAPIENTRY (*_glutSolidSphere)(double radius, GLint slices, GLint stacks) = dlsym(RTLD_NEXT, "glutSolidSphere");
+        void FGAPIENTRY (*_glutSolidSphere)(double radius, GLint slices, GLint stacks) =
+            dlsym(RTLD_NEXT, "glutSolidSphere");
         _glutSolidSphere(radius, slices, stacks);
         return;
     }
@@ -428,7 +433,8 @@ void FGAPIENTRY glutWireSphere(double radius, GLint slices, GLint stacks)
 {
     if (getConfig()->noSDL)
     {
-        void FGAPIENTRY (*_glutWireSphere)(double radius, GLint slices, GLint stacks) = dlsym(RTLD_NEXT, "glutWireSphere");
+        void FGAPIENTRY (*_glutWireSphere)(double radius, GLint slices, GLint stacks) =
+            dlsym(RTLD_NEXT, "glutWireSphere");
         _glutWireSphere(radius, slices, stacks);
         return;
     }
@@ -439,7 +445,8 @@ void FGAPIENTRY glutWireCone(double base, double height, GLint slices, GLint sta
 {
     if (getConfig()->noSDL)
     {
-        void FGAPIENTRY (*_glutWireCone)(double base, double height, GLint slices, GLint stacks) = dlsym(RTLD_NEXT, "glutWireCone");
+        void FGAPIENTRY (*_glutWireCone)(double base, double height, GLint slices, GLint stacks) =
+            dlsym(RTLD_NEXT, "glutWireCone");
         _glutWireCone(base, height, slices, stacks);
         return;
     }
@@ -450,7 +457,8 @@ void FGAPIENTRY glutSolidCone(double base, double height, GLint slices, GLint st
 {
     if (getConfig()->noSDL)
     {
-        void FGAPIENTRY (*_glutSolidCone)(double base, double height, GLint slices, GLint stacks) = dlsym(RTLD_NEXT, "glutSolidCone");
+        void FGAPIENTRY (*_glutSolidCone)(double base, double height, GLint slices, GLint stacks) =
+            dlsym(RTLD_NEXT, "glutSolidCone");
         _glutSolidCone(base, height, slices, stacks);
         return;
     }

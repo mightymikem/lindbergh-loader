@@ -146,7 +146,14 @@ void glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdou
 
     switch (getConfig()->crc32)
     {
-
+    case THE_HOUSE_OF_THE_DEAD_4_REVA:
+    case THE_HOUSE_OF_THE_DEAD_4_REVB:
+    case THE_HOUSE_OF_THE_DEAD_4_REVC:
+    {
+        right = 1280.0;
+        bottom = 720.0;
+    }
+    break;
     case THE_HOUSE_OF_THE_DEAD_4_SPECIAL:
     case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB:
     {
@@ -264,7 +271,7 @@ void glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
     case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB_6000:
     case VIRTUA_FIGHTER_5_R:
     case VIRTUA_FIGHTER_5_R_REVD:
-	case VIRTUA_FIGHTER_5_R_REVG:
+    case VIRTUA_FIGHTER_5_R_REVG:
     {
         if (width == vf5FSwidth)
         {
@@ -1148,6 +1155,192 @@ void hookABCGLFunctions(uint32_t glBindTextureAddr, uint32_t glVertex3fAddr1, ui
     replaceCallAtAddress(glVertex3fAddr2 + 0x7b, glVertex3fABC2);
 }
 
+GLenum curTargetGE = 0;
+GLuint curTextureIDGE = 0;
+bool enableScaling = false;
+
+void glBindTextureGE(GLenum target, GLuint texture)
+{
+    curTargetGE = target;
+    curTextureIDGE = texture;
+
+    void *addr = __builtin_return_address(0);
+
+    if (getConfig()->crc32 == TOO_SPICY)
+    {
+        // printf("glBindTexture called: Target = %s (0x%x), Texture ID = %u\n", targetName, target, texture);
+        if (texture == 902 || texture == 1642)
+        {                         //  55 title
+            enableScaling = true; // Enable scaling
+        }
+        else if (texture == 903 || texture == 1686)
+        {
+            enableScaling = false; // Disable scaling
+        }
+    }
+
+    void (*_glBindTexture)(GLenum, GLuint) = dlsym(RTLD_NEXT, "glBindTexture");
+    _glBindTexture(target, texture);
+}
+
+void glVertex3fHOD4(GLfloat x, GLfloat y, GLfloat z)
+{
+    int (*_glVertex3f)(GLfloat x, GLfloat y, GLfloat z) = dlsym(RTLD_NEXT, "glVertex3f");
+
+    void *returnAddress = __builtin_return_address(0);
+
+    // printf("glVertex3f  hooked: x=%f, y=%f, z=%f\n", x, y, z);
+
+    // float scaleX = 1920.0f / 1280.0f;
+    // float scaleY = 1080.0f / 768.0f;
+    float scaleX = getConfig()->width / 1280.0f;
+    float scaleY = getConfig()->height / 768.0f;
+
+    float TestX = ((((getConfig()->width - 1280.0) / 2.0) * 1.1116317809) / 1280.0) * (1.5 / scaleX);
+    float TestY = ((((getConfig()->height - 768.0) / 2.0) * 0.666979044) / 768.0) * (1.5 / scaleX);
+
+    // float OffsetX = 0.277907945225;  // 1920x1080
+    // float OffsetY = 0.1354801183125;
+
+    // float OffsetX = 0.166744767135; // 0.1659539726125;  //1600x900
+    // float OffsetY = 0.0687822139125;	//	 0.06731851159375
+
+    // float OffsetX = 0.0490425785691176;  //1360x768
+    // float OffsetY = 0.0;
+
+    float OffsetX = TestX; // test
+    float OffsetY = TestY;
+
+    float scaleZ = fabs(z) / 1.510000;
+
+    float AdjOffsetX = OffsetX * scaleZ;
+    float AdjOffsetY = OffsetY * scaleZ;
+
+    if (z == -1.000000f)
+    { // 3d
+      // printf("glVertex3f hooked: x=%f, y=%f, z=%f\n", x, y, z);
+    }
+    else if (z == -1.000010f)
+    { // subtitles
+    }
+    else if (z == -1.510000f)
+    { // logo  2d elemtents target
+
+        if (curTextureIDGE != 260) // target boss fight
+        {
+            x += OffsetX;
+            y -= OffsetY;
+
+            x *= scaleX;
+            y *= scaleY;
+        }
+        else
+        {
+        }
+    }
+    else if (z == -2.000000f)
+    { // videos - cutscenes
+    }
+    else if (z == -3.000000f)
+    { // ??
+    }
+    else if (z == -1.210000f)
+    { // coins  start select side
+        // printf(" x values: %.10f\n", x);
+        // printf(" y values: %.10f\n", y);
+
+        x += AdjOffsetX;
+        y -= AdjOffsetY;
+
+        x *= scaleX;
+        y *= scaleY;
+    }
+    else if (z == -1.310000f)
+    { // main bd
+
+        x += AdjOffsetX;
+        y -= AdjOffsetY;
+
+        x *= scaleX;
+        y *= scaleY;
+    }
+    else if (z == -1.509800f)
+    { // frame   2d elements
+
+        x += AdjOffsetX;
+        y -= AdjOffsetY;
+
+        x *= scaleX;
+        y *= scaleY;
+    }
+
+    else if (z == -1.4099999666f)
+    { // continue
+
+        x += AdjOffsetX;
+        y -= AdjOffsetY;
+
+        x *= scaleX;
+        y *= scaleY;
+    }
+    else if (z == -1.6099998951f)
+    { // score
+
+        x += AdjOffsetX;
+        y -= AdjOffsetY;
+
+        x *= scaleX;
+        y *= scaleY;
+    }
+    else if (z == -1.7100000381f)
+    { // side select
+
+        x += AdjOffsetX;
+        y -= AdjOffsetY;
+
+        x *= scaleX;
+        y *= scaleY;
+    }
+    else if (z == -1.5091999769f || z == -1.5094000101f || z == -1.5095999241f)
+    { // bar boss fight
+
+        x += AdjOffsetX;
+        y -= AdjOffsetY;
+
+        x *= scaleX;
+        y *= scaleY;
+    }
+    else if (z == -1.8099999428f)
+    { // score BG
+        x += AdjOffsetX;
+        y -= AdjOffsetY;
+
+        x *= scaleX;
+        y *= scaleY;
+    }
+    else
+    {
+
+        if (curTextureIDGE != 26)
+        { // gun effect
+            // printf(" z values: %.10f\n", z);
+
+            if (z > -1.8f && z < -1.0f)
+            {
+
+                // x += AdjOffsetX;
+                // y -= AdjOffsetY;
+
+                // x *= 1920.0f /1280.0f;
+                // y *= 1080.0f /768.0f;
+            }
+        }
+    }
+
+    _glVertex3f(x, y, z);
+}
+
+
 int initResolutionPatches()
 {
     switch (getConfig()->crc32)
@@ -1353,11 +1546,17 @@ int initResolutionPatches()
         setVariable(0x084c9dbc, getConfig()->width);
         setVariable(0x08448458, getConfig()->width);
         setVariable(0x0844845c, getConfig()->height);
-        patchMemory(0x08448460, "8002");
-        patchMemory(0x08448464, "E001");
+        patchMemory(0x08448460, "0005");
+        patchMemory(0x08448464, "0003");
         patchMemory(0x0817ff6d, "e80ed5ecff"); // call crtgetresolution
-        patchMemory(0x08448468, "8002");       // set crtgetresolution to 640x480
-        patchMemory(0x0844846c, "E001");
+        patchMemory(0x08448468, "0005");       // set crtgetresolution to 640x480
+        patchMemory(0x0844846c, "0003");
+
+        setVariable(0x08448338, getConfig()->width);
+        setVariable(0x0844833c, getConfig()->height);
+
+        detourFunction(0x0804c024, glVertex3fHOD4);
+        detourFunction(0x0804ca54, glBindTextureGE);
     }
     break;
     case THE_HOUSE_OF_THE_DEAD_4_REVB:
@@ -1371,11 +1570,17 @@ int initResolutionPatches()
         setVariable(0x084c3a9c, getConfig()->width);
         setVariable(0x08443118, getConfig()->width);
         setVariable(0x0844311c, getConfig()->height);
-        patchMemory(0x08443120, "8002");
-        patchMemory(0x08443124, "E001");
+        patchMemory(0x08443120, "0005");
+        patchMemory(0x08443124, "0003");
         patchMemory(0x0818080d, "e89eccecff"); // call crtgetresolution
-        patchMemory(0x08443128, "8002");       // set crtgetresolution to 640x480
-        patchMemory(0x0844312c, "E001");
+        patchMemory(0x08443128, "0005");       // set crtgetresolution to 640x480
+        patchMemory(0x0844312c, "0003");
+
+        setVariable(0x08442ff8, getConfig()->width);
+        setVariable(0x08442ffc, getConfig()->height);
+
+        detourFunction(0x0804c014, glVertex3fHOD4);
+        detourFunction(0x0804ca84, glBindTextureGE);
     }
     break;
     case THE_HOUSE_OF_THE_DEAD_4_REVC:
@@ -1389,11 +1594,17 @@ int initResolutionPatches()
         setVariable(0x084c3a9c, getConfig()->width);
         setVariable(0x08443118, getConfig()->width);
         setVariable(0x0844311c, getConfig()->height);
-        patchMemory(0x08443120, "8002"); // gallwinres (2D)
-        patchMemory(0x08443124, "E001");
+        patchMemory(0x08443120, "0005"); // gallwinres (2D)
+        patchMemory(0x08443124, "0003");
         patchMemory(0x0818080d, "e89eccecff"); // sideselect fix
-        patchMemory(0x08443128, "8002");
-        patchMemory(0x0844312c, "E001");
+        patchMemory(0x08443128, "0005");
+        patchMemory(0x0844312c, "0003");
+
+        setVariable(0x08442ff8, getConfig()->width);
+        setVariable(0x08442ffc, getConfig()->height);
+
+        detourFunction(0x0804c014, glVertex3fHOD4);
+        detourFunction(0x0804ca84, glBindTextureGE);
     }
     break;
     case THE_HOUSE_OF_THE_DEAD_4_SPECIAL:
@@ -1425,6 +1636,8 @@ int initResolutionPatches()
     break;
     case VIRTUA_FIGHTER_5:
     {
+        if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
+            return 0;
         patchMemory(0x08054057, "b80a000000"); // Skips resolution set by the Dip Switches.
         setVariable(0x0847cf58, getConfig()->width);
         setVariable(0x0847cf5c, getConfig()->height);
@@ -1433,6 +1646,8 @@ int initResolutionPatches()
     break;
     case VIRTUA_FIGHTER_5_REVA:
     {
+        if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
+            return 0;
         patchMemory(0x8053167, "01");          // Enable Anti Alias
         patchMemory(0x080541af, "b80a000000"); // Skips resolution set by the Dip Switches.
         setVariable(0x08487df8, getConfig()->width);
@@ -1441,6 +1656,8 @@ int initResolutionPatches()
     break;
     case VIRTUA_FIGHTER_5_REVB:
     {
+        if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
+            return 0;
         patchMemory(0x08053673, "01");         // Enable Anti Alias
         patchMemory(0x080546cf, "b80a000000"); // Skips resolution set by the Dip Switches.
         setVariable(0x08536bb8, getConfig()->width);
@@ -1449,6 +1666,8 @@ int initResolutionPatches()
     break;
     case VIRTUA_FIGHTER_5_REVE: // Also the public REV C version
     {
+        if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
+            return 0;
         patchMemory(0x080546c7, "01");         // Enable Anti Alias
         patchMemory(0x080557a3, "b80a000000"); // Skips resolution set by the Dip Switches.
         setVariable(0x085efb18, getConfig()->width);
@@ -1457,6 +1676,8 @@ int initResolutionPatches()
     break;
     case VIRTUA_FIGHTER_5_EXPORT:
     {
+        if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
+            return 0;
         patchMemory(0x08052b97, "01");         // Enable Anti Alias
         patchMemory(0x08053c67, "b80a000000"); // Skips resolution set by the Dip Switches.
         setVariable(0x085259f8, getConfig()->width);
@@ -1465,6 +1686,8 @@ int initResolutionPatches()
     break;
     case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVA:
     {
+        if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
+            return 0;
         patchMemory(0x08054b5e, "01");         // Enable Anti Alias
         patchMemory(0x08055980, "b80a000000"); // Skips resolution set by the Dip Switches.
         vf5FSwidth = (getConfig()->height * 5) / 3;
@@ -1476,6 +1699,8 @@ int initResolutionPatches()
     break;
     case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB:
     {
+        if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
+            return 0;
         patchMemory(0x080548c4, "01");         // Enable Anti Alias
         patchMemory(0x080556e6, "b80a000000"); // Skips resolution set by the Dip Switches.
         vf5FSwidth = (getConfig()->height * 5) / 3;
@@ -1487,6 +1712,8 @@ int initResolutionPatches()
     break;
     case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB_6000:
     {
+        if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
+            return 0;
         patchMemory(0x08054bfe, "01");         // Enable Anti Alias
         patchMemory(0x08055a20, "b80a000000"); // Skips resolution set by the Dip Switches.
         vf5FSwidth = (getConfig()->height * 5) / 3;
@@ -1498,6 +1725,8 @@ int initResolutionPatches()
     break;
     case VIRTUA_FIGHTER_5_R:
     {
+        if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
+            return 0;
         patchMemory(0x0805421a, "01");         // Enable Anti Alias
         patchMemory(0x080554b0, "b80a000000"); // Skips resolution set by the Dip Switches.
         vf5FSwidth = (getConfig()->height * 5) / 3;
@@ -1509,6 +1738,8 @@ int initResolutionPatches()
     break;
     case VIRTUA_FIGHTER_5_R_REVD:
     {
+        if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
+            return 0;
         patchMemory(0x080543aa, "01");         // Enable Anti Alias
         patchMemory(0x080555f6, "b80a000000"); // Skips resolution set by the Dip Switches.
         vf5FSwidth = (getConfig()->height * 5) / 3;
@@ -1518,8 +1749,10 @@ int initResolutionPatches()
         setVariable(0x08822b30, getConfig()->height);
     }
     break;
-	case VIRTUA_FIGHTER_5_R_REVG:
+    case VIRTUA_FIGHTER_5_R_REVG:
     {
+        if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
+            return 0;
         patchMemory(0x0805436a, "01");         // Enable Anti Alias
         patchMemory(0x0805577c, "b80a000000"); // Skips resolution set by the Dip Switches.
         vf5FSwidth = (getConfig()->height * 5) / 3;
@@ -2060,6 +2293,19 @@ int initResolutionPatches()
         patchMemory(0x08050c37, "07");
         setVariable(0x08064611, getConfig()->width);
         setVariable(0x080645c6, getConfig()->height);
+    }
+    break;
+    case SEGABOOT_2_4:
+    {
+        patchMemory(0x08059799, "9090");
+        patchMemory(0x080597b6, "07");
+        patchMemory(0x0805978e, "07");
+        patchMemory(0x080597a7, "07");
+        patchMemory(0x080597c7, "07");
+        patchMemory(0x08059780, "07");
+        patchMemory(0x08059768, "07");
+        setVariable(0x0809129d, getConfig()->width);
+        setVariable(0x08091252, getConfig()->height);
     }
     break;
     case VIRTUA_TENNIS_3:

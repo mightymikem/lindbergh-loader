@@ -11,6 +11,7 @@ size_t harleyFreadReplace(void *buf, size_t size, size_t count, FILE *stream);
 void glTexCoord2fvABC1(const float *v);
 void glVertex3fABC1(float x, float y, float z);
 void glVertex3fABC2(float x, float y, float z);
+int isTestMode();
 
 typedef struct
 {

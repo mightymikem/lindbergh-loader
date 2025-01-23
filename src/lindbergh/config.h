@@ -222,6 +222,9 @@ typedef struct
     int emulateRideboard;
     int emulateDriveboard;
     int emulateMotionboard;
+    int emulateCardreader;
+    char cardFile1[MAX_PATH_LENGTH];
+    char cardFile2[MAX_PATH_LENGTH];
     int emulateJVS;
     int fullscreen;
     char eepromPath[MAX_PATH_LENGTH];
@@ -257,7 +260,15 @@ typedef struct
     int lgjRenderWithMesa;
     int noSDL;
     int phMode;
+    int disableBuiltinFont;
+    int disableBuiltinLogos;
+    int hideCursor;
+    char customCursor[MAX_PATH_LENGTH];
+    int customCursorWidth;
+    int customCursorHeight;
     int mj4EnabledAtT;
+    char or2IP[16];
+    float cpuFreqMhz;
     ArcadeInputs arcadeInputs;
     int inputMode;  // 0 = both, 1 = SDL/X11 only, 2 = EVDEV only
     int skipOutrunCabinetCheck;

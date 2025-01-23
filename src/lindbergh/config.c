@@ -479,12 +479,12 @@ static int detectGame(uint32_t elf_crc)
         config.gameDVP = "DVP-0018-SDX";
         config.gameID = "SBMN";
         config.gameReleaseYear = "2006 ?";
-        config.gameNativeResolutions = "1280x768";
+        config.gameNativeResolutions = "640x480";
         config.gameStatus = WORKING;
         config.jvsIOType = SEGA_TYPE_1;
         config.gameType = ABC;
-        config.width = 1280;
-        config.height = 768;
+        config.width = 640;
+        config.height = 480;
         return 0;
     }
     break;
@@ -495,12 +495,12 @@ static int detectGame(uint32_t elf_crc)
         config.gameDVP = "DVP-0018A-SDX";
         config.gameID = "SBMN";
         config.gameReleaseYear = "2006 ?";
-        config.gameNativeResolutions = "1280x768";
+        config.gameNativeResolutions = "640x480";
         config.gameStatus = WORKING;
         config.jvsIOType = SEGA_TYPE_1;
         config.gameType = ABC;
-        config.width = 1280;
-        config.height = 768;
+        config.width = 640;
+        config.height = 480;
         return 0;
     }
     break;
@@ -675,11 +675,11 @@ static int detectGame(uint32_t elf_crc)
         config.gameDVP = "DVP-0069";
         config.gameID = "SBQL";
         config.gameReleaseYear = "2008";
-        config.gameNativeResolutions = "640x480, 1360x768";
+        config.gameNativeResolutions = "640x480, 1280x768";
         config.gameLindberghColour = REDEX;
         config.gameType = SHOOTING;
         config.gameStatus = WORKING;
-        config.width = 1360;
+        config.width = 1280;
         config.height = 768;
         return 0;
     }
@@ -1100,6 +1100,15 @@ int readConfig(FILE *configFile, EmulatorConfig *config)
             config->emulateMotionboard = getNextIntOrAuto(saveptr, defaultValue);
         }
 
+        else if (strcmp(command, "EMULATE_CARDREADER") == 0)
+            config->emulateCardreader = atoi(getNextToken(NULL, " ", &saveptr));
+
+        else if (strcmp(command, "CARDFILE_01") == 0)
+            strcpy(config->cardFile1, getNextToken(NULL, " ", &saveptr));
+
+        else if (strcmp(command, "CARDFILE_02") == 0)
+            strcpy(config->cardFile2, getNextToken(NULL, " ", &saveptr));
+
         else if (strcmp(command, "FULLSCREEN") == 0)
             config->fullscreen = atoi(getNextToken(NULL, " ", &saveptr));
 
@@ -1172,9 +1181,8 @@ int readConfig(FILE *configFile, EmulatorConfig *config)
         else if (strcmp(command, "KEEP_ASPECT_RATIO") == 0)
             config->keepAspectRatio = atoi(getNextToken(NULL, " ", &saveptr));
 
-        else if (strcmp(command, "GPU_VENDOR") == 0) {
+        else if (strcmp(command, "GPU_VENDOR") == 0)
             config->configGPUVendor = config->GPUVendor = atoi(getNextToken(NULL, " ", &saveptr));
-        }
 
         else if (strcmp(command, "OUTRUN_LENS_GLARE_ENABLED") == 0)
             config->outrunLensGlareEnabled = atoi(getNextToken(NULL, " ", &saveptr));
@@ -1191,8 +1199,32 @@ int readConfig(FILE *configFile, EmulatorConfig *config)
         else if (strcmp(command, "PRIMEVAL_HUNT_MODE") == 0)
             config->phMode = atoi(getNextToken(NULL, " ", &saveptr));
 
+        else if (strcmp(command, "DISABLE_BUILTIN_FONT") == 0)
+            config->disableBuiltinFont = atoi(getNextToken(NULL, " ", &saveptr));
+
+        else if (strcmp(command, "DISABLE_BUILTIN_LOGOS") == 0)
+            config->disableBuiltinLogos = atoi(getNextToken(NULL, " ", &saveptr));
+
+        else if (strcmp(command, "HIDE_CURSOR") == 0)
+            config->hideCursor = atoi(getNextToken(NULL, " ", &saveptr));
+
+        else if (strcmp(command, "CUSTOM_CURSOR") == 0)
+            strcpy(config->customCursor, getNextToken(NULL, " ", &saveptr));
+
+        else if (strcmp(command, "CUSTOM_CURSOR_WIDTH") == 0)
+            config->customCursorWidth = atoi(getNextToken(NULL, " ", &saveptr));
+
+        else if (strcmp(command, "CUSTOM_CURSOR_HEIGHT") == 0)
+            config->customCursorHeight = atoi(getNextToken(NULL, " ", &saveptr));
+
         else if (strcmp(command, "MJ4_ENABLED_ALL_THE_TIME") == 0)
             config->phMode = atoi(getNextToken(NULL, " ", &saveptr));
+ 
+        else if (strcmp(command, "OR2_IP") == 0)
+            strcpy(config->or2IP, getNextToken(NULL, " ", &saveptr));
+
+        else if (strcmp(command, "CPU_FREQ_MHZ") == 0)
+            config->cpuFreqMhz = atof(getNextToken(NULL, " ", &saveptr));
 
         else if (strcmp(command, "TEST_KEY") == 0)
             config->keymap.test = atoi(getNextToken(NULL, " ", &saveptr));
@@ -1438,6 +1470,9 @@ int initConfig()
     config.emulateRideboard = 0;
     config.emulateDriveboard = 0;
     config.emulateMotionboard = 0;
+    config.emulateCardreader = 0;
+    strcpy(config.cardFile1, "Card_01.crd");
+    strcpy(config.cardFile2, "Card_02.crd");
     config.emulateJVS = 1;
     config.fullscreen = 0;
     config.lindberghColour = YELLOW;
@@ -1469,7 +1504,16 @@ int initConfig()
     config.fpsTarget = 60;
     config.noSDL = 0;
     config.phMode = 1;
+    config.disableBuiltinFont = 0;
+    config.disableBuiltinLogos = 0;
+    config.hideCursor = 1;
+    strcpy(config.customCursor, "");
+    config.customCursorWidth = 32;
+    config.customCursorHeight = 32;
     config.mj4EnabledAtT = 0;
+
+     strcpy(config.or2IP, "");
+    config.cpuFreqMhz = 0.0f;
     memset(&config.arcadeInputs.analogue_deadzone_start, 0, sizeof(config.arcadeInputs.analogue_deadzone_start));
     memset(&config.arcadeInputs.analogue_deadzone_middle, 0, sizeof(config.arcadeInputs.analogue_deadzone_middle));
     memset(&config.arcadeInputs.analogue_deadzone_end, 0, sizeof(config.arcadeInputs.analogue_deadzone_end));

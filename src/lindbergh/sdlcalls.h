@@ -1,2 +1,2 @@
-void glutInitSDL(int *argcp, char **argv);
+void initSDL(int *argcp, char **argv);
 void pollEvents();
