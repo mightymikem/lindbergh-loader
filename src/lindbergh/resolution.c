@@ -364,25 +364,6 @@ int isTestMode()
 
 void glBindTextureABC(GLenum target, GLuint texture)
 {
-    // const char *targetName = "";
-    // switch (target)
-    // {
-    // case GL_TEXTURE_2D:
-    //     targetName = "GL_TEXTURE_2D";
-    //     break;
-    // case GL_TEXTURE_CUBE_MAP:
-    //     targetName = "GL_TEXTURE_CUBE_MAP";
-    //     break;
-    // case GL_TEXTURE_3D:
-    //     targetName = "GL_TEXTURE_3D";
-    //     break;
-    // case GL_TEXTURE_1D:
-    //     targetName = "GL_TEXTURE_1D";
-    //     break;
-    // default:
-    //     targetName = "UNKNOWN";
-    //     break;
-    // }
     curTargetABC = target;
     curTextureIDABC = texture;
 
@@ -1168,7 +1149,6 @@ void glBindTextureGE(GLenum target, GLuint texture)
 
     if (getConfig()->crc32 == TOO_SPICY)
     {
-        // printf("glBindTexture called: Target = %s (0x%x), Texture ID = %u\n", targetName, target, texture);
         if (texture == 902 || texture == 1642)
         {                         //  55 title
             enableScaling = true; // Enable scaling
@@ -1189,25 +1169,11 @@ void glVertex3fHOD4(GLfloat x, GLfloat y, GLfloat z)
 
     void *returnAddress = __builtin_return_address(0);
 
-    // printf("glVertex3f  hooked: x=%f, y=%f, z=%f\n", x, y, z);
-
-    // float scaleX = 1920.0f / 1280.0f;
-    // float scaleY = 1080.0f / 768.0f;
     float scaleX = getConfig()->width / 1280.0f;
     float scaleY = getConfig()->height / 768.0f;
 
     float TestX = ((((getConfig()->width - 1280.0) / 2.0) * 1.1116317809) / 1280.0) * (1.5 / scaleX);
     float TestY = ((((getConfig()->height - 768.0) / 2.0) * 0.666979044) / 768.0) * (1.5 / scaleX);
-
-    // float OffsetX = 0.277907945225;  // 1920x1080
-    // float OffsetY = 0.1354801183125;
-
-    // float OffsetX = 0.166744767135; // 0.1659539726125;  //1600x900
-    // float OffsetY = 0.0687822139125;	//	 0.06731851159375
-
-    // float OffsetX = 0.0490425785691176;  //1360x768
-    // float OffsetY = 0.0;
-
     float OffsetX = TestX; // test
     float OffsetY = TestY;
 
@@ -1216,16 +1182,8 @@ void glVertex3fHOD4(GLfloat x, GLfloat y, GLfloat z)
     float AdjOffsetX = OffsetX * scaleZ;
     float AdjOffsetY = OffsetY * scaleZ;
 
-    if (z == -1.000000f)
-    { // 3d
-      // printf("glVertex3f hooked: x=%f, y=%f, z=%f\n", x, y, z);
-    }
-    else if (z == -1.000010f)
-    { // subtitles
-    }
-    else if (z == -1.510000f)
-    { // logo  2d elemtents target
-
+    if (z == -1.510000f)
+    {                              // logo  2d elemtents target
         if (curTextureIDGE != 260) // target boss fight
         {
             x += OffsetX;
@@ -1234,21 +1192,9 @@ void glVertex3fHOD4(GLfloat x, GLfloat y, GLfloat z)
             x *= scaleX;
             y *= scaleY;
         }
-        else
-        {
-        }
-    }
-    else if (z == -2.000000f)
-    { // videos - cutscenes
-    }
-    else if (z == -3.000000f)
-    { // ??
     }
     else if (z == -1.210000f)
     { // coins  start select side
-        // printf(" x values: %.10f\n", x);
-        // printf(" y values: %.10f\n", y);
-
         x += AdjOffsetX;
         y -= AdjOffsetY;
 
@@ -1257,7 +1203,6 @@ void glVertex3fHOD4(GLfloat x, GLfloat y, GLfloat z)
     }
     else if (z == -1.310000f)
     { // main bd
-
         x += AdjOffsetX;
         y -= AdjOffsetY;
 
@@ -1266,7 +1211,6 @@ void glVertex3fHOD4(GLfloat x, GLfloat y, GLfloat z)
     }
     else if (z == -1.509800f)
     { // frame   2d elements
-
         x += AdjOffsetX;
         y -= AdjOffsetY;
 
@@ -1276,7 +1220,6 @@ void glVertex3fHOD4(GLfloat x, GLfloat y, GLfloat z)
 
     else if (z == -1.4099999666f)
     { // continue
-
         x += AdjOffsetX;
         y -= AdjOffsetY;
 
@@ -1285,7 +1228,6 @@ void glVertex3fHOD4(GLfloat x, GLfloat y, GLfloat z)
     }
     else if (z == -1.6099998951f)
     { // score
-
         x += AdjOffsetX;
         y -= AdjOffsetY;
 
@@ -1294,7 +1236,6 @@ void glVertex3fHOD4(GLfloat x, GLfloat y, GLfloat z)
     }
     else if (z == -1.7100000381f)
     { // side select
-
         x += AdjOffsetX;
         y -= AdjOffsetY;
 
@@ -1303,7 +1244,6 @@ void glVertex3fHOD4(GLfloat x, GLfloat y, GLfloat z)
     }
     else if (z == -1.5091999769f || z == -1.5094000101f || z == -1.5095999241f)
     { // bar boss fight
-
         x += AdjOffsetX;
         y -= AdjOffsetY;
 
@@ -1317,24 +1257,6 @@ void glVertex3fHOD4(GLfloat x, GLfloat y, GLfloat z)
 
         x *= scaleX;
         y *= scaleY;
-    }
-    else
-    {
-
-        if (curTextureIDGE != 26)
-        { // gun effect
-            // printf(" z values: %.10f\n", z);
-
-            if (z > -1.8f && z < -1.0f)
-            {
-
-                // x += AdjOffsetX;
-                // y -= AdjOffsetY;
-
-                // x *= 1920.0f /1280.0f;
-                // y *= 1080.0f /768.0f;
-            }
-        }
     }
 
     _glVertex3f(x, y, z);
