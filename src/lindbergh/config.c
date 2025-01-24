@@ -1223,8 +1223,8 @@ int readConfig(FILE *configFile, EmulatorConfig *config)
         else if (strcmp(command, "OR2_IP") == 0)
             strcpy(config->or2IP, getNextToken(NULL, " ", &saveptr));
 
-        else if (strcmp(command, "CPU_FREQ_MHZ") == 0)
-            config->cpuFreqMhz = atof(getNextToken(NULL, " ", &saveptr));
+        else if (strcmp(command, "CPU_FREQ_GHZ") == 0)
+            config->cpuFreqGhz = atof(getNextToken(NULL, " ", &saveptr));
 
         else if (strcmp(command, "TEST_KEY") == 0)
             config->keymap.test = atoi(getNextToken(NULL, " ", &saveptr));
@@ -1513,7 +1513,7 @@ int initConfig()
     config.mj4EnabledAtT = 0;
 
      strcpy(config.or2IP, "");
-    config.cpuFreqMhz = 0.0f;
+    config.cpuFreqGhz = 0.0f;
     memset(&config.arcadeInputs.analogue_deadzone_start, 0, sizeof(config.arcadeInputs.analogue_deadzone_start));
     memset(&config.arcadeInputs.analogue_deadzone_middle, 0, sizeof(config.arcadeInputs.analogue_deadzone_middle));
     memset(&config.arcadeInputs.analogue_deadzone_end, 0, sizeof(config.arcadeInputs.analogue_deadzone_end));
