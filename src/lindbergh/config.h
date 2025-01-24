@@ -268,7 +268,7 @@ typedef struct
     int customCursorHeight;
     int mj4EnabledAtT;
     char or2IP[16];
-    float cpuFreqMhz;
+    float cpuFreqGhz;
     ArcadeInputs arcadeInputs;
     int inputMode;  // 0 = both, 1 = SDL/X11 only, 2 = EVDEV only
     int skipOutrunCabinetCheck;
