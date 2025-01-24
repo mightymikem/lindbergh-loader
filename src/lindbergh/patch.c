@@ -853,9 +853,9 @@ int initPatch()
             detourFunction(0x0804be14, hod4VsPrintf);
         }
 
-        if (getConfig()->cpuFreqMhz != 0.0f)
+        if (getConfig()->cpuFreqGhz != 0.0f)
         {
-            uint32_t cpuFreq = (uint32_t)(getConfig()->cpuFreqMhz * 998000000.0);
+            uint32_t cpuFreq = (uint32_t)(getConfig()->cpuFreqGhz * 998000000.0);
             setVariable(0x0828ea13, cpuFreq);
         }
     }
@@ -936,9 +936,9 @@ int initPatch()
             detourFunction(0x0804be04, hod4VsPrintf);
         }
 
-        if (getConfig()->cpuFreqMhz != 0.0f)
+        if (getConfig()->cpuFreqGhz != 0.0f)
         {
-            uint32_t cpuFreq = (uint32_t)(getConfig()->cpuFreqMhz * 998000000.0);
+            uint32_t cpuFreq = (uint32_t)(getConfig()->cpuFreqGhz * 998000000.0);
             setVariable(0x08289353, cpuFreq);
         }
     }
@@ -1001,9 +1001,9 @@ int initPatch()
             detourFunction(0x0804be04, hod4VsPrintf);
         }
 
-        if (getConfig()->cpuFreqMhz != 0.0f)
+        if (getConfig()->cpuFreqGhz != 0.0f)
         {
-            uint32_t cpuFreq = (uint32_t)(getConfig()->cpuFreqMhz * 998000000.0);
+            uint32_t cpuFreq = (uint32_t)(getConfig()->cpuFreqGhz * 998000000.0);
             setVariable(0x08289353, cpuFreq);
         }
     }
