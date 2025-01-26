@@ -1,0 +1,34 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [Unreleased]
+### Added
+    - Let's go Jungle resolution patch.
+    - 2 Spicy resolution patch.
+    - 2 Spicy Patch to allow any IP for Network play.
+    - HOD4 SP CPU Frequency fix.
+    - ID4 and ID5 patches for Network link to allowed any NIC name and any IP.
+    - Harley patch for network link to allowed any NIC name and any IP.
+    - Fixed a bug in Let's go Jungle when GPU was nVidia and Mesa was set as shader patches.
+
+### [2.0.1] 2025-01-23
+### Added
+    - HOD4 Custom crosshair.
+    - HOD4 CPU frequency fix  (Configurable via config file).
+    - HOD4 New resolution patch that fixes Boss battle and scales from 1280x768 instead of the lower resolution.
+    - Built in Logos and fonts (no more nee to use Lucida/SEGA_KakuGothic-DB-Roman_12 and logo.tga).
+    - Outrun 2 Easy network config from the conf file (can set your IP address in the config file and the loader will set it in the eeprom for you).
+    - Card Emulation for VT3 and R-tuned.
+    - All the now games work inside an SDL window now,  unless it is disabled in the conf file.
+
+## [2.0] - 2024-12-24
+### Initial Release
+- First official public release.
+- Features of the loader:
+    - Dynamic shader modification allowing games to work on Intel, nVidia and AMD
+    - 5.1 Surround Sound Support
+    - Dynamic resolution patching allowing most games to scale properly in HD
+    - Original cabinet support with pass through of JVS and FFB
+    - Network play
+    - Both simple X11 and advanced evdev input system allowing for ready-to-play keyboard and mouse support or mapping of any controller

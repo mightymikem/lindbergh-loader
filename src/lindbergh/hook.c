@@ -12,7 +12,6 @@
 #undef __x86_64__
 #include <arpa/inet.h>
 #include <dlfcn.h>
-#include <errno.h>
 #include <link.h>
 #include <linux/sockios.h>
 #include <math.h>
@@ -266,12 +265,6 @@ void __attribute__((constructor)) hook_init()
         (getConfig()->crc32 == INITIALD_5_EXP_30) || (getConfig()->crc32 == INITIALD_5_EXP_40))) {
             printf("WARNING: Game %s is unsupported in AMD GPU with ATI driver\n",getGameName());
     }
-    if (getConfig()->lgjRenderWithMesa &&
-        ((getConfig()->crc32 == LETS_GO_JUNGLE) || (getConfig()->crc32 == LETS_GO_JUNGLE_REVA) ||
-         (getConfig()->crc32 == LETS_GO_JUNGLE_SPECIAL)))
-    {
-        getConfig()->GPUVendor = AMD_GPU;
-    }
 }
 
 DIR *opendir(const char *dirname)
@@ -468,10 +461,6 @@ FILE *fopen(const char *restrict pathname, const char *restrict mode)
         return fileHooks[CPUINFO];
     }
 
-    if (strcmp(pathname, "/usr/lib/boot/logo_red.tga") == 0)
-    {
-        return _fopen("logo_red.tga", mode);
-    }
     if (strcmp(pathname, "/usr/lib/boot/SEGA_KakuGothic-DB-Roman_12.tga") == 0)
     {
         if (!getConfig()->disableBuiltinFont)
