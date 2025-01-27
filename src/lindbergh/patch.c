@@ -200,8 +200,9 @@ int amDongleUserInfoEx(int a, int b, char *_arcadeContext)
     case INITIALD_4_EXP_REVD:
     case INITIALD_5_JAP_REVA:
     case INITIALD_5_JAP_REVF:
-    case INITIALD_5_EXP_30:
-    case INITIALD_5_EXP_40:
+    case INITIALD_5_EXP:
+    case INITIALD_5_EXP_20:
+    case INITIALD_5_EXP_20A:
         memcpy(_arcadeContext, elfID, 4);
         break;
     default:
@@ -258,15 +259,17 @@ int amDipswGetData(uint8_t *dip)
 
     securityBoardIn(0x38, &data);
 
-    result = (~data & 4) != 0; // Test Button
-    if ((~data & 8) != 0)
-        result |= 2; // Service Button
+    result = 0x00;
     if ((~data & 0x10) != 0)
-        result |= 4; // ??
-    if ((char)data >= 0)
-        result |= 8; // ??
+        result |= 0x01; // Dip 7
+    if ((~data & 0x20) != 0)
+        result |= 0x02; // Dip 8
+    if ((~data & 0x40) != 0)
+        result |= 0x04; // Dip 1
+    if ((~data & 0x80) != 0)
+        result |= 0x08; // Dip 2
     if ((~data & 0x100) != 0)
-        result |= 0x10; // Rotation
+        result |= 0x10; // Rotation Dip 3
     if ((~data & 0x200) != 0)
         result |= 0x20; // Resolution Dip 4
     if ((~data & 0x400) != 0)
@@ -1043,6 +1046,11 @@ int initPatch()
 
         // Shader Fixes
         cacheModedShaderFiles();
+        if (getConfig()->cpuFreqGhz != 0.0f)
+        {
+            uint32_t cpuFreq = (uint32_t)(getConfig()->cpuFreqGhz * 998000000.0);
+            setVariable(0x0826829b, cpuFreq);
+        }
     }
     break;
     case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_TEST:
@@ -1080,6 +1088,11 @@ int initPatch()
 
         // Shader Fixes
         cacheModedShaderFiles();
+        if (getConfig()->cpuFreqGhz != 0.0f)
+        {
+            uint32_t cpuFreq = (uint32_t)(getConfig()->cpuFreqGhz * 998000000.0);
+            setVariable(0x082d019d, cpuFreq);
+        }
     }
     break;
     case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB_TEST:
@@ -2114,7 +2127,65 @@ int initPatch()
         detourFunction(0x08266098, stubRetOne); // isExistNewerSource (forces shader recompilation)
     }
     break;
-    case INITIALD_5_EXP_30:
+    case INITIALD_5_EXP:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x093a93f0, 2);                      // amBackupDebugLevel
+            setVariable(0x093a9400, 2);                      // amCreditDebugLevel
+            setVariable(0x093a9658, 2);                      // amDipswDebugLevel
+            setVariable(0x093a965c, 2);                      // amDongleDebugLevel
+            setVariable(0x093a9660, 2);                      // amEepromDebugLevel
+            setVariable(0x093a9664, 2);                      // amHwmonitorDebugLevel
+            setVariable(0x093a9668, 2);                      // amJvsDebugLevel
+            setVariable(0x093a966c, 2);                      // amLibDebugLevel
+            setVariable(0x093a9670, 2);                      // amMiscDebugLevel
+            setVariable(0x093a9678, 2);                      // amSysDataDebugLevel
+            setVariable(0x093a9680, 2);                      // bcLibDebugLevel
+            setVariable(0x093a9674, 2);                      // amOsinfoDebugLevel
+            setVariable(0x093a9684, 0x0FFFFFFF);             // s_logMask
+            detourFunction(0x08745e28, _putConsoleSeparate); // Debug Messages
+        }
+        // Security
+        detourFunction(0x08911dca, amDongleInit);
+        detourFunction(0x08910815, amDongleIsAvailable);
+        detourFunction(0x08911279, amDongleUpdate);
+        detourFunction(0x08911c91, amDongleUserInfoEx);
+        memcpy(elfID, (void *)0x084e2407, 4); // Get gameID from the ELF
+        // Fixes
+        amDipswContextAddr = (void *)0x093d94c8;
+        detourFunction(0x089105a8, amDipswInit);
+        detourFunction(0x0891062c, amDipswExit);
+        detourFunction(0x089106a1, amDipswGetData);
+        detourFunction(0x08910718, amDipswSetLed); // amDipswSetLed
+        detourFunction(0x08322248, stubRetOne);    // isEthLinkUp
+        detourFunction(0x083084a2, stubRetOne);    // Skip Kickback initialization
+        patchMemory(0x084429d9, "eb60");           // tickInitAddress
+        patchMemory(0x0843fb34, "C0270900");       // tickInitStoreNetwork
+        detourFunction(0x084deddc, stubRetZero);   // doesNeedRollerCleaning
+        detourFunction(0x084dedf8, stubRetZero);   // doesNeedStockerCleaning
+        patchMemory(0x0843f5ad, "c7c300030000");   // Moves Initializing text
+        patchMemory(0x089e314c, "47f3");           // Skips initialization
+        patchMemory(0x08789a49, "e92601000090");   // Prevents Full Screen set from the game
+
+        // Mesa Patches
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x0807a3f0, gl_MultiTexCoord2fARB);
+            detourFunction(0x0807a470, gl_Color4ub);
+            detourFunction(0x0807a6b0, gl_Vertex3f);
+            detourFunction(0x0807ae10, gl_TexCoord2f);
+            detourFunction(0x0807aed0, cg_GLIsProfileSupported);
+            patchMemory(0x087450ef, "9090");
+            cacheModedShaderFiles();
+        }
+
+        detourFunction(0x08389544, stubRetOne); // isExistNewerSource
+        detourFunction(0x0807b370, gl_XGetProcAddressARB);
+        patchMemory(0x08744f2e, "00"); // Fix cutscenes
+    }
+    break;
+    case INITIALD_5_EXP_20:
     {
         if (config->showDebugMessages == 1)
         {
@@ -2180,7 +2251,7 @@ int initPatch()
         patchMemory(0x08761a7e, "00"); // Fix cutscenes
     }
     break;
-    case INITIALD_5_EXP_40:
+    case INITIALD_5_EXP_20A:
     {
         if (config->showDebugMessages == 1)
         {

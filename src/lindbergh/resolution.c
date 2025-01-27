@@ -150,26 +150,44 @@ void glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdou
     case THE_HOUSE_OF_THE_DEAD_4_REVB:
     case THE_HOUSE_OF_THE_DEAD_4_REVC:
     {
-        right = 1280.0;
-        bottom = 720.0;
+        if ((getConfig()->width != 1280 && getConfig()->height != 768) || (getConfig()->width != 640 && getConfig()->height != 480))
+        {
+            right = 1280.0;
+            bottom = 720.0;
+        }
     }
     break;
     case THE_HOUSE_OF_THE_DEAD_4_SPECIAL:
     case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB:
     {
-        if (right == 1024.0 && bottom == 768.0)
+        if (getConfig()->width != 1024 && getConfig()->height != 768)
         {
-            right = 800.0;
-            bottom = 600.0;
+            if (right == 1024.0 && bottom == 768.0)
+            {
+                right = 800.0;
+                bottom = 600.0;
+            }
         }
     }
     break;
     case SEGA_RACE_TV:
     {
-        if ((right == 640.0 && bottom == 480.0) && (getConfig()->width != 640 && getConfig()->height != 480))
+        if (getConfig()->width != 640 && getConfig()->height != 480)
         {
-            right = 600000.0;
-            bottom = 600000.0;
+            if ((right == 640.0 && bottom == 480.0) && (getConfig()->width != 640 && getConfig()->height != 480))
+            {
+                right = 600000.0;
+                bottom = 600000.0;
+            }
+        }
+    }
+    break;
+    case THE_HOUSE_OF_THE_DEAD_EX:
+    {
+        if (getConfig()->width != 1280 && getConfig()->height != 768)
+        {
+            right = 600.0;
+            bottom = 480.0;
         }
     }
     break;
@@ -195,10 +213,13 @@ void glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
     case HUMMER:
     case HUMMER_SDLX:
     {
-        if (width == 1280 && height == 768)
+        if (getConfig()->width != 1280 && getConfig()->height != 768)
         {
-            width = getConfig()->width;
-            height = getConfig()->height;
+            if (width == 1280 && height == 768)
+            {
+                width = getConfig()->width;
+                height = getConfig()->height;
+            }
         }
     }
     break;
@@ -208,61 +229,61 @@ void glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
     case OUTRUN_2_SP_SDX_REVA_TEST:
     case OUTRUN_2_SP_SDX_REVA_TEST2:
     {
-        if ((width >= 800) && (width != 1024))
+        if (getConfig()->width != 800 && getConfig()->height != 480)
         {
-            width = getConfig()->width;
-            height = getConfig()->height;
+            if ((width >= 800) && (width != 1024))
+            {
+                width = getConfig()->width;
+                height = getConfig()->height;
+            }
         }
     }
     break;
 
     case SEGA_RACE_TV:
     {
-        if (width == 640 && height == 480 && returnAddress == (void *)0x08123932)
+        if (getConfig()->width != 640 && getConfig()->height != 480)
         {
-            x = srtvX;
-            width = srtvW;
-            height = srtvH;
-        }
-        else if (width > 640)
-        {
-            width = 0;
-            height = 0;
-        }
-    }
-    break;
-    case THE_HOUSE_OF_THE_DEAD_4_REVA:
-    case THE_HOUSE_OF_THE_DEAD_4_REVA_TEST:
-    case THE_HOUSE_OF_THE_DEAD_4_REVB:
-    case THE_HOUSE_OF_THE_DEAD_4_REVB_TEST:
-    case THE_HOUSE_OF_THE_DEAD_4_REVC:
-    case THE_HOUSE_OF_THE_DEAD_4_REVC_TEST:
-    {
-        if (width == 640 && height == 480)
-        {
-            width = getConfig()->width;
-            height = getConfig()->height;
+            if (width == 640 && height == 480 && returnAddress == (void *)0x08123932)
+            {
+                x = srtvX;
+                width = srtvW;
+                height = srtvH;
+            }
+            else if (width > 640)
+            {
+                width = 0;
+                height = 0;
+            }
         }
     }
     break;
+    // case THE_HOUSE_OF_THE_DEAD_4_REVA:
+    // case THE_HOUSE_OF_THE_DEAD_4_REVA_TEST:
+    // case THE_HOUSE_OF_THE_DEAD_4_REVB:
+    // case THE_HOUSE_OF_THE_DEAD_4_REVB_TEST:
+    // case THE_HOUSE_OF_THE_DEAD_4_REVC:
+    // case THE_HOUSE_OF_THE_DEAD_4_REVC_TEST:
+    // {
+    //     if (width == 640 && height == 480)
+    //     {
+    //         width = getConfig()->width;
+    //         height = getConfig()->height;
+    //     }
+    // }
+    // break;
     case THE_HOUSE_OF_THE_DEAD_4_SPECIAL:
     case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB:
     {
-        if (width == 1024 && height == 768)
+        if (getConfig()->width != 1024 && getConfig()->height != 768)
         {
-            width = getConfig()->width;
-            height = getConfig()->height;
-            x = 250;
-            y = 100;
-        }
-    }
-    break;
-    case LETS_GO_JUNGLE:
-    {
-        if (width == 1360 && height == 768)
-        {
-            width = getConfig()->width;
-            height = getConfig()->height;
+            if (width == 1024 && height == 768)
+            {
+                width = getConfig()->width;
+                height = getConfig()->height;
+                x = 250;
+                y = 100;
+            }
         }
     }
     break;
@@ -273,9 +294,12 @@ void glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
     case VIRTUA_FIGHTER_5_R_REVD:
     case VIRTUA_FIGHTER_5_R_REVG:
     {
-        if (width == vf5FSwidth)
+        if ((getConfig()->width != 640 && getConfig()->height != 480) || (getConfig()->width != 1280 && getConfig()->height != 768))
         {
-            width = getConfig()->width;
+            if (width == vf5FSwidth)
+            {
+                width = getConfig()->width;
+            }
         }
     }
     break;
@@ -292,21 +316,24 @@ void glTexImage2D(unsigned int target, int level, int internalformat, int width,
     void (*_glTexImage2D)(unsigned int target, int level, int internalformat, int width, int height, int border, unsigned int format,
                           unsigned int type, const void *pixels) = dlsym(RTLD_NEXT, "glTexImage2D");
 
-    switch (getConfig()->crc32)
+    if (getConfig()->width != 800 && getConfig()->height != 480)
     {
-    case OUTRUN_2_SP_SDX:
-    case OUTRUN_2_SP_SDX_REVA:
-    {
-        void *addr = __builtin_return_address(0);
-        if ((width >= 800) && (width != 1024) && (addr != (void *)0x80d78d5) && (addr != (void *)0x080d7941))
+        switch (getConfig()->crc32)
         {
-            width = getConfig()->width;
-            height = getConfig()->height;
+        case OUTRUN_2_SP_SDX:
+        case OUTRUN_2_SP_SDX_REVA:
+        {
+            void *addr = __builtin_return_address(0);
+            if ((width >= 800) && (width != 1024) && (addr != (void *)0x80d78d5) && (addr != (void *)0x080d7941))
+            {
+                width = getConfig()->width;
+                height = getConfig()->height;
+            }
         }
-    }
-    break;
-    default:
         break;
+        default:
+            break;
+        }
     }
     _glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
 }
@@ -1278,6 +1305,8 @@ int initResolutionPatches()
     break;
     case AFTER_BURNER_CLIMAX:
     {
+        if (getConfig()->width == 640 && getConfig()->height == 480)
+            break;
         setVariable(0x082c0308, getConfig()->width);
         setVariable(0x082c030c, getConfig()->height);
         float newFontScale = getConfig()->height / 480.0;
@@ -1292,6 +1321,8 @@ int initResolutionPatches()
     break;
     case AFTER_BURNER_CLIMAX_REVA:
     {
+        if (getConfig()->width == 640 && getConfig()->height == 480)
+            break;
         setVariable(0x082c0a68, getConfig()->width);
         setVariable(0x082c0a6c, getConfig()->height);
         float newFontScale = getConfig()->height / 480.0;
@@ -1306,6 +1337,8 @@ int initResolutionPatches()
     break;
     case AFTER_BURNER_CLIMAX_REVB:
     {
+        if (getConfig()->width == 640 && getConfig()->height == 480)
+            break;
         setVariable(0x082C0AE8, getConfig()->width);
         setVariable(0x082C0AEC, getConfig()->height);
         float newFontScale = getConfig()->height / 480.0;
@@ -1320,6 +1353,8 @@ int initResolutionPatches()
     break;
     case AFTER_BURNER_CLIMAX_SDX:
     {
+        if (getConfig()->width == 640 && getConfig()->height == 480)
+            break;
         setVariable(0x082c2228, getConfig()->width);
         setVariable(0x082c222c, getConfig()->height);
         float newFontScale = getConfig()->height / 480.0;
@@ -1334,6 +1369,8 @@ int initResolutionPatches()
     break;
     case AFTER_BURNER_CLIMAX_SDX_REVA:
     {
+        if (getConfig()->width == 640 && getConfig()->height == 480)
+            break;
         setVariable(0x082c2228, getConfig()->width);
         setVariable(0x082c222c, getConfig()->height);
         float newFontScale = getConfig()->height / 480.0;
@@ -1348,6 +1385,8 @@ int initResolutionPatches()
     break;
     case AFTER_BURNER_CLIMAX_SE:
     {
+        if (getConfig()->width == 640 && getConfig()->height == 480)
+            break;
         setVariable(0x082c0b28, getConfig()->width);
         setVariable(0x082c0b2c, getConfig()->height);
         float newFontScale = getConfig()->height / 480.0;
@@ -1362,6 +1401,8 @@ int initResolutionPatches()
     break;
     case AFTER_BURNER_CLIMAX_SE_REVA:
     {
+        if (getConfig()->width == 640 && getConfig()->height == 480)
+            break;
         setVariable(0x082c0b28, getConfig()->width);
         setVariable(0x082c0b2c, getConfig()->height);
         float newFontScale = getConfig()->height / 480.0;
@@ -1376,6 +1417,8 @@ int initResolutionPatches()
     break;
     case SEGA_RACE_TV:
     {
+        if (getConfig()->width == 640 && getConfig()->height == 480)
+            break;
         if (getConfig()->keepAspectRatio)
         {
             srtvX = (getConfig()->width - (getConfig()->height / 3) * 4) / 2;
@@ -1390,6 +1433,8 @@ int initResolutionPatches()
     break;
     case OUTRUN_2_SP_SDX:
     {
+        if (getConfig()->width <= 800 && getConfig()->height <= 480)
+            break;
         // If resolution is not the native of the game this patch kind of fix the Sun when the LensGlare effect is
         // shown.
         if ((getConfig()->width > 800) && (getConfig()->height > 480))
@@ -1414,6 +1459,8 @@ int initResolutionPatches()
     break;
     case OUTRUN_2_SP_SDX_REVA:
     {
+        if (getConfig()->width <= 800 && getConfig()->height <= 480)
+            break;
         // If resolution is not the native of the game this patch kind of fix the Sun when the LensGlare effect is
         // shown.
         if ((getConfig()->width > 800) && (getConfig()->height > 480))
@@ -1450,17 +1497,16 @@ int initResolutionPatches()
     case OUTRUN_2_SP_SDX_REVA_TEST:
     case OUTRUN_2_SP_SDX_REVA_TEST2:
     {
+        if (getConfig()->width <= 800 && getConfig()->height <= 480)
+            break;
         setVariable(0x0804a490, getConfig()->width);
         setVariable(0x0804a4ad, getConfig()->height);
     }
     break;
     case THE_HOUSE_OF_THE_DEAD_4_REVA:
     {
-        if (getConfig()->width == 1280 && getConfig()->height == 768)
-        {
-            setVariable(0x084c9dbc, 1280);
-            return 0;
-        }
+        if (getConfig()->width <= 1280 && getConfig()->height <= 768)
+            break;
         patchMemory(0x0804d142, "9090909090"); // setresolutiontype
         // patchMemory(0x084c9dbc, "0005");
         // patchMemory(0x08448458, "0005");
@@ -1483,11 +1529,8 @@ int initResolutionPatches()
     break;
     case THE_HOUSE_OF_THE_DEAD_4_REVB:
     {
-        if (getConfig()->width == 1280 && getConfig()->height == 768)
-        {
-            setVariable(0x084c3a9c, 1280);
-            return 0;
-        }
+        if (getConfig()->width <= 1280 && getConfig()->height <= 768)
+            break;
         patchMemory(0x0804d174, "9090909090"); // setresolutiontype
         setVariable(0x084c3a9c, getConfig()->width);
         setVariable(0x08443118, getConfig()->width);
@@ -1507,7 +1550,7 @@ int initResolutionPatches()
     break;
     case THE_HOUSE_OF_THE_DEAD_4_REVC:
     {
-        if (getConfig()->width == 1280 && getConfig()->height == 768)
+        if (getConfig()->width <= 1280 && getConfig()->height <= 768)
         {
             setVariable(0x084c3a9c, 1280);
             return 0;
@@ -1531,6 +1574,8 @@ int initResolutionPatches()
     break;
     case THE_HOUSE_OF_THE_DEAD_4_SPECIAL:
     {
+        if (getConfig()->width <= 1024 && getConfig()->height <= 768)
+            break;
         patchMemory(0x0804d2f4, "9090909090"); // setresolutiontype
         setVariable(0x084563c4, getConfig()->width);
         setVariable(0x08424448, getConfig()->width);
@@ -1542,6 +1587,8 @@ int initResolutionPatches()
     break;
     case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB:
     {
+        if (getConfig()->width <= 1024 && getConfig()->height <= 768)
+            break;
         patchMemory(0x0804d7e2, "9090909090"); // setresolutiontype
         setVariable(0x084c35c4, getConfig()->width);
         setVariable(0x08491648, getConfig()->width);
@@ -1553,7 +1600,6 @@ int initResolutionPatches()
     break;
     case THE_HOUSE_OF_THE_DEAD_EX:
     {
-        patchMemory(0x087aa080, "5005"); // Boost Resolution
     }
     break;
     case VIRTUA_FIGHTER_5:
@@ -1569,7 +1615,7 @@ int initResolutionPatches()
     case VIRTUA_FIGHTER_5_REVA:
     {
         if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
-            return 0;
+            break;
         patchMemory(0x8053167, "01");          // Enable Anti Alias
         patchMemory(0x080541af, "b80a000000"); // Skips resolution set by the Dip Switches.
         setVariable(0x08487df8, getConfig()->width);
@@ -1579,7 +1625,7 @@ int initResolutionPatches()
     case VIRTUA_FIGHTER_5_REVB:
     {
         if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
-            return 0;
+            break;
         patchMemory(0x08053673, "01");         // Enable Anti Alias
         patchMemory(0x080546cf, "b80a000000"); // Skips resolution set by the Dip Switches.
         setVariable(0x08536bb8, getConfig()->width);
@@ -1589,7 +1635,7 @@ int initResolutionPatches()
     case VIRTUA_FIGHTER_5_REVE: // Also the public REV C version
     {
         if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
-            return 0;
+            break;
         patchMemory(0x080546c7, "01");         // Enable Anti Alias
         patchMemory(0x080557a3, "b80a000000"); // Skips resolution set by the Dip Switches.
         setVariable(0x085efb18, getConfig()->width);
@@ -1599,7 +1645,7 @@ int initResolutionPatches()
     case VIRTUA_FIGHTER_5_EXPORT:
     {
         if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
-            return 0;
+            break;
         patchMemory(0x08052b97, "01");         // Enable Anti Alias
         patchMemory(0x08053c67, "b80a000000"); // Skips resolution set by the Dip Switches.
         setVariable(0x085259f8, getConfig()->width);
@@ -1609,7 +1655,7 @@ int initResolutionPatches()
     case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVA:
     {
         if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
-            return 0;
+            break;
         patchMemory(0x08054b5e, "01");         // Enable Anti Alias
         patchMemory(0x08055980, "b80a000000"); // Skips resolution set by the Dip Switches.
         vf5FSwidth = (getConfig()->height * 5) / 3;
@@ -1622,7 +1668,7 @@ int initResolutionPatches()
     case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB:
     {
         if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
-            return 0;
+            break;
         patchMemory(0x080548c4, "01");         // Enable Anti Alias
         patchMemory(0x080556e6, "b80a000000"); // Skips resolution set by the Dip Switches.
         vf5FSwidth = (getConfig()->height * 5) / 3;
@@ -1635,7 +1681,7 @@ int initResolutionPatches()
     case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB_6000:
     {
         if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
-            return 0;
+            break;
         patchMemory(0x08054bfe, "01");         // Enable Anti Alias
         patchMemory(0x08055a20, "b80a000000"); // Skips resolution set by the Dip Switches.
         vf5FSwidth = (getConfig()->height * 5) / 3;
@@ -1648,7 +1694,7 @@ int initResolutionPatches()
     case VIRTUA_FIGHTER_5_R:
     {
         if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
-            return 0;
+            break;
         patchMemory(0x0805421a, "01");         // Enable Anti Alias
         patchMemory(0x080554b0, "b80a000000"); // Skips resolution set by the Dip Switches.
         vf5FSwidth = (getConfig()->height * 5) / 3;
@@ -1661,7 +1707,7 @@ int initResolutionPatches()
     case VIRTUA_FIGHTER_5_R_REVD:
     {
         if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
-            return 0;
+            break;
         patchMemory(0x080543aa, "01");         // Enable Anti Alias
         patchMemory(0x080555f6, "b80a000000"); // Skips resolution set by the Dip Switches.
         vf5FSwidth = (getConfig()->height * 5) / 3;
@@ -1674,7 +1720,7 @@ int initResolutionPatches()
     case VIRTUA_FIGHTER_5_R_REVG:
     {
         if ((getConfig()->width == 640 && getConfig()->height == 480) || (getConfig()->width == 1280 && getConfig()->height == 768))
-            return 0;
+            break;
         patchMemory(0x0805436a, "01");         // Enable Anti Alias
         patchMemory(0x0805577c, "b80a000000"); // Skips resolution set by the Dip Switches.
         vf5FSwidth = (getConfig()->height * 5) / 3;
@@ -1708,6 +1754,8 @@ int initResolutionPatches()
     break;
     case INITIALD_4_REVA:
     {
+        if (getConfig()->width == 1360 && getConfig()->height == 768)
+            break;
         setVariable(0x0835640d, 0x0000f0e9);          // Force set resolution
         setVariable(0x08356503, getConfig()->width);  // Set ResX
         setVariable(0x08356508, getConfig()->height); // Set ResY
@@ -1740,6 +1788,8 @@ int initResolutionPatches()
     break;
     case INITIALD_4_REVB:
     {
+        if (getConfig()->width == 1360 && getConfig()->height == 768)
+            break;
         setVariable(0x0835664d, 0x0000f0e9);          // Force set resolution
         setVariable(0x08356743, getConfig()->width);  // Set ResX
         setVariable(0x08356748, getConfig()->height); // Set ResY
@@ -1772,6 +1822,8 @@ int initResolutionPatches()
     break;
     case INITIALD_4_REVC:
     {
+        if (getConfig()->width == 1360 && getConfig()->height == 768)
+            break;
         setVariable(0x0835eebd, 0x0000f0e9);          // Force set resolution
         setVariable(0x0835efb3, getConfig()->width);  // Set ResX
         setVariable(0x0835efb8, getConfig()->height); // Set ResY
@@ -1804,6 +1856,8 @@ int initResolutionPatches()
     break;
     case INITIALD_4_REVD:
     {
+        if (getConfig()->width == 1360 && getConfig()->height == 768)
+            break;
         setVariable(0x0835c55d, 0x0000f0e9);          // Force set resolution
         setVariable(0x0835c653, getConfig()->width);  // Set ResX
         setVariable(0x0835c658, getConfig()->height); // Set ResY
@@ -1836,6 +1890,8 @@ int initResolutionPatches()
     break;
     case INITIALD_4_REVG:
     {
+        if (getConfig()->width == 1360 && getConfig()->height == 768)
+            break;
         setVariable(0x08393fbd, 0x0000f0e9);          // Force set resolution
         setVariable(0x083940b3, getConfig()->width);  // Set ResX
         setVariable(0x083940b8, getConfig()->height); // Set ResY
@@ -1876,6 +1932,8 @@ int initResolutionPatches()
     break;
     case INITIALD_4_EXP_REVB:
     {
+        if (getConfig()->width == 1360 && getConfig()->height == 768)
+            break;
         setVariable(0x0837979d, 0x0000f0e9);          // Force set resolution
         setVariable(0x08379893, getConfig()->width);  // Set ResX
         setVariable(0x08379898, getConfig()->height); // Set ResY
@@ -1920,6 +1978,8 @@ int initResolutionPatches()
     break;
     case INITIALD_4_EXP_REVC:
     {
+        if (getConfig()->width == 1360 && getConfig()->height == 768)
+            break;
         setVariable(0x0837961d, 0x0000f0e9);          // Force set resolution
         setVariable(0x08379713, getConfig()->width);  // Set ResX
         setVariable(0x08379718, getConfig()->height); // Set ResY
@@ -1967,6 +2027,8 @@ int initResolutionPatches()
     break;
     case INITIALD_4_EXP_REVD:
     {
+        if (getConfig()->width == 1360 && getConfig()->height == 768)
+            break;
         setVariable(0x0837b12d, 0x0000f0e9);          // Force set resolution
         setVariable(0x0837b223, getConfig()->width);  // Set ResX
         setVariable(0x0837b228, getConfig()->height); // Set ResY
@@ -2009,8 +2071,61 @@ int initResolutionPatches()
         }
     }
     break;
-    case INITIALD_5_EXP_30:
+    case INITIALD_5_EXP:
     {
+        if (getConfig()->width == 1360 && getConfig()->height == 768)
+            break;
+        patchMemory(0x0853d8cd, "E9f000");            // Accept different Resolutions
+        setVariable(0x0853d9c3, getConfig()->width);  // Set ResX
+        setVariable(0x0853d9c8, getConfig()->height); // Set ResY
+
+        patchMemory(0x08356054, "bb01000000eb6b");        // Prevents renrer.ini from loading
+        setVariable(0x08355f30, getConfig()->width);      // Framebuffer Main Width
+        setVariable(0x08355f37, getConfig()->height);     // Framebuffer Main Height
+        setVariable(0x08355fd1, 256);                     // Framebuffer Road Specular width
+        setVariable(0x08355fd8, 256);                     // Framebuffer Road Specular height
+        setVariable(0x08355ff7, getConfig()->width);      // Framebuffer Glare Width
+        setVariable(0x08355ffe, getConfig()->height);     // Framebuffer Glare Height
+        setVariable(0x08356024, getConfig()->width >> 2); // Framebuffer Reduced width
+        patchMemory(0x08356049, "00000001");              // Enable Cube Secular
+        // Fix Press start and Insert coins text
+        idDisplayTextureCAVEAddress = (void *)0x084e2470 + 5;
+        detourFunction(0x084e2470, idDisplayTexture);
+        // setViewport for track selection screen
+        setVariable(0x08215cae, (int)(getConfig()->height * (112.0 / 768)));
+        setVariable(0x08215cb6, (int)(getConfig()->width * (724.0 / 1315)));
+        setVariable(0x08215cbe, (int)(getConfig()->height * (592.0 / 768)));
+        setVariable(0x08215cc6, (int)(getConfig()->width * (962.0 / 1315)));
+        setVariable(0x08215cce, getConfig()->height);
+        // FSAA
+        patchMemory(0x0875aaa6, "9090");
+        patchMemory(0x08788949, "01"); // FSAA Enabled
+        setVariable(0x08cac148, 1);    // FSAA Quality
+        // Balloon fix
+        idDrawBallonCAVEAddress = (void *)0x082536c8 + 6;
+        iddrawBallonPutAddress = (void *)0x086d257c;
+        detourFunction(0x082536c8, idDrawBallon);
+        replaceCallAtAddress(0x08254b68, idBalloonPut);
+        replaceCallAtAddress(0x08254c29, idBalloonPut);
+        // START and VIEW CHANGE Text fix
+        float explanationScaleX = getConfig()->width - (1360.0 - 815.0);
+        float explanationScaleY = (getConfig()->height / 768.0) * 680.0;
+        setVariable(0x0826ac45, *(unsigned int *)&explanationScaleY);
+        setVariable(0x0826acbd, *(unsigned int *)&explanationScaleX);
+        // Scale Testmode text
+        if (isTestMode() && getConfig()->width >= 1920)
+        {
+            patchMemory(0x08c55ca0, "02");
+            idTextShift = (getConfig()->width == 1920 ? 27 : ((1920 / getConfig()->width) * 27) + 2);
+            idTestTextAddress = (void *)0x08775c1c;
+            replaceCallAtAddress(0x0850853e, idTestText);
+        }
+    }
+    break;
+    case INITIALD_5_EXP_20:
+    {
+        if (getConfig()->width == 1360 && getConfig()->height == 768)
+            break;
         patchMemory(0x0855a48d, "E9f000");            // Accept different Resolutions
         setVariable(0x0855a583, getConfig()->width);  // Set ResX
         setVariable(0x0855a588, getConfig()->height); // Set ResY
@@ -2058,8 +2173,10 @@ int initResolutionPatches()
         }
     }
     break;
-    case INITIALD_5_EXP_40:
+    case INITIALD_5_EXP_20A:
     {
+        if (getConfig()->width == 1360 && getConfig()->height == 768)
+            break;
         patchMemory(0x0855a6dd, "E9f000");            // Accept different Resolutions
         setVariable(0x0855a7d3, getConfig()->width);  // Set ResX
         setVariable(0x0855a7d8, getConfig()->height); // Set ResY
@@ -2109,6 +2226,8 @@ int initResolutionPatches()
     break;
     case INITIALD_5_JAP_REVA: // ID5 - DVP-0070A
     {
+        if (getConfig()->width == 1360 && getConfig()->height == 768)
+            break;
         patchMemory(0x0853ccdd, "E9f000");            // Accept different Resolutions
         setVariable(0x0853cdd3, getConfig()->width);  // Set ResX
         setVariable(0x0853cdd8, getConfig()->height); // Set ResY
@@ -2158,6 +2277,8 @@ int initResolutionPatches()
     break;
     case INITIALD_5_JAP_REVF: // ID5 - DVP-0070F
     {
+        if (getConfig()->width == 1360 && getConfig()->height == 768)
+            break;
         patchMemory(0x08556bbd, "E9f000");            // Accept different Resolutions
         setVariable(0x08556cb3, getConfig()->width);  // Set ResX
         setVariable(0x08556cb8, getConfig()->height); // Set ResY
@@ -2334,6 +2455,8 @@ int initResolutionPatches()
     break;
     case RAMBO:
     {
+        if (getConfig()->width <= 1360 && getConfig()->height <= 768)
+            break;
         patchMemory(0x080c70d0, "9090909090"); // setresolutiontype
         setVariable(0x08416df0, getConfig()->width); // render res
         setVariable(0x08416d60, getConfig()->width); // main res
@@ -2353,6 +2476,8 @@ int initResolutionPatches()
     break;
     case PRIMEVAL_HUNT:
     {
+        if (getConfig()->width <= 640 && getConfig()->height <= 480)
+            break;
         phX = 0;
         phY = 0;
         phW = getConfig()->width;
@@ -2445,6 +2570,8 @@ int initResolutionPatches()
     break;
     case HARLEY_DAVIDSON:
     {
+        if (getConfig()->width <= 1360 && getConfig()->height <= 768)
+            break;
         int w = getConfig()->width;
         int h = getConfig()->height;
         setVariable(0x088a57e0, w); // main res
@@ -2468,6 +2595,8 @@ int initResolutionPatches()
     break;
     case HUMMER:
     {
+        if (getConfig()->width <= 1280 && getConfig()->height <= 768)
+            break;
         replaceCallAtAddress(0x080d8b58, hummerRespatch);
         replaceCallAtAddress(0x080d8b73, hummerRespatch);
         replaceCallAtAddress(0x080d8b8e, hummerRespatch);
@@ -2478,6 +2607,8 @@ int initResolutionPatches()
     break;
     case HUMMER_SDLX:
     {
+        if (getConfig()->width <= 1280 && getConfig()->height <= 768)
+            break;
         replaceCallAtAddress(0x080d8b14, hummerRespatch);
         replaceCallAtAddress(0x080d8b2f, hummerRespatch);
         replaceCallAtAddress(0x080d8b4a, hummerRespatch);
@@ -2488,6 +2619,8 @@ int initResolutionPatches()
     break;
     case HUMMER_EXTREME:
     {
+        if (getConfig()->width <= 1280 && getConfig()->height <= 768)
+            break;
         replaceCallAtAddress(0x08159eab, hummerRespatch);
         replaceCallAtAddress(0x08159ec9, hummerRespatch);
         replaceCallAtAddress(0x08159ee7, hummerRespatch);
@@ -2498,6 +2631,8 @@ int initResolutionPatches()
     break;
     case HUMMER_EXTREME_MDX:
     {
+        if (getConfig()->width <= 1280 && getConfig()->height <= 768)
+            break;
         replaceCallAtAddress(0x0816348b, hummerRespatch);
         replaceCallAtAddress(0x081634a9, hummerRespatch);
         replaceCallAtAddress(0x081634c7, hummerRespatch);

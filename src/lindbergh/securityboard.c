@@ -1,7 +1,6 @@
 #include <stdio.h>
 
 #include "securityboard.h"
-#include "config.h"
 #include "log.h"
 
 #define SECURITY_BOARD_FRONT_PANEL 0x38

@@ -494,8 +494,7 @@ bool shaderFileInList(const char *pathname, int *idx)
             return false;
         }
     }
-    else if ((gId == THE_HOUSE_OF_THE_DEAD_4_REVA) || (gId == THE_HOUSE_OF_THE_DEAD_4_REVB) ||
-             (gId == THE_HOUSE_OF_THE_DEAD_4_REVC))
+    else if (gId == THE_HOUSE_OF_THE_DEAD_4_REVA || gId == THE_HOUSE_OF_THE_DEAD_4_REVB || gId == THE_HOUSE_OF_THE_DEAD_4_REVC)
     {
         for (int x = 0; x < hod4ShaderPatchesCount; x++)
         {
@@ -508,7 +507,7 @@ bool shaderFileInList(const char *pathname, int *idx)
         }
         return false;
     }
-    else if ((gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL) || (gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB))
+    else if (gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL || gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB)
     {
         for (int x = 0; x < hod4spShaderPatchesCount; x++)
         {
@@ -547,7 +546,7 @@ bool shaderFileInList(const char *pathname, int *idx)
         }
         return false;
     }
-    else if ((gId == HUMMER) || (gId == HUMMER_SDLX) || (gId == HUMMER_EXTREME) || (gId == HUMMER_EXTREME_MDX))
+    else if (gId == HUMMER || gId == HUMMER_SDLX || gId == HUMMER_EXTREME || gId == HUMMER_EXTREME_MDX)
     {
 
         for (int x = 0; x < hummerFilesToModCount; x++)
@@ -606,20 +605,21 @@ bool shaderFileInList(const char *pathname, int *idx)
 
     else if ((gId == INITIALD_4_EXP_REVB || gId == INITIALD_4_EXP_REVC || gId == INITIALD_4_EXP_REVD || gId == INITIALD_4_REVA ||
               gId == INITIALD_4_REVB || gId == INITIALD_4_REVC || gId == INITIALD_4_REVD || gId == INITIALD_4_REVG ||
-              gId == INITIALD_5_JAP_REVA || gId == INITIALD_5_JAP_REVF || gId == INITIALD_5_EXP_30 || gId == INITIALD_5_EXP_40) &&
+              gId == INITIALD_5_JAP_REVA || gId == INITIALD_5_JAP_REVF || gId == INITIALD_5_EXP || gId == INITIALD_5_EXP_20 ||
+              gId == INITIALD_5_EXP_20A) &&
              gpuVendor != NVIDIA_GPU)
     {
         filesToMod = idShaderFilesToMod;
         filesToModCount = idFilesToModCount;
-        if ((gId == INITIALD_4_REVA) || (gId == INITIALD_4_REVB) || (gId == INITIALD_4_REVC) || (gId == INITIALD_4_REVD) ||
-            (gId == INITIALD_4_REVG))
+        if (gId == INITIALD_4_REVA || gId == INITIALD_4_REVB || gId == INITIALD_4_REVC || gId == INITIALD_4_REVD || gId == INITIALD_4_REVG)
         {
             filesToMod = id4jShaderFilesToMod;
             filesToModCount = id4FilesToModCount;
         }
         searchFolder1 = "/shader/Cg/inc";
         searchFolder2 = "/data/Shader";
-        if ((gId == INITIALD_5_JAP_REVA) || (gId == INITIALD_5_JAP_REVF) || (gId == INITIALD_5_EXP_30) || (gId == INITIALD_5_EXP_40))
+        if (gId == INITIALD_5_JAP_REVA || gId == INITIALD_5_JAP_REVF || gId == INITIALD_5_EXP || gId == INITIALD_5_EXP_20 ||
+            gId == INITIALD_5_EXP_20A)
         {
             searchFolder2 = "/data/V5SHADER";
         }
@@ -674,24 +674,22 @@ long int ftellGetShaderSize(int idx)
         }
         return gsevoNvidiaShaderPatches[idx].shaderBufferSize;
     }
-    else if ((gId == LETS_GO_JUNGLE) || (gId == LETS_GO_JUNGLE_REVA) || (gId == LETS_GO_JUNGLE_SPECIAL))
+    else if (gId == LETS_GO_JUNGLE || gId == LETS_GO_JUNGLE_REVA || gId == LETS_GO_JUNGLE_SPECIAL)
     {
         return lgjShaderFilesToMod[idx].shaderBufferSize;
     }
-    else if ((gId == INITIALD_4_EXP_REVB) || (gId == INITIALD_4_EXP_REVC) || (gId == INITIALD_4_EXP_REVD) ||
-             (gId == INITIALD_5_JAP_REVA) || (gId == INITIALD_5_JAP_REVF) || (gId == INITIALD_5_EXP_30) ||
-             (gId == INITIALD_5_EXP_40))
+    else if (gId == INITIALD_4_EXP_REVB || gId == INITIALD_4_EXP_REVC || gId == INITIALD_4_EXP_REVD || gId == INITIALD_5_JAP_REVA ||
+             gId == INITIALD_5_JAP_REVF || gId == INITIALD_5_EXP || gId == INITIALD_5_EXP_20 || gId == INITIALD_5_EXP_20A)
     {
         return idShaderFilesToMod[idx].shaderBufferSize;
     }
-    else if ((gId == INITIALD_4_REVA) || (gId == INITIALD_4_REVB) || (gId == INITIALD_4_REVC) ||
-             (gId == INITIALD_4_REVD) || (gId == INITIALD_4_REVG))
+    else if (gId == INITIALD_4_REVA || gId == INITIALD_4_REVB || gId == INITIALD_4_REVC || gId == INITIALD_4_REVD || gId == INITIALD_4_REVG)
     {
         return id4jShaderFilesToMod[idx].shaderBufferSize;
     }
-    else if ((gId == VIRTUA_TENNIS_3) || (gId == VIRTUA_TENNIS_3_TEST) || (gId == VIRTUA_TENNIS_3_REVA) ||
-             (gId == VIRTUA_TENNIS_3_REVA_TEST) || (gId == VIRTUA_TENNIS_3_REVB) ||
-             (gId == VIRTUA_TENNIS_3_REVB_TEST) || (gId == VIRTUA_TENNIS_3_REVC) || (gId == VIRTUA_TENNIS_3_REVC_TEST))
+    else if (gId == VIRTUA_TENNIS_3 || gId == VIRTUA_TENNIS_3_TEST || gId == VIRTUA_TENNIS_3_REVA || gId == VIRTUA_TENNIS_3_REVA_TEST ||
+             gId == VIRTUA_TENNIS_3_REVB || gId == VIRTUA_TENNIS_3_REVB_TEST || gId == VIRTUA_TENNIS_3_REVC ||
+             gId == VIRTUA_TENNIS_3_REVC_TEST)
     {
         return vt3ShaderFilesToMod[idx].shaderBufferSize;
     }
@@ -710,12 +708,11 @@ long int ftellGetShaderSize(int idx)
             return ramboNvidiaShaderPatches[idx].shaderBufferSize;
         }
     }
-    else if ((gId == THE_HOUSE_OF_THE_DEAD_4_REVA) || (gId == THE_HOUSE_OF_THE_DEAD_4_REVB) ||
-             (gId == THE_HOUSE_OF_THE_DEAD_4_REVC))
+    else if (gId == THE_HOUSE_OF_THE_DEAD_4_REVA || gId == THE_HOUSE_OF_THE_DEAD_4_REVB || gId == THE_HOUSE_OF_THE_DEAD_4_REVC)
     {
         return hod4ShaderPatches[idx].shaderBufferSize;
     }
-    else if ((gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL) || (gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB))
+    else if (gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL || gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB)
     {
         return hod4spShaderPatches[idx].shaderBufferSize;
     }
@@ -723,7 +720,7 @@ long int ftellGetShaderSize(int idx)
     {
         return hodexShaderPatches[idx].shaderBufferSize;
     }
-    else if ((gId == HUMMER) || (gId == HUMMER_SDLX) || (gId == HUMMER_EXTREME) || (gId == HUMMER_EXTREME_MDX))
+    else if (gId == HUMMER || gId == HUMMER_SDLX || gId == HUMMER_EXTREME || gId == HUMMER_EXTREME_MDX)
     {
         return hummerShaderFilesToMod[idx].shaderBufferSize;
     }
@@ -757,27 +754,25 @@ size_t freadReplace(void *buf, size_t size, size_t count, int idx)
         }
         return 1;
     }
-    else if ((gId == LETS_GO_JUNGLE) || (gId == LETS_GO_JUNGLE_REVA) || (gId == LETS_GO_JUNGLE_SPECIAL))
+    else if (gId == LETS_GO_JUNGLE || gId == LETS_GO_JUNGLE_REVA || gId == LETS_GO_JUNGLE_SPECIAL)
     {
         memcpy(buf, lgjShaderFilesToMod[idx].shaderBuffer, size);
         return size;
     }
-    else if ((gId == INITIALD_4_EXP_REVB) || (gId == INITIALD_4_EXP_REVC) || (gId == INITIALD_4_EXP_REVD) ||
-             (gId == INITIALD_5_JAP_REVA) || (gId == INITIALD_5_JAP_REVF) || (gId == INITIALD_5_EXP_30) ||
-             (gId == INITIALD_5_EXP_40))
+    else if (gId == INITIALD_4_EXP_REVB || gId == INITIALD_4_EXP_REVC || gId == INITIALD_4_EXP_REVD || gId == INITIALD_5_JAP_REVA ||
+             gId == INITIALD_5_JAP_REVF || gId == INITIALD_5_EXP || gId == INITIALD_5_EXP_20 || gId == INITIALD_5_EXP_20A)
     {
         memcpy(buf, idShaderFilesToMod[idx].shaderBuffer, size);
         return size;
     }
-    else if ((gId == INITIALD_4_REVA) || (gId == INITIALD_4_REVB) || (gId == INITIALD_4_REVC) ||
-             (gId == INITIALD_4_REVD) || (gId == INITIALD_4_REVG))
+    else if (gId == INITIALD_4_REVA || gId == INITIALD_4_REVB || gId == INITIALD_4_REVC || gId == INITIALD_4_REVD || gId == INITIALD_4_REVG)
     {
         memcpy(buf, id4jShaderFilesToMod[idx].shaderBuffer, size);
         return size;
     }
-    else if ((gId == VIRTUA_TENNIS_3) || (gId == VIRTUA_TENNIS_3_TEST) || (gId == VIRTUA_TENNIS_3_REVA) ||
-             (gId == VIRTUA_TENNIS_3_REVA_TEST) || (gId == VIRTUA_TENNIS_3_REVB) ||
-             (gId == VIRTUA_TENNIS_3_REVB_TEST) || (gId == VIRTUA_TENNIS_3_REVC) || (gId == VIRTUA_TENNIS_3_REVC_TEST))
+    else if (gId == VIRTUA_TENNIS_3 || gId == VIRTUA_TENNIS_3_TEST || gId == VIRTUA_TENNIS_3_REVA || gId == VIRTUA_TENNIS_3_REVA_TEST ||
+             gId == VIRTUA_TENNIS_3_REVB || gId == VIRTUA_TENNIS_3_REVB_TEST || gId == VIRTUA_TENNIS_3_REVC ||
+             gId == VIRTUA_TENNIS_3_REVC_TEST)
     {
         memcpy(buf, vt3ShaderFilesToMod[idx].shaderBuffer, size);
         return size;
@@ -800,13 +795,12 @@ size_t freadReplace(void *buf, size_t size, size_t count, int idx)
             return ramboNvidiaShaderPatches[idx].shaderBufferSize;
         }
     }
-    else if ((gId == THE_HOUSE_OF_THE_DEAD_4_REVA) || (gId == THE_HOUSE_OF_THE_DEAD_4_REVB) ||
-             (gId == THE_HOUSE_OF_THE_DEAD_4_REVC))
+    else if (gId == THE_HOUSE_OF_THE_DEAD_4_REVA || gId == THE_HOUSE_OF_THE_DEAD_4_REVB || gId == THE_HOUSE_OF_THE_DEAD_4_REVC)
     {
         memcpy(buf, hod4ShaderPatches[idx].shaderBuffer, hod4ShaderPatches[idx].shaderBufferSize);
         return hod4ShaderPatches[idx].shaderBufferSize;
     }
-    else if ((gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL) || (gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB))
+    else if (gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL || gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB)
     {
         memcpy(buf, hod4spShaderPatches[idx].shaderBuffer, hod4spShaderPatches[idx].shaderBufferSize);
         return hod4spShaderPatches[idx].shaderBufferSize;
@@ -816,7 +810,7 @@ size_t freadReplace(void *buf, size_t size, size_t count, int idx)
         memcpy(buf, hodexShaderPatches[idx].shaderBuffer, hodexShaderPatches[idx].shaderBufferSize);
         return hodexShaderPatches[idx].shaderBufferSize;
     }
-    else if ((gId == HUMMER) || (gId == HUMMER_SDLX) || (gId == HUMMER_EXTREME) || (gId == HUMMER_EXTREME_MDX))
+    else if (gId == HUMMER || gId == HUMMER_SDLX || gId == HUMMER_EXTREME || gId == HUMMER_EXTREME_MDX)
     {
         memcpy(buf, hummerShaderFilesToMod[idx].shaderBuffer, hummerShaderFilesToMod[idx].shaderBufferSize);
         return hummerShaderFilesToMod[idx].shaderBufferSize;
@@ -846,10 +840,10 @@ char *cgGetProgramString(char *program, int e)
 
     uint32_t gId = getConfig()->crc32;
 
-    if ((gId != INITIALD_4_EXP_REVB) && (gId != INITIALD_4_EXP_REVC) && (gId != INITIALD_4_EXP_REVD) &&
-        (gId != INITIALD_4_REVA) && (gId != INITIALD_4_REVB) && (gId != INITIALD_4_REVC) && (gId != INITIALD_4_REVD) &&
-        (gId != INITIALD_4_REVG) && (gId != INITIALD_5_JAP_REVA) && (gId != INITIALD_5_JAP_REVF) &&
-        (gId != INITIALD_5_EXP_30) && (gId != INITIALD_5_EXP_40))
+    if (gId != INITIALD_4_EXP_REVB && gId != INITIALD_4_EXP_REVC && gId != INITIALD_4_EXP_REVD && gId != INITIALD_4_REVA &&
+        gId != INITIALD_4_REVB && gId != INITIALD_4_REVC && gId != INITIALD_4_REVD && gId != INITIALD_4_REVG &&
+        gId != INITIALD_5_JAP_REVA && gId != INITIALD_5_JAP_REVF && gId != INITIALD_5_EXP && gId != INITIALD_5_EXP_20 &&
+        gId != INITIALD_5_EXP_20A)
     {
         return _cgGetProgramString(program, e);
     }
@@ -1100,17 +1094,18 @@ char *cgCreateProgram(uint32_t context, int program_type, const char *program, i
          gId != VIRTUA_TENNIS_3_REVC_TEST && gId != INITIALD_4_EXP_REVB && gId != INITIALD_4_EXP_REVC && gId != INITIALD_4_EXP_REVD &&
          gId != LETS_GO_JUNGLE && gId != LETS_GO_JUNGLE_REVA && gId != LETS_GO_JUNGLE_SPECIAL && gId != INITIALD_4_REVA &&
          gId != INITIALD_4_REVB && gId != INITIALD_4_REVC && gId != INITIALD_4_REVD && gId != INITIALD_4_REVG &&
-         gId != INITIALD_5_JAP_REVA && gId != INITIALD_5_JAP_REVF && gId != INITIALD_5_EXP_30 && gId != INITIALD_5_EXP_40) ||
+         gId != INITIALD_5_JAP_REVA && gId != INITIALD_5_JAP_REVF && gId != INITIALD_5_EXP && gId != INITIALD_5_EXP_20 &&
+         gId != INITIALD_5_EXP_20A) ||
         (getConfig()->GPUVendor == NVIDIA_GPU))
     {
         if ((gId != LETS_GO_JUNGLE && gId != LETS_GO_JUNGLE_REVA && gId != LETS_GO_JUNGLE_SPECIAL) || getConfig()->lgjRenderWithMesa == 0)
             return _cgCreateProgram(context, program_type, program, profile, entry, args);
     }
 
-    if ((gId == INITIALD_4_EXP_REVB) || (gId == INITIALD_4_EXP_REVC) || (gId == INITIALD_4_EXP_REVD) ||
-        (gId == INITIALD_4_REVA) || (gId == INITIALD_4_REVB) || (gId == INITIALD_4_REVC) || (gId == INITIALD_4_REVD) ||
-        (gId == INITIALD_4_REVG) || (gId == INITIALD_5_JAP_REVA) || (gId == INITIALD_5_JAP_REVF) ||
-        (gId == INITIALD_5_EXP_30) || (gId == INITIALD_5_EXP_40))
+    if (gId == INITIALD_4_EXP_REVB || gId == INITIALD_4_EXP_REVC || gId == INITIALD_4_EXP_REVD || gId == INITIALD_4_REVA ||
+        gId == INITIALD_4_REVB || gId == INITIALD_4_REVC || gId == INITIALD_4_REVD || gId == INITIALD_4_REVG ||
+        gId == INITIALD_5_JAP_REVA || gId == INITIALD_5_JAP_REVF || gId == INITIALD_5_EXP || gId == INITIALD_5_EXP_20 ||
+        gId == INITIALD_5_EXP_20A)
     {
         if ((profile == 6148) || (profile == 6150) || profile == 7001)
             profile = 6150;
@@ -1145,8 +1140,7 @@ char *cgCreateProgram(uint32_t context, int program_type, const char *program, i
 void gl_ShaderSourceARB(GLhandleARB shaderObj, GLsizei count, const GLcharARB **const string, const GLint *length)
 {
     uint32_t gId = getConfig()->crc32;
-    if ((gId != SEGA_RACE_TV) && (gId != HUMMER) && (gId != HUMMER_SDLX) && (gId != HUMMER_EXTREME) &&
-        (gId != HUMMER_EXTREME_MDX))
+    if (gId != SEGA_RACE_TV && gId != HUMMER && gId != HUMMER_SDLX && gId != HUMMER_EXTREME && gId != HUMMER_EXTREME_MDX)
     {
         glShaderSourceARB(shaderObj, count, string, length);
         return;
@@ -1187,7 +1181,7 @@ void gl_ShaderSourceARB(GLhandleARB shaderObj, GLsizei count, const GLcharARB **
             }
         }
     }
-    else if ((gId == HUMMER) || (gId == HUMMER_SDLX) || (gId == HUMMER_EXTREME) || (gId == HUMMER_EXTREME_MDX))
+    else if (gId == HUMMER || gId == HUMMER_SDLX || gId == HUMMER_EXTREME || gId == HUMMER_EXTREME_MDX)
     {
         void *addr = __builtin_return_address(0);
         if ((addr != (void *)0x830a501) && (addr != (void *)0x830a485) && (addr != (void *)0x08319841) &&
@@ -1226,8 +1220,8 @@ void gl_ShaderSourceARB(GLhandleARB shaderObj, GLsizei count, const GLcharARB **
 void *gl_XGetProcAddressARB(const unsigned char *procName)
 {
     int dbgMsg = getConfig()->showDebugMessages;
-    if ((getConfig()->crc32 != HUMMER) && (getConfig()->crc32 != HUMMER_SDLX) &&
-        (getConfig()->crc32 != HUMMER_EXTREME) && (getConfig()->crc32 != HUMMER_EXTREME_MDX))
+    if (getConfig()->crc32 != HUMMER && getConfig()->crc32 != HUMMER_SDLX && getConfig()->crc32 != HUMMER_EXTREME &&
+        getConfig()->crc32 != HUMMER_EXTREME_MDX)
     {
         if (strcmp((const char *)procName, "glGenOcclusionQueriesNV") == 0)
         {
@@ -1695,15 +1689,14 @@ void cacheModedShaderFiles()
             free(newProgram);
         }
     }
-    else if ((gId == INITIALD_4_EXP_REVB) || (gId == INITIALD_4_EXP_REVC) || (gId == INITIALD_4_EXP_REVD) ||
-             (gId == INITIALD_4_REVA) || (gId == INITIALD_4_REVB) || (gId == INITIALD_4_REVC) ||
-             (gId == INITIALD_4_REVD) || (gId == INITIALD_4_REVG) || (gId == INITIALD_5_JAP_REVA) ||
-             (gId == INITIALD_5_JAP_REVF) || (gId == INITIALD_5_EXP_30) || (gId == INITIALD_5_EXP_40))
+    else if (gId == INITIALD_4_EXP_REVB || gId == INITIALD_4_EXP_REVC || gId == INITIALD_4_EXP_REVD || gId == INITIALD_4_REVA ||
+             gId == INITIALD_4_REVB || gId == INITIALD_4_REVC || gId == INITIALD_4_REVD || gId == INITIALD_4_REVG ||
+             gId == INITIALD_5_JAP_REVA || gId == INITIALD_5_JAP_REVF || gId == INITIALD_5_EXP || gId == INITIALD_5_EXP_20 ||
+             gId == INITIALD_5_EXP_20A)
     {
         ShaderFilesToMod *shaderFilesToMod;
         int filesToModCount;
-        if ((gId == INITIALD_4_REVA) || (gId == INITIALD_4_REVB) || (gId == INITIALD_4_REVC) ||
-            (gId == INITIALD_4_REVD) || (gId == INITIALD_4_REVG))
+        if (gId == INITIALD_4_REVA || gId == INITIALD_4_REVB || gId == INITIALD_4_REVC || gId == INITIALD_4_REVD || gId == INITIALD_4_REVG)
         {
             shaderFilesToMod = id4jShaderFilesToMod;
             filesToModCount = id4FilesToModCount;
@@ -1715,8 +1708,8 @@ void cacheModedShaderFiles()
         }
         for (int x = 0; x < filesToModCount; x++)
         {
-            if ((gId == INITIALD_5_JAP_REVA) || (gId == INITIALD_5_JAP_REVF) || (gId == INITIALD_5_EXP_30) ||
-                (gId == INITIALD_5_EXP_40))
+            if (gId == INITIALD_5_JAP_REVA || gId == INITIALD_5_JAP_REVF || gId == INITIALD_5_EXP || gId == INITIALD_5_EXP_20 ||
+                gId == INITIALD_5_EXP_20A)
             {
                 char *fName = shaderFilesToMod[x].fileName;
                 shaderFilesToMod[x].fileName = replaceSubstring(fName, 0, strlen(fName), "Shader", "V5SHADER");
@@ -1745,9 +1738,9 @@ void cacheModedShaderFiles()
             free(newProgram);
         }
     }
-    else if ((gId == VIRTUA_TENNIS_3) || (gId == VIRTUA_TENNIS_3_TEST) || (gId == VIRTUA_TENNIS_3_REVA) ||
-             (gId == VIRTUA_TENNIS_3_REVA_TEST) || (gId == VIRTUA_TENNIS_3_REVB) ||
-             (gId == VIRTUA_TENNIS_3_REVB_TEST) || (gId == VIRTUA_TENNIS_3_REVC) || (gId == VIRTUA_TENNIS_3_REVC_TEST))
+    else if (gId == VIRTUA_TENNIS_3 || gId == VIRTUA_TENNIS_3_TEST || gId == VIRTUA_TENNIS_3_REVA || gId == VIRTUA_TENNIS_3_REVA_TEST ||
+             gId == VIRTUA_TENNIS_3_REVB || gId == VIRTUA_TENNIS_3_REVB_TEST || gId == VIRTUA_TENNIS_3_REVC ||
+             gId == VIRTUA_TENNIS_3_REVC_TEST)
     {
         for (int x = 0; x < vt3FilesToModCount; x++)
         {
@@ -1826,14 +1819,13 @@ void cacheModedShaderFiles()
             shaderFilesToPatch = hodexShaderPatches;
             shaderFilesToPatchCount = hodexShaderPatchesCount;
         }
-        else if ((gId == THE_HOUSE_OF_THE_DEAD_4_REVA) || (gId == THE_HOUSE_OF_THE_DEAD_4_REVB) ||
-                 (gId == THE_HOUSE_OF_THE_DEAD_4_REVC))
+        else if (gId == THE_HOUSE_OF_THE_DEAD_4_REVA || gId == THE_HOUSE_OF_THE_DEAD_4_REVB || gId == THE_HOUSE_OF_THE_DEAD_4_REVC)
         {
             sprintf(folderName, "/../fs/dat/");
             shaderFilesToPatchCount = hod4ShaderPatchesCount;
             shaderFilesToPatch = hod4ShaderPatches;
         }
-        else if ((gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL) || (gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB))
+        else if (gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL || gId == THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB)
         {
             sprintf(folderName, "/../fs/dat/");
             shaderFilesToPatchCount = hod4spShaderPatchesCount;

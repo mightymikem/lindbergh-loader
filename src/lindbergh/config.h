@@ -29,8 +29,9 @@
 #define INITIALD_4_EXP_REVD 0x62cc73a9                       // DVP-0030D
 #define INITIALD_5_JAP_REVA 0xb3183112                       // DVP-0070A
 #define INITIALD_5_JAP_REVF 0xfc3dc85d                       // DVP-0070F
-#define INITIALD_5_EXP_30 0x77c6b58b                         // DVP-0075 and DVP-0084????
-#define INITIALD_5_EXP_40 0xd4910e75                         // DVP-0084A
+#define INITIALD_5_EXP 0x701b88cf                            // DVP-0075
+#define INITIALD_5_EXP_20 0x77c6b58b                         // DVP-0084
+#define INITIALD_5_EXP_20A 0xd4910e75                        // DVP-0084A
 #define LETS_GO_JUNGLE 0xb1c8c901                            // DVP-0011
 #define LETS_GO_JUNGLE_REVA 0xc697c4fb                       // DVP-0011A
 #define LETS_GO_JUNGLE_SPECIAL 0x240beedc                    // DVP-0036A
@@ -268,6 +269,7 @@ typedef struct
     int customCursorHeight;
     int mj4EnabledAtT;
     char or2IP[16];
+    char or2Netmask[16];
     float cpuFreqGhz;
     ArcadeInputs arcadeInputs;
     int inputMode;  // 0 = both, 1 = SDL/X11 only, 2 = EVDEV only

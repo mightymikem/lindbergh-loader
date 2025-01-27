@@ -2,15 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.0.2]
 ### Added
-    - Let's go Jungle resolution patch.
-    - 2 Spicy resolution patch.
-    - 2 Spicy Patch to allow any IP for Network play.
+    - InitialD 5 SBRY added.
     - HOD4 SP CPU Frequency fix.
-    - ID4 and ID5 patches for Network link to allowed any NIC name and any IP.
-    - Harley patch for network link to allowed any NIC name and any IP.
+### Fixed
+    - Fixed a bug when a game uses GLUT and the conf was set to NO_SDL 1
     - Fixed a bug in Let's go Jungle when GPU was nVidia and Mesa was set as shader patches.
+    - Exclude resolution patches when the resolution is the game's original resolution.
+    - Reload with Right mouse click for Rambo and 2Spicy with SDL.
 
 ### [2.0.1] 2025-01-23
 ### Added

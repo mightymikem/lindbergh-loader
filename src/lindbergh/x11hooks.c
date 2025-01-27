@@ -59,7 +59,7 @@ Window XCreateWindow(Display *display, Window parent, int x, int y, unsigned int
                              unsigned long valueMask, XSetWindowAttributes *attributes) =
         dlsym(RTLD_NEXT, "XCreateWindow");
 
-    if (gettingGPUVendor || creatingWindow || GLUTGame)
+    if ((gettingGPUVendor || creatingWindow) || (GLUTGame && getConfig()->noSDL == 0))
     {
         Window window = _XCreateWindow(display, parent, x, y, width, height, border_width, depth, class, visual,
                                        valueMask, attributes);

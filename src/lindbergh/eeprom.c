@@ -93,7 +93,7 @@ int initEeprom()
 
     if ((getConfig()->crc32 == OUTRUN_2_SP_SDX || getConfig()->crc32 == OUTRUN_2_SP_SDX_REVA) && strcmp(getConfig()->or2IP, "") != 0)
     {
-        if (setIP(eeprom, getConfig()->or2IP, "255.255.255.0") != 0)
+        if (setIP(eeprom, getConfig()->or2IP, getConfig()->or2Netmask) != 0)
         {
             printf("Error setting the new IP address.");
             fclose(eeprom);

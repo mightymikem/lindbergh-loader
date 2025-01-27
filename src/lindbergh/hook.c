@@ -255,15 +255,16 @@ void __attribute__((constructor)) hook_init()
     }
     printf("\n");
 
-    if (getConfig()->GPUVendor == ATI_GPU
-        && ((getConfig()->crc32 == LETS_GO_JUNGLE) || (getConfig()->crc32 == LETS_GO_JUNGLE_REVA) ||
-        (getConfig()->crc32 == LETS_GO_JUNGLE_SPECIAL) || (getConfig()->crc32 == AFTER_BURNER_CLIMAX) ||
-        (getConfig()->crc32 == AFTER_BURNER_CLIMAX_REVA) || (getConfig()->crc32 == AFTER_BURNER_CLIMAX_REVB) ||
-        (getConfig()->crc32 == AFTER_BURNER_CLIMAX_SDX) || (getConfig()->crc32 == AFTER_BURNER_CLIMAX_SDX_REVA) ||
-        (getConfig()->crc32 == AFTER_BURNER_CLIMAX_SE) || (getConfig()->crc32 == AFTER_BURNER_CLIMAX_SE_REVA) ||
-        (getConfig()->crc32 == INITIALD_5_JAP_REVA) || (getConfig()->crc32 == INITIALD_5_JAP_REVF) ||
-        (getConfig()->crc32 == INITIALD_5_EXP_30) || (getConfig()->crc32 == INITIALD_5_EXP_40))) {
-            printf("WARNING: Game %s is unsupported in AMD GPU with ATI driver\n",getGameName());
+    if (getConfig()->GPUVendor == ATI_GPU &&
+        ((getConfig()->crc32 == LETS_GO_JUNGLE) || (getConfig()->crc32 == LETS_GO_JUNGLE_REVA) ||
+         (getConfig()->crc32 == LETS_GO_JUNGLE_SPECIAL) || (getConfig()->crc32 == AFTER_BURNER_CLIMAX) ||
+         (getConfig()->crc32 == AFTER_BURNER_CLIMAX_REVA) || (getConfig()->crc32 == AFTER_BURNER_CLIMAX_REVB) ||
+         (getConfig()->crc32 == AFTER_BURNER_CLIMAX_SDX) || (getConfig()->crc32 == AFTER_BURNER_CLIMAX_SDX_REVA) ||
+         (getConfig()->crc32 == AFTER_BURNER_CLIMAX_SE) || (getConfig()->crc32 == AFTER_BURNER_CLIMAX_SE_REVA) ||
+         (getConfig()->crc32 == INITIALD_5_JAP_REVA) || (getConfig()->crc32 == INITIALD_5_JAP_REVF) ||
+         (getConfig()->crc32 == INITIALD_5_EXP_20) || (getConfig()->crc32 == INITIALD_5_EXP_20A)))
+    {
+        printf("WARNING: Game %s is unsupported in AMD GPU with ATI driver\n", getGameName());
     }
 }
 
@@ -272,8 +273,7 @@ DIR *opendir(const char *dirname)
     DIR *(*_opendir)(const char *dirname) = dlsym(RTLD_NEXT, "opendir");
 
     int gId = getConfig()->crc32;
-    if (gId == INITIALD_5_EXP_30 || gId == INITIALD_5_EXP_40 || gId == INITIALD_5_JAP_REVA ||
-        gId == INITIALD_5_JAP_REVF)
+    if (gId == INITIALD_5_EXP || gId == INITIALD_5_EXP_20 || gId == INITIALD_5_EXP_20A || gId == INITIALD_5_JAP_REVA || gId == INITIALD_5_JAP_REVF)
     {
         if (strcmp(dirname, "/tmp/") == 0)
         {
@@ -555,8 +555,7 @@ FILE *fopen(const char *restrict pathname, const char *restrict mode)
     }
 
     int gId = getConfig()->crc32;
-    if (gId == INITIALD_5_EXP_30 || gId == INITIALD_5_EXP_40 || gId == INITIALD_5_JAP_REVA ||
-        gId == INITIALD_5_JAP_REVF)
+    if (gId == INITIALD_5_EXP || gId == INITIALD_5_EXP_20 || gId == INITIALD_5_EXP_20A || gId == INITIALD_5_JAP_REVA || gId == INITIALD_5_JAP_REVF)
     {
         if (strncmp(pathname, "/tmp/", 5) == 0)
         {

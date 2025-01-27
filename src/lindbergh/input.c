@@ -451,6 +451,7 @@ void sdlEventDriving(SDL_Event *event)
         break;
     }
 }
+
 void sdlEventShooting(SDL_Event *event)
 {
     KeyMapping keymap = getConfig()->keymap;
@@ -585,13 +586,22 @@ void sdlEventShooting(SDL_Event *event)
     case SDL_MOUSEBUTTONUP:
     {
         if (event->button.button == SDL_BUTTON_LEFT) // Trigger
+        {
             setSwitch(PLAYER_1, BUTTON_1, event->type == SDL_MOUSEBUTTONDOWN);
-
+        }
         else if (event->button.button == SDL_BUTTON_RIGHT) // Reload
+        {
+            if (getConfig()->crc32 == RAMBO || getConfig()->crc32 == TOO_SPICY)
+            {
+                setAnalogue(ANALOGUE_1, -1);
+                setAnalogue(ANALOGUE_2, -1);
+            }
             setSwitch(PLAYER_1, BUTTON_2, event->type == SDL_MOUSEBUTTONDOWN);
-
+        }
         else if (event->button.button == SDL_BUTTON_MIDDLE) // Extra Gun Button
+        {
             setSwitch(PLAYER_1, BUTTON_3, event->type == SDL_MOUSEBUTTONDOWN);
+        }
     }
     break;
     default:

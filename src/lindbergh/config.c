@@ -367,8 +367,8 @@ static int detectGame(uint32_t elf_crc)
     case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB:
     {
         config.gameTitle = "Virtua Fighter 5 Final Showdown REV B";
-        config.gameDVP = "DVP-5019B";
-        config.gameID = "SBUV";
+        config.gameDVP = "DVP-5020";
+        config.gameID = "SBXX";
         config.gameReleaseYear = "2010";
         config.gameNativeResolutions = "1280x768";
         config.gameType = FIGHTING;
@@ -383,7 +383,7 @@ static int detectGame(uint32_t elf_crc)
     {
         config.gameTitle = "Virtua Fighter 5 Final Showdown REV B ver 6.0000";
         config.gameDVP = "DVP-5020";
-        config.gameID = "SBUV";
+        config.gameID = "SBXX";
         config.gameReleaseYear = "2010";
         config.gameNativeResolutions = "1280x768";
         config.gameType = FIGHTING;
@@ -844,11 +844,26 @@ static int detectGame(uint32_t elf_crc)
     }
     break;
 
-    case INITIALD_5_EXP_30:
+    case INITIALD_5_EXP:
     {
-        config.gameTitle = "Initial D5 Ver 2.0";
+        config.gameTitle = "Initial D5 EXP";
         config.gameStatus = WORKING;
         config.gameDVP = "DVP-0075";
+        config.gameID = "SBRY";
+        config.gameReleaseYear = "2009";
+        config.gameNativeResolutions = "1360x768";
+        config.gameType = DRIVING;
+        config.width = 1360;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case INITIALD_5_EXP_20:
+    {
+        config.gameTitle = "Initial D5 EXP 2.0";
+        config.gameStatus = WORKING;
+        config.gameDVP = "DVP-0084";
         config.gameID = "SBTS";
         config.gameReleaseYear = "2009";
         config.gameNativeResolutions = "1360x768";
@@ -859,9 +874,9 @@ static int detectGame(uint32_t elf_crc)
     }
     break;
 
-    case INITIALD_5_EXP_40:
+    case INITIALD_5_EXP_20A:
     {
-        config.gameTitle = "Initial D5 5 Ver 4.0";
+        config.gameTitle = "Initial D5 5 EXP 2.0";
         config.gameDVP = "DVP-0084A";
         config.gameID = "SBQN";
         config.gameReleaseYear = "2009";
@@ -1223,6 +1238,9 @@ int readConfig(FILE *configFile, EmulatorConfig *config)
         else if (strcmp(command, "OR2_IP") == 0)
             strcpy(config->or2IP, getNextToken(NULL, " ", &saveptr));
 
+        else if (strcmp(command, "OR2_NETMASK") == 0)
+            strcpy(config->or2Netmask, getNextToken(NULL, " ", &saveptr));
+
         else if (strcmp(command, "CPU_FREQ_GHZ") == 0)
             config->cpuFreqGhz = atof(getNextToken(NULL, " ", &saveptr));
 
@@ -1513,6 +1531,7 @@ int initConfig()
     config.mj4EnabledAtT = 0;
 
      strcpy(config.or2IP, "");
+     strcpy(config.or2Netmask, "");
     config.cpuFreqGhz = 0.0f;
     memset(&config.arcadeInputs.analogue_deadzone_start, 0, sizeof(config.arcadeInputs.analogue_deadzone_start));
     memset(&config.arcadeInputs.analogue_deadzone_middle, 0, sizeof(config.arcadeInputs.analogue_deadzone_middle));
