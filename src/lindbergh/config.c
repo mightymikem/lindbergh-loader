@@ -1,3 +1,5 @@
+#include <limits.h>
+#include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1483,7 +1485,7 @@ KeyMapping getDefaultKeymap()
     return defaultKeyMapping;
 }
 
-int initConfig()
+int initConfig(const char* configFilePath)
 {
     config.emulateRideboard = 0;
     config.emulateDriveboard = 0;
@@ -1551,7 +1553,14 @@ int initConfig()
 
     config.inputMode = 0; // Default to all inputs
 
-    configFile = fopen(CONFIG_PATH, "r");
+    char filePath[PATH_MAX];
+    strncpy(filePath, CONFIG_PATH, PATH_MAX);
+    if (configFilePath != NULL && configFilePath[0] != '\0')
+    {
+        strncpy(filePath, configFilePath, PATH_MAX);
+    }
+
+    configFile = fopen(filePath, "r");
 
     if (configFile == NULL)
     {
