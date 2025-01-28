@@ -48,11 +48,20 @@ sudo ln -s /lib/i386-linux-gnu/libglut.so /lib/i386-linux-gnu/libglut.so.3
 
 ### Let's Go Jungle Rev A
 
-- The game must be run in export mode to have the stereo sound option.
+The game must be run in export mode to have the stereo sound option.
 
 ### Outrun 2 SP SDX
 
-- You need to set `SKIP_OUTRUN_CABINET_CHECK` to 1 in `lindbergh.conf` to play in DX, SDX or Standard cabinet types.
+You need to set `SKIP_OUTRUN_CABINET_CHECK` to 1 in `lindbergh.conf` to play in DX, SDX or Standard cabinet types.
+
+### Ghost Squad / 2Spicy
+
+You may have sound issues complaining that the system cannot open `/dev[/sound]/dsp` in which case do the following:
+
+```
+sudo apt install pipewire-audio-client-libraries:i386
+sudo cp /usr/share/doc/pipewire/examples/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/
+```
 
 ## Configuration File : lindbergh.conf
 
