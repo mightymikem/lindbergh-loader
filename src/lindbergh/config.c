@@ -1,5 +1,4 @@
 #include <limits.h>
-#include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1564,7 +1563,7 @@ int initConfig(const char* configFilePath)
 
     if (configFile == NULL)
     {
-        log_warn("Cannot open %s, using default values.\n", CONFIG_PATH);
+        log_warn("Cannot open %s, using default values.\n", filePath);
         return 1;
     }
 
