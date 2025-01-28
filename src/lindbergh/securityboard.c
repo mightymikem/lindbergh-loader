@@ -2,6 +2,7 @@
 
 #include "securityboard.h"
 #include "log.h"
+#include "config.h"
 
 #define SECURITY_BOARD_FRONT_PANEL 0x38
 #define SECURITY_BOARD_FRONT_PANEL_NON_ROOT 0x1038
@@ -51,8 +52,10 @@ int securityBoardSetDipResolution(int width, int height)
         setResolutionDips(1, 1, 0);
     else if (width == 1360 && height == 768)
         setResolutionDips(1, 1, 1);
-    else
-        log_warn("Resolution not compatible, using 640 x 480\n");
+    else {
+        if(getConfig()->showDebugMessages)
+            log_warn("Resolution not original, setting dips to 640 x 480.\n");
+    }
 
     return 0;
 }
