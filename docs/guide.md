@@ -56,11 +56,17 @@ You need to set `SKIP_OUTRUN_CABINET_CHECK` to 1 in `lindbergh.conf` to play in 
 
 ### Ghost Squad / 2Spicy
 
-You may have sound issues complaining that the system cannot open `/dev[/sound]/dsp` in which case do the following:
+You may have sound issues such as the game complaining that the system cannot open `/dev[/sound]/dsp`. You **must not** use the `libopenal.so.0` files that came with the game, please delete those if you've moved them into your game folder. Do the following:
 
 ```
 sudo apt install pipewire-audio-client-libraries:i386
 sudo cp /usr/share/doc/pipewire/examples/alsa.conf.d/99-pipewire-default.conf /etc/alsa/conf.d/
+```
+
+Then in the game folder you must create a symlink to the `libopenal.so.1` library installed on your system:
+
+```
+ln -s /usr/lib/i386-linux-gnu/libopenal.so.1 libopenal.so.0
 ```
 
 ## Configuration File : lindbergh.conf
