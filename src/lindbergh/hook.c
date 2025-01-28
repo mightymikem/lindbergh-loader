@@ -305,13 +305,13 @@ int open(const char *pathname, int flags, ...)
 
     int (*_open)(const char *pathname, int flags, ...) = dlsym(RTLD_NEXT, "open");
 
-    // Attempt to open /dev/dsp1 and /dev/dsp
+    // Attempt to open /dev/dsp and /dev/dsp1
     if (strcmp(pathname, "/dev/dsp") == 0) {
-        int dspFileDescriptor = _open("/dev/dsp1", flags, mode);
+        int dspFileDescriptor = _open("/dev/dsp", flags, mode);
         if(dspFileDescriptor != -1)
             return dspFileDescriptor;
         
-        return _open("/dev/dsp", flags, mode);
+        return _open("/dev/dsp1", flags, mode);
     }
 
     if (strcmp(pathname, "/dev/lbb") == 0)
