@@ -30,8 +30,6 @@
 #include <ifaddrs.h>
 #include <dirent.h>
 
-#include "hook.h"
-
 #include "baseboard.h"
 #include "config.h"
 #include "driveboard.h"
@@ -304,15 +302,6 @@ int open(const char *pathname, int flags, ...)
     va_end(args);
 
     int (*_open)(const char *pathname, int flags, ...) = dlsym(RTLD_NEXT, "open");
-
-    // Attempt to open /dev/dsp and /dev/dsp1
-    if (strcmp(pathname, "/dev/dsp") == 0) {
-        int dspFileDescriptor = _open("/dev/dsp", flags, mode);
-        if(dspFileDescriptor != -1)
-            return dspFileDescriptor;
-        
-        return _open("/dev/dsp1", flags, mode);
-    }
 
     if (strcmp(pathname, "/dev/lbb") == 0)
     {
@@ -1208,28 +1197,6 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
     }
 
     return _connect(sockfd, addr, addrlen);
-}
-
-/**
- * Function to calculate CRC32 checksum in memory.
- */
-uint32_t get_crc32(const char *s, size_t n)
-{
-    uint32_t crc = 0xFFFFFFFF;
-
-    for (size_t i = 0; i < n; i++)
-    {
-        char ch = s[i];
-        for (size_t j = 0; j < 8; j++)
-        {
-            uint32_t b = (ch ^ crc) & 1;
-            crc >>= 1;
-            if (b)
-                crc = crc ^ 0xEDB88320;
-            ch >>= 1;
-        }
-    }
-    return ~crc;
 }
 
 /**

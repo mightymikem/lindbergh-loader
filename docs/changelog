@@ -2,7 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.0.2]
+## [2.0.3]
+### Added
+    - Display a warning when loading an Elf that is not clean.
+    - Added to the lib folder, common libraries that are usually missing.
+### Fixed
+    - Missing patch in HOD-EX.
+    - Alows to run a game that does not support Card reader if option enabled in conf file.
+
+## [2.0.2] 2025-01-27
 ### Added
     - InitialD 5 SBRY added.
     - HOD4 SP CPU Frequency fix.

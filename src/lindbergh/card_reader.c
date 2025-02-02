@@ -38,25 +38,28 @@ void initWriteCmd(int fdIdx)
 
 int initCardReader()
 {
-    initReadCmd(0);
-    initReadCmd(1);
-    initWriteCmd(0);
-    initWriteCmd(1);
-
     uint32_t gId = getConfig()->crc32;
     if (gId != VIRTUA_TENNIS_3 && gId != VIRTUA_TENNIS_3_TEST && gId != VIRTUA_TENNIS_3_REVA && gId != VIRTUA_TENNIS_3_REVA_TEST &&
         gId != VIRTUA_TENNIS_3_REVB && gId != VIRTUA_TENNIS_3_REVB_TEST && gId != VIRTUA_TENNIS_3_REVC &&
         gId != VIRTUA_TENNIS_3_REVC_TEST && gId != R_TUNED)
     {
-        printf("Game does not support Card Reader, please disable the card reader emulation in the config file.\n");
-        return -1;
+        printf("Warning: This Game does not support Card Reader, please disable the card reader emulation in the config file.\n");
+        printf("         I will disable the card reader for you.\n");
+        EmulatorConfig *config = getConfig();
+        config->emulateCardreader = 0;
+        return 0;
     }
     if (getConfig()->emulateCardreader && getConfig()->emulateDriveboard && gId != R_TUNED)
     {
-        printf("Game does not support Card Reader and Driver Board emulation enabled at the same time.\n");
+        printf("Warning: This Game does not support Card Reader and Driver Board emulation enabled at the same time.\n");
         printf("Please disable Drive Board emulations in the config file.\n");
         return -1;
     }
+
+    initReadCmd(0);
+    initReadCmd(1);
+    initWriteCmd(0);
+    initWriteCmd(1);
     return 0;
 }
 

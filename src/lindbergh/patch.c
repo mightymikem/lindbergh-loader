@@ -19,7 +19,6 @@
 #include <unistd.h>
 
 #include "config.h"
-#include "hook.h"
 #include "resolution.h"
 #include "securityboard.h"
 #include "shader_patches.h"
@@ -425,61 +424,6 @@ int initPatch()
 
     switch (config->crc32)
     {
-    case R_TUNED:
-    {
-        // Security
-        detourFunction(0x08366846, amDongleInit);
-        detourFunction(0x08365301, amDongleIsAvailable);
-        detourFunction(0x08365cf7, amDongleUpdate);
-        // Fixes
-        amDipswContextAddr = (void *)0x08578be8;
-        detourFunction(0x08365094, amDipswInit);
-        detourFunction(0x08365118, amDipswExit);
-        detourFunction(0x08365203, amDipswSetLed);
-        detourFunction(0x0836518d, amDipswGetData);
-        patchMemory(0x8388C90, "2e2f72616d2f746f2e74787400");     // Patch /home/disk2 folder
-        patchMemory(0x8388CA7, "2e2f72616d2f66726f6d2e74787400"); // Patch /home/disk2 folder
-        patchMemory(0x8388CC0, "2e2f72616d2f2e746d7000");         // Patch /home/disk2 folder
-        patchMemory(0x8388D10, "2e2f72616d00");                   // Patch /home/disk2 folder
-        patchMemory(0x8388D20, "2e2f666f6f3100");                 // Patch /home/disk2 folder
-        patchMemory(0x8388D31, "2e2f666f6f3200");                 // Patch /home/disk2 folder
-        patchMemory(0x83C979E, "2e2f00");                         // Patch /home/disk2 folder
-        patchMemory(0x838C498, "2e2f524f4d5f4c414e472f656e00");   // Patch /home/disk0 folder
-
-        // Mesa Patches
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x080507e8, gl_ProgramStringARB);
-        }
-        // Disable Force Feedback check?
-        patchMemory(0x0817f8d9, "891c2490909090");
-        patchMemory(0x0817f8e5, "ebc5");
-    }
-    break;
-    case SEGA_RACE_TV:
-    {
-        // Security
-        detourFunction(0x084d5b40, amDongleInit);
-        detourFunction(0x084d45f9, amDongleIsAvailable);
-        detourFunction(0x084d4fef, amDongleUpdate);
-        // Fixes
-        amDipswContextAddr = (void *)0x08df9cec;
-        detourFunction(0x084d438c, amDipswInit);
-        detourFunction(0x084d4410, amDipswExit);
-        detourFunction(0x084d44fc, amDipswSetLed);
-        detourFunction(0x084d4485, amDipswGetData);
-        patchMemory(0x0804edb2, "9090909090"); //__intel_new_proc_init_P
-
-        detourFunction(0x0804e594, gl_XGetProcAddressARB);
-        srtvElfShaderPatcher();
-
-        // Mesa Patches
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            patchMemory(0x082d3ce9, "9090"); // Force GL_NVX_conditional_render
-        }
-    }
-    break;
     case AFTER_BURNER_CLIMAX: // DVP-0009
     {
         // Security
@@ -633,6 +577,1279 @@ int initPatch()
         }
     }
     break;
+    case GHOST_SQUAD_EVOLUTION:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            // Debug
+            detourFunction(0x080984fe, _putConsole);
+        }
+        // Security
+        detourFunction(0x08183046, amDongleInit);
+        detourFunction(0x08181a91, amDongleIsAvailable);
+        detourFunction(0x081824f5, amDongleUpdate);
+        detourFunction(0x080e7ee8, stubRetOne); // stub check_dongle_validate
+        patchMemory(0x080e7db2, "01");
+        // Fixes
+        amDipswContextAddr = (void *)0x0aeafc28; // Address of amDipswContext
+        detourFunction(0x08181824, amDipswInit);
+        detourFunction(0x081818a8, amDipswExit);
+        detourFunction(0x0818191d, amDipswGetData);
+        detourFunction(0x08181994, stubRetZero);
+        patchMemory(0x080f37dd, "75"); // patch to prevent memory assignment error
+        // Stop the extra inputs by removing io_glut_init
+        detourFunction(0x080e7f94, stubRetZero);
+
+        cacheModedShaderFiles();
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            gsEvoElfShaderPatcher();
+            detourFunction(0x0804c334, gl_ProgramStringARB);
+        }
+    }
+    break;
+    case HARLEY_DAVIDSON:
+    {
+        // Security
+        detourFunction(0x08395ede, amDongleInit);
+        detourFunction(0x083949b6, amDongleIsDevelop);
+        detourFunction(0x0818ba08, stubRetZero);
+        detourFunction(0x0818b9ce, stubRetZero);
+
+        // Fixes
+        amDipswContextAddr = (void *)0x0abe35a8;
+        detourFunction(0x0839472c, amDipswInit);
+        detourFunction(0x083947b0, amDipswExit);
+        detourFunction(0x08394825, amDipswGetData);
+        detourFunction(0x08395da5, amDongleUserInfoEx);
+
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            cacheModedShaderFiles();
+            loadLibCg();
+            cacheNnstdshader();
+            patchMemory(0x082d4437, "9090909090");                     // Stop the folder rename
+            patchMemory(0x088a6127, "66732f636f6d70696c65646d657361"); // Change folder to compiledshdmesa
+            patchMemory(0x082646b3, "01");                             // Compile using CGC
+            replaceCallAtAddress(0x082d48ac, compileWithCGC);
+            replaceCallAtAddress(0x082d4b3b, compileWithCGC);
+        }
+        // Turns off the opponent marker at higher resolutions because it is out of place.
+        if (getConfig()->width > 1360)
+            detourFunction(0x080f19a6, stubRetZero);
+    }
+    break;
+    case HUMMER:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x0a6e9fac, 2); // amBackupDebugLevel
+            setVariable(0x0a6e9fc0, 2); // amCreditDebugLevel
+            setVariable(0x0a6ea218, 2); // amDipswDebugLevel
+            setVariable(0x0a6ea21c, 2); // amDongleDebugLevel
+            setVariable(0x0a6ea220, 2); // amEepromDebugLevel
+            setVariable(0x0a6ea224, 2); // amHwmonitorDebugLevel
+            setVariable(0x0a6ea228, 2); // amJvsDebugLevel
+            setVariable(0x0a6ea22c, 2); // amLibDebugLevel
+            setVariable(0x0a6ea230, 2); // amMiscDebugLevel
+            setVariable(0x0a6ea234, 2); // amOsinfoDebugLevel
+            setVariable(0x0a6ea238, 2); // amSysDataDebugLevel
+            setVariable(0x0a6ea240, 2); // bcLibDebugLevel
+        }
+
+        // Security
+        detourFunction(0x083dcbf6, amDongleInit);
+        detourFunction(0x083db641, amDongleIsAvailable);
+        detourFunction(0x083dc0a5, amDongleUpdate);
+        detourFunction(0x083db65e, amDongleIsDevelop);
+        detourFunction(0x083dcabd, amDongleUserInfoEx);
+        detourFunction(0x080f4e04, stubRetMinusOne);   // checkError
+        detourFunction(0x083dc5aa, amDongleDecryptEx); // Return 0
+        detourFunction(0x083dbddd, amDongleSetIv);     // Retrun 0
+
+        // Security Board
+        amDipswContextAddr = (void *)0x0a6f2c88;
+        detourFunction(0x083db3d4, amDipswInit);
+        detourFunction(0x083db458, amDipswExit);
+        detourFunction(0x083db4cd, amDipswGetData);
+        detourFunction(0x083db544, amDipswSetLed);
+
+        // Networking
+        detourFunction(0x083e339d, stubRetZero); // amOsinfoModifyNetworkAdr
+        detourFunction(0x083e3a2f, stubRetZero); // amOsinfoModifyNetworkProperty
+
+        // While we can't get into the test menu, immidiately return from the
+        // call to clSteerErrorDisp::run that complains about the calibration
+        // values.
+        patchMemory(0x082e8f48, "C3");
+        // Fixes Black screen after finishing the race
+        patchMemory(0x08078b4c, "C3");
+
+        detourFunction(0x082b5e4a, stubReturn); // adx_err_callback
+        detourFunction(0x082d199c, stubReturn); // clSerialLindbergh::send
+        detourFunction(0x082d1ab4, stubReturn); // clSerialLindbergh::receive
+
+        // Shader patching
+        cacheModedShaderFiles();
+        detourFunction(0x0804f480, gl_XGetProcAddressARB);
+    }
+    break;
+    case HUMMER_EXTREME:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x0a79a834, 2); // amAdtecDebugLevel
+            setVariable(0x0a79a838, 2); // amAtaDebugLevel
+            setVariable(0x0a79a83c, 2); // amBackupDebugLevel
+            setVariable(0x0a79a840, 2); // amCreditDebugLevel
+            setVariable(0x0a79aa98, 2); // amDipswDebugLevel
+            setVariable(0x0a79aa9c, 2); // amDongleDebugLevel
+            setVariable(0x0a79aaa0, 2); // amEepromDebugLevel
+            setVariable(0x0a79aaa4, 2); // amHwmonitorDebugLevel
+            setVariable(0x0a79aaa8, 2); // amJvsDebugLevel
+            setVariable(0x0a79aaac, 2); // amLibDebugLevel
+            setVariable(0x0a79aab0, 2); // amMiscDebugLevel
+            setVariable(0x0a79aab4, 2); // amOsinfoDebugLevel
+            setVariable(0x0a79a830, 2); // amsLibDebugLevel
+            setVariable(0x0a79aab8, 2); // amSysDataDebugLevel
+            setVariable(0x0a79aac0, 2); // bcLibDebugLevel
+        }
+
+        // Security
+        detourFunction(0x0831c0d1, amDongleInit);
+        detourFunction(0x0831a95d, amDongleIsAvailable);
+        detourFunction(0x0831b47e, amDongleUpdate);
+        detourFunction(0x0831a97a, amDongleIsDevelop);
+        detourFunction(0x0831bf97, amDongleUserInfoEx);
+        detourFunction(0x0831668c, stubRetZero);       // amsInit
+        detourFunction(0x08170654, stubRetMinusOne);   // checkError
+        detourFunction(0x0831b982, amDongleDecryptEx); // Return 0
+        detourFunction(0x0831b08b, amDongleSetIv);     // Retrun 0
+        patchMemory(0x082b4d51, "00");
+        patchMemory(0x082b5163, "00");
+        patchMemory(0x082b5306, "00");
+        patchMemory(0x082b570f, "00");
+        patchMemory(0x082b57c8, "909090909090");
+
+        // Security Board
+        amDipswContextAddr = (void *)0x0a7aefe8;
+        detourFunction(0x0831a6f0, amDipswInit);
+        detourFunction(0x0831a774, amDipswExit);
+        detourFunction(0x0831a7e9, amDipswGetData);
+        detourFunction(0x0831a85f, amDipswSetLed);
+
+        // Networking
+        detourFunction(0x08323886, stubRetZero); // amOsinfoModifyNetworkAdr
+        detourFunction(0x0832386b, stubRetZero); // amOsinfoModifyNetworkProperty
+
+        // While we can't get into the test menu, immidiately return from the
+        // call to clSteerErrorDisp::run that complains about the calibration
+        // values.
+        patchMemory(0x080e8b40, "C3");
+        // Fixes Black screen after finishing the race
+        patchMemory(0x0811d0c0, "C3");
+
+        // Shader patching
+        cacheModedShaderFiles();
+        detourFunction(0x0807a9dc, gl_XGetProcAddressARB);
+    }
+    break;
+    case HUMMER_EXTREME_MDX:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x0a7ae7b4, 2); // amAdtecDebugLevel
+            setVariable(0x0a7ae7b8, 2); // amAtaDebugLevel
+            setVariable(0x0a7ae7bc, 2); // amBackupDebugLevel
+            setVariable(0x0a7ae7c0, 2); // amCreditDebugLevel
+            setVariable(0x0a7aea18, 2); // amDipswDebugLevel
+            setVariable(0x0a7aea1c, 2); // amDongleDebugLevel
+            setVariable(0x0a7aea20, 2); // amEepromDebugLevel
+            setVariable(0x0a7aea24, 2); // amHwmonitorDebugLevel
+            setVariable(0x0a7aea28, 2); // amJvsDebugLevel
+            setVariable(0x0a7aea2c, 2); // amLibDebugLevel
+            setVariable(0x0a7aea30, 2); // amMiscDebugLevel
+            setVariable(0x0a7aea34, 2); // amOsinfoDebugLevel
+            setVariable(0x0a7ae7b0, 2); // amsLibDebugLevel
+            setVariable(0x0a7aea38, 2); // amSysDataDebugLevel
+            setVariable(0x0a7aea40, 2); // bcLibDebugLevel
+        }
+
+        // Security
+        detourFunction(0x0832b411, amDongleInit);
+        detourFunction(0x08329c9d, amDongleIsAvailable);
+        detourFunction(0x0832a7be, amDongleUpdate);
+        detourFunction(0x08329cba, amDongleIsDevelop);
+        detourFunction(0x0832b2d7, amDongleUserInfoEx);
+        detourFunction(0x083259cc, stubRetZero);       // amsInit
+        detourFunction(0x0817a0b6, stubRetMinusOne);   // checkError
+        detourFunction(0x0832acc2, amDongleDecryptEx); // Return 0
+        detourFunction(0x0832a3cb, amDongleSetIv);     // Retrun 0
+        patchMemory(0x082c2465, "00");
+        patchMemory(0x082c2877, "00");
+        patchMemory(0x082c2a16, "00");
+        patchMemory(0x082c2e1f, "00");
+        patchMemory(0x082c2ed8, "909090909090");
+
+        patchMemory(0x080de537, "909090909090");
+
+        // Security Board
+        amDipswContextAddr = (void *)0x0a7c2f68;
+        detourFunction(0x08329a30, amDipswInit);
+        detourFunction(0x08329ab4, amDipswExit);
+        detourFunction(0x08329b29, amDipswGetData);
+        detourFunction(0x08329b9f, amDipswSetLed);
+
+        // Networking
+        detourFunction(0x08332bc6, stubRetZero); // amOsinfoModifyNetworkAdr
+        detourFunction(0x08332bab, stubRetZero); // amOsinfoModifyNetworkProperty
+
+        // While we can't get into the test menu, immidiately return from the
+        // call to clSteerErrorDisp::run that complains about the calibration
+        // values.
+        patchMemory(0x080ebe20, "C3");
+        // Fixes Black screen after finishing the race
+        patchMemory(0x081260f0, "C3");
+
+        // Shader patching
+        cacheModedShaderFiles();
+        detourFunction(0x0807a9dc, gl_XGetProcAddressARB);
+    }
+    break;
+    case HUMMER_SDLX:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x0a6eac0c, 2); // amBackupDebugLevel
+            setVariable(0x0a6eac20, 2); // amCreditDebugLevel
+            setVariable(0x0a6eae78, 2); // amDipswDebugLevel
+            setVariable(0x0a6eae7c, 2); // amDongleDebugLevel
+            setVariable(0x0a6eae80, 2); // amEepromDebugLevel
+            setVariable(0x0a6eae84, 2); // amHwmonitorDebugLevel
+            setVariable(0x0a6eae88, 2); // amJvsDebugLevel
+            setVariable(0x0a6eae8c, 2); // amLibDebugLevel
+            setVariable(0x0a6eae90, 2); // amMiscDebugLevel
+            setVariable(0x0a6eae94, 2); // amOsinfoDebugLevel
+            setVariable(0x0a6eae98, 2); // amSysDataDebugLevel
+            setVariable(0x0a6eaea0, 2); // bcLibDebugLevel
+        }
+
+        // Security
+        detourFunction(0x083dd7d2, amDongleInit);
+        detourFunction(0x083dc21d, amDongleIsAvailable);
+        detourFunction(0x083dcc81, amDongleUpdate);
+        detourFunction(0x083dc23a, amDongleIsDevelop);
+        detourFunction(0x083dd699, amDongleUserInfoEx);
+        detourFunction(0x080f4ea8, stubRetMinusOne);   // checkError
+        detourFunction(0x083dd186, amDongleDecryptEx); // Return 0
+        detourFunction(0x083dc9b9, amDongleSetIv);     // Retrun 0
+
+        // Security Board
+        amDipswContextAddr = (void *)0x0a6f38e8;
+        detourFunction(0x083dbfb0, amDipswInit);
+        detourFunction(0x083dc034, amDipswExit);
+        detourFunction(0x083dc0a9, amDipswGetData);
+        detourFunction(0x083dc120, amDipswSetLed);
+
+        // Networking
+        detourFunction(0x083e3f79, stubRetZero); // amOsinfoModifyNetworkAdr
+        detourFunction(0x083e460b, stubRetZero); // amOsinfoModifyNetworkProperty
+
+        // While we can't get into the test menu, immidiately return from the
+        // call to clSteerErrorDisp::run that complains about the calibration
+        // values.
+        patchMemory(0x082e99ec, "C3");
+        // Fixes Black screen after finishing the race
+        patchMemory(0x08078b84, "C3");
+
+        detourFunction(0x082b650a, stubReturn); // adx_err_callback
+        detourFunction(0x082d2414, stubReturn); // clSerialLindbergh::send
+        detourFunction(0x082d252c, stubReturn); // clSerialLindbergh::receive
+
+        // Shader patching
+        cacheModedShaderFiles();
+        detourFunction(0x0804f480, gl_XGetProcAddressARB);
+    }
+    break;
+    case INITIALD_4_EXP_REVB:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x08d93b70, 2);                      // amBackupDebugLevel
+            setVariable(0x08d93b80, 2);                      // amCreditDebugLevel
+            setVariable(0x08d93dd8, 2);                      // amDipswDebugLevel
+            setVariable(0x08d93ddc, 2);                      // amDongleDebugLevel
+            setVariable(0x08d93de0, 2);                      // amEepromDebugLevel
+            setVariable(0x08d93de4, 2);                      // amHwmonitorDebugLevel
+            setVariable(0x08d93de8, 2);                      // amJvsDebugLevel
+            setVariable(0x08d93dec, 2);                      // amLibDebugLevel
+            setVariable(0x08d93df0, 2);                      // amMiscDebugLevel
+            setVariable(0x08d93df8, 2);                      // amSysDataDebugLevel
+            setVariable(0x08d93e00, 2);                      // bcLibDebugLevel
+            setVariable(0x08d93df4, 2);                      // amOsinfoDebugLevel
+            setVariable(0x08d93e04, 0x0FFFFFFF);             // s_logMask
+            detourFunction(0x0854a778, _putConsoleSeparate); // Debug Messages (crashes game)
+        }
+        // Security
+        detourFunction(0x0870ee36, amDongleInit);
+        detourFunction(0x0870d881, amDongleIsAvailable);
+        detourFunction(0x0870e2e5, amDongleUpdate);
+        detourFunction(0x0870ecfd, amDongleUserInfoEx);
+        memcpy(elfID, (void *)0x087c0a61, 4); // Gets gameID from the ELF
+
+        // Fixes
+        amDipswContextAddr = (void *)0x08dc2d08;
+        detourFunction(0x0870d614, amDipswInit);
+        detourFunction(0x0870d698, amDipswExit);
+        detourFunction(0x0870d70d, amDipswGetData);
+        detourFunction(0x0870d784, stubRetZero); // amDipswSetLed
+        detourFunction(0x0822fdde, stubRetOne);  // isEthLinkUp
+        // patchMemory(0x082ddfcd, "e954010000");   // tickWaitDHCP
+        patchMemory(0x082df619, "eb60");        // tickInitAddress
+        detourFunction(0x0821a1fa, stubRetOne); // Skip Kickback initialization
+        setVariable(0x0857f0e9, 0x000126e9);    // Avoid Full Screen set from Game
+        patchMemory(0x087bc56c, "ab");          // Skips initialization
+
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x08078860, gl_MultiTexCoord2fARB);
+            detourFunction(0x080788d0, gl_Color4ub);
+            detourFunction(0x08078b00, gl_Vertex3f);
+            detourFunction(0x08079200, gl_TexCoord2f);
+            detourFunction(0x080792a0, cg_GLIsProfileSupported);
+            patchMemory(0x08549c10, "9090");
+            patchMemory(0x0856e843, "31C090"); // cgCreateProgram args argument to 0;
+            cacheModedShaderFiles();
+            detourFunction(0x08079730, gl_XGetProcAddressARB);
+            detourFunction(0x080794d0, gl_ProgramParameters4fvNV);
+        }
+        detourFunction(0x08264e7a, stubRetOne); // isExistNewerSource (forces shader recompilation)
+    }
+    break;
+    case INITIALD_4_EXP_REVC:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x08d93b70, 2);                      // amBackupDebugLevel
+            setVariable(0x08d93b80, 2);                      // amCreditDebugLevel
+            setVariable(0x08d93dd8, 2);                      // amDipswDebugLevel
+            setVariable(0x08d93ddc, 2);                      // amDongleDebugLevel
+            setVariable(0x08d93de0, 2);                      // amEepromDebugLevel
+            setVariable(0x08d93de4, 2);                      // amHwmonitorDebugLevel
+            setVariable(0x08d93de8, 2);                      // amJvsDebugLevel
+            setVariable(0x08d93dec, 2);                      // amLibDebugLevel
+            setVariable(0x08d93df0, 2);                      // amMiscDebugLevel
+            setVariable(0x08d93df8, 2);                      // amSysDataDebugLevel
+            setVariable(0x08d93e00, 2);                      // bcLibDebugLevel
+            setVariable(0x08d93df4, 2);                      // amOsinfoDebugLevel
+            setVariable(0x08d93e04, 0x0FFFFFFF);             // s_logMask
+            detourFunction(0x0854a4f8, _putConsoleSeparate); // Debug Messages
+        }
+        // Security
+        detourFunction(0x0870ebb6, amDongleInit);
+        detourFunction(0x0870d601, amDongleIsAvailable);
+        detourFunction(0x0870e065, amDongleUpdate);
+        detourFunction(0x0870ea7d, amDongleUserInfoEx);
+        memcpy(elfID, (void *)0x08337197, 4); // Gets gameID from the ELF
+
+        // Fixes
+        amDipswContextAddr = (void *)0x08dc2d08;
+        detourFunction(0x0870d394, amDipswInit);
+        detourFunction(0x0870d418, amDipswExit);
+        detourFunction(0x0870d48d, amDipswGetData);
+        detourFunction(0x0870d504, stubRetZero); // amDipswSetLed
+        detourFunction(0x0822feae, stubRetOne);  // isEthLinkUp
+        // patchMemory(0x082dde0d, "e954010000");   // tickWaitDHCP
+        patchMemory(0x082df459, "eb60");        // tickInitAddress
+        detourFunction(0x0821a2aa, stubRetOne); // Skip Kickback initialization
+        setVariable(0x0857ee69, 0x000126e9);    // Avoid Full Screen set from Game
+        patchMemory(0x087bc2ec, "eb");          // Skips initialization
+
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x08078860, gl_MultiTexCoord2fARB);
+            detourFunction(0x080788d0, gl_Color4ub);
+            detourFunction(0x08078b00, gl_Vertex3f);
+            detourFunction(0x08079200, gl_TexCoord2f);
+            detourFunction(0x080792a0, cg_GLIsProfileSupported);
+            patchMemory(0x0854b4a0, "9090");
+            patchMemory(0x085700d3, "31C090"); // cgCreateProgram args argument to 0;
+            cacheModedShaderFiles();
+            detourFunction(0x08079730, gl_XGetProcAddressARB);
+            detourFunction(0x080794d0, gl_ProgramParameters4fvNV);
+        }
+        detourFunction(0x08264f62, stubRetOne); // isExistNewerSource (forces shader recompilation)
+    }
+    break;
+    case INITIALD_4_EXP_REVD:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x08d972d0, 2);                      // amBackupDebugLevel
+            setVariable(0x08d972e0, 2);                      // amCreditDebugLevel
+            setVariable(0x08d97538, 2);                      // amDipswDebugLevel
+            setVariable(0x08d9753c, 2);                      // amDongleDebugLevel
+            setVariable(0x08d97540, 2);                      // amEepromDebugLevel
+            setVariable(0x08d97544, 2);                      // amHwmonitorDebugLevel
+            setVariable(0x08d97548, 2);                      // amJvsDebugLevel
+            setVariable(0x08d9754c, 2);                      // amLibDebugLevel
+            setVariable(0x08d97550, 2);                      // amMiscDebugLevel
+            setVariable(0x08d97554, 2);                      // amSysDataDebugLevel
+            setVariable(0x08d97558, 2);                      // bcLibDebugLevel
+            setVariable(0x08d97560, 2);                      // amOsinfoDebugLevel
+            setVariable(0x08d97564, 0x0FFFFFFF);             // s_logMask
+            detourFunction(0x0854c008, _putConsoleSeparate); // Debug Messages (crashes game)
+        }
+        // Security
+        detourFunction(0x087106e6, amDongleInit);
+        detourFunction(0x0870f131, amDongleIsAvailable);
+        detourFunction(0x0870fb95, amDongleUpdate);
+        detourFunction(0x087105ad, amDongleUserInfoEx);
+        memcpy(elfID, (void *)0x08338ce7, 4); // Gets gameID from the ELF
+
+        // Fixes
+        amDipswContextAddr = (void *)0x08dc6928;
+        detourFunction(0x0870eec4, amDipswInit);
+        detourFunction(0x0870ef48, amDipswExit);
+        detourFunction(0x0870efbd, amDipswGetData);
+        detourFunction(0x0870f034, stubRetZero); // amDipswSetLed
+        detourFunction(0x08230fde, stubRetOne);  // isEthLinkUp
+        patchMemory(0x082df87d, "e954010000");   // tickWaitDHCP
+        patchMemory(0x082e0ec9, "eb60");         // tickInitAddress
+        detourFunction(0x0821b3ea, stubRetOne);  // Skip Kickback initialization
+        setVariable(0x08580979, 0x000126e9);     // Avoid Full Screen set from Game
+        patchMemory(0x087beb6c, "5b");           // Skips initialization
+
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x080788ec, gl_MultiTexCoord2fARB);
+            detourFunction(0x0807895c, gl_Color4ub);
+            detourFunction(0x08078b8c, gl_Vertex3f);
+            detourFunction(0x0807928c, gl_TexCoord2f);
+            detourFunction(0x0807932c, cg_GLIsProfileSupported);
+            patchMemory(0x0854b4a0, "9090");
+            patchMemory(0x085700d3, "31C090"); // cgCreateProgram args argument to 0;
+            cacheModedShaderFiles();
+            detourFunction(0x080797dc, gl_XGetProcAddressARB);
+            detourFunction(0x0807955c, gl_ProgramParameters4fvNV);
+        }
+        detourFunction(0x08266098, stubRetOne); // isExistNewerSource (forces shader recompilation)
+    }
+    break;
+    case INITIALD_4_REVA:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x08d71470, 2);                      // amBackupDebugLevel
+            setVariable(0x08d71480, 2);                      // amCreditDebugLevel
+            setVariable(0x08d716d8, 2);                      // amDipswDebugLevel
+            setVariable(0x08d716dc, 2);                      // amDongleDebugLevel
+            setVariable(0x08d716e0, 2);                      // amEepromDebugLevel
+            setVariable(0x08d716e4, 2);                      // amHwmonitorDebugLevel
+            setVariable(0x08d716e8, 2);                      // amJvsDebugLevel
+            setVariable(0x08d716ec, 2);                      // amLibDebugLevel
+            setVariable(0x08d716f0, 2);                      // amMiscDebugLevel
+            setVariable(0x08d716f8, 2);                      // amSysDataDebugLevel
+            setVariable(0x08d71700, 2);                      // bcLibDebugLevel
+            setVariable(0x08d716f4, 2);                      // amOsinfoDebugLevel
+            setVariable(0x08d71704, 0x0FFFFFFF);             // s_logMask
+            detourFunction(0x08524c88, _putConsoleSeparate); // Debug Messages
+        }
+        // Security
+        detourFunction(0x086e20fa, amDongleInit);
+        detourFunction(0x086e0b45, amDongleIsAvailable);
+        detourFunction(0x086e15a9, amDongleUpdate);
+        detourFunction(0x086e1fc1, amDongleUserInfoEx);
+        memcpy(elfID, (void *)0x8318835, 4); // Gets gameID from the ELF
+        //  Fixes
+        amDipswContextAddr = (void *)0x08da0628; // Address of amDipswContext
+        detourFunction(0x086e08d8, amDipswInit);
+        detourFunction(0x086e095c, amDipswExit);
+        detourFunction(0x086e09d1, amDipswGetData);
+        detourFunction(0x086e0a48, amDipswSetLed); // amDipswSetLED
+
+        detourFunction(0x0821e52c, stubRetOne); // isEthLinkUp
+        patchMemory(0x082cb222, "c0270900");    // tickInitStoreNetwork
+        patchMemory(0x082cb4e9, "e950010000");  // tickWaitDHCP
+        patchMemory(0x082ccc68, "eb");          // Skip Kickback initialization
+        patchMemory(0x08799acc, "62");          // Skips initialization
+        patchMemory(0x08799adc, "df");          // Skips initialization
+        setVariable(0x085593c9, 0x000126e9);    // Avoid Full Screen set from Game
+
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x08078980, gl_MultiTexCoord2fARB);
+            detourFunction(0x080789f0, gl_Color4ub);
+            detourFunction(0x08078c10, gl_Vertex3f);
+            detourFunction(0x08079330, gl_TexCoord2f);
+            detourFunction(0x080793d0, cg_GLIsProfileSupported);
+            patchMemory(0x085241ea, "9090");
+            cacheModedShaderFiles();
+            detourFunction(0x08079870, gl_XGetProcAddressARB);
+            detourFunction(0x08079600, gl_ProgramParameters4fvNV);
+        }
+        patchMemory(0x08548cb3, "31C090");      // cgCreateProgram args argument to 0;
+        detourFunction(0x0825637a, stubRetOne); // isExistNewerSource (forces shader recompilation)
+    }
+    break;
+    case INITIALD_4_REVB:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x08d71750, 2);                      // amBackupDebugLevel
+            setVariable(0x08d71760, 2);                      // amCreditDebugLevel
+            setVariable(0x08d719b8, 2);                      // amDipswDebugLevel
+            setVariable(0x08d719bc, 2);                      // amDongleDebugLevel
+            setVariable(0x08d719c0, 2);                      // amEepromDebugLevel
+            setVariable(0x08d719c4, 2);                      // amHwmonitorDebugLevel
+            setVariable(0x08d719c8, 2);                      // amJvsDebugLevel
+            setVariable(0x08d719cc, 2);                      // amLibDebugLevel
+            setVariable(0x08d719d0, 2);                      // amMiscDebugLevel
+            setVariable(0x08d719d8, 2);                      // amSysDataDebugLevel
+            setVariable(0x08d719e0, 2);                      // bcLibDebugLevel
+            setVariable(0x08d719d4, 2);                      // amOsinfoDebugLevel
+            setVariable(0x08d719e4, 0x0FFFFFFF);             // s_logMask
+            detourFunction(0x08524ec8, _putConsoleSeparate); // Debug Messages
+        }
+        // Security
+        detourFunction(0x086e2336, amDongleInit);
+        detourFunction(0x086e0d81, amDongleIsAvailable);
+        detourFunction(0x086e17e5, amDongleUpdate);
+        detourFunction(0x086e21fd, amDongleUserInfoEx);
+        memcpy(elfID, (void *)0x08318a45, 4); // Gets gameID from the ELF
+        //  Fixes
+        amDipswContextAddr = (void *)0x08da0908; // Address of amDipswContext
+        detourFunction(0x086e0b14, amDipswInit);
+        detourFunction(0x086e0b98, amDipswExit);
+        detourFunction(0x086e0c0d, amDipswGetData);
+        detourFunction(0x086e0c84, amDipswSetLed); // amDipswSetLED
+
+        detourFunction(0x0821e6dc, stubRetOne); // isEthLinkUp
+        patchMemory(0x082cb412, "c0270900");    // tickInitStoreNetwork
+        patchMemory(0x082cb6d9, "e950010000");  // tickWaitDHCP
+        patchMemory(0x082cce58, "EB");          // Skip Kickback initialization
+        patchMemory(0x08799d8c, "52");          // Skips initialization
+        patchMemory(0x08799d9c, "cf");          // Skips initialization
+        setVariable(0x08559609, 0x000126e9);    // Avoid Full Screen set from Game
+
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x080789a4, gl_MultiTexCoord2fARB);
+            detourFunction(0x08078a14, gl_Color4ub);
+            detourFunction(0x08078c34, gl_Vertex3f);
+            detourFunction(0x08079354, gl_TexCoord2f);
+            detourFunction(0x080793f4, cg_GLIsProfileSupported);
+            patchMemory(0x0852442a, "9090");
+            cacheModedShaderFiles();
+            detourFunction(0x08079894, gl_XGetProcAddressARB);
+            detourFunction(0x08079624, gl_ProgramParameters4fvNV);
+        }
+        patchMemory(0x08548ef3, "31C090");      // cgCreateProgram args argument to 0;
+        detourFunction(0x0825653a, stubRetOne); // isExistNewerSource (forces shader recompilation)
+    }
+    break;
+    case INITIALD_4_REVC:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x08d7c8f0, 2);                      // amBackupDebugLevel
+            setVariable(0x08d7c900, 2);                      // amCreditDebugLevel
+            setVariable(0x08d7cb58, 2);                      // amDipswDebugLevel
+            setVariable(0x08d7cb5c, 2);                      // amDongleDebugLevel
+            setVariable(0x08d7cb60, 2);                      // amEepromDebugLevel
+            setVariable(0x08d7cb64, 2);                      // amHwmonitorDebugLevel
+            setVariable(0x08d7cb68, 2);                      // amJvsDebugLevel
+            setVariable(0x08d7cb6c, 2);                      // amLibDebugLevel
+            setVariable(0x08d7cb70, 2);                      // amMiscDebugLevel
+            setVariable(0x08d7cb78, 2);                      // amSysDataDebugLevel
+            setVariable(0x08d7cb80, 2);                      // bcLibDebugLevel
+            setVariable(0x08d7cb74, 2);                      // amOsinfoDebugLevel
+            setVariable(0x08d7cb84, 0x0FFFFFFF);             // s_logMask
+            detourFunction(0x0852d738, _putConsoleSeparate); // Debug Messages
+        }
+        // Security
+        detourFunction(0x086eabd6, amDongleInit);
+        detourFunction(0x086e9621, amDongleIsAvailable);
+        detourFunction(0x086ea085, amDongleUpdate);
+        detourFunction(0x086eaa9d, amDongleUserInfoEx);
+        memcpy(elfID, (void *)0x08795338, 4); // Gets gameID from the ELF
+        //  Fixes
+        amDipswContextAddr = (void *)0x08dabaa8; // Address of amDipswContext
+        detourFunction(0x086e93b4, amDipswInit);
+        detourFunction(0x086e9438, amDipswExit);
+        detourFunction(0x086e94ad, amDipswGetData);
+        detourFunction(0x086e9524, amDipswSetLed); // amDipswSetLED
+
+        detourFunction(0x0821f0dc, stubRetOne); // isEthLinkUp
+        patchMemory(0x082cfe42, "c0270900");    // tickInitStoreNetwork
+        patchMemory(0x082d0109, "e950010000");  // tickWaitDHCP
+        patchMemory(0x082d1888, "EB");          // Skip Kickback initialization
+        patchMemory(0x087a2eec, "82");          // Skips initialization
+        patchMemory(0x087a2efc, "ff");          // Skips initialization
+        setVariable(0x08561e79, 0x000126e9);    // Avoid Full Screen set from Game
+
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x080789a4, gl_MultiTexCoord2fARB);
+            detourFunction(0x08078a14, gl_Color4ub);
+            detourFunction(0x08078c34, gl_Vertex3f);
+            detourFunction(0x08079354, gl_TexCoord2f);
+            detourFunction(0x080793f4, cg_GLIsProfileSupported);
+            patchMemory(0x0852cc9a, "9090");
+            cacheModedShaderFiles();
+            detourFunction(0x08079894, gl_XGetProcAddressARB);
+            detourFunction(0x08079624, gl_ProgramParameters4fvNV);
+        }
+        patchMemory(0x08551763, "31C090");      // cgCreateProgram args argument to 0;
+        detourFunction(0x08256ff4, stubRetOne); // isExistNewerSource (forces shader recompilation)
+    }
+    break;
+    case INITIALD_4_REVD:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x08d798b0, 2);                      // amBackupDebugLevel
+            setVariable(0x08d798c0, 2);                      // amCreditDebugLevel
+            setVariable(0x08d79b18, 2);                      // amDipswDebugLevel
+            setVariable(0x08d79b1c, 2);                      // amDongleDebugLevel
+            setVariable(0x08d79b20, 2);                      // amEepromDebugLevel
+            setVariable(0x08d79b24, 2);                      // amHwmonitorDebugLevel
+            setVariable(0x08d79b28, 2);                      // amJvsDebugLevel
+            setVariable(0x08d79b2c, 2);                      // amLibDebugLevel
+            setVariable(0x08d79b30, 2);                      // amMiscDebugLevel
+            setVariable(0x08d79b38, 2);                      // amSysDataDebugLevel
+            setVariable(0x08d79b40, 2);                      // bcLibDebugLevel
+            setVariable(0x08d79b34, 2);                      // amOsinfoDebugLevel
+            setVariable(0x08d79b44, 0x0FFFFFFF);             // s_logMask
+            detourFunction(0x0852add8, _putConsoleSeparate); // Debug Messages
+        }
+        // Security
+        detourFunction(0x086e8276, amDongleInit);
+        detourFunction(0x086e6cc1, amDongleIsAvailable);
+        detourFunction(0x086e7725, amDongleUpdate);
+        detourFunction(0x086e813d, amDongleUserInfoEx);
+        memcpy(elfID, (void *)0x087929d8, 4); // Gets gameID from the ELF
+        //  Fixes
+        amDipswContextAddr = (void *)0x08da8a68; // Address of amDipswContext
+        detourFunction(0x086e6a54, amDipswInit);
+        detourFunction(0x086e6ad8, amDipswExit);
+        detourFunction(0x086e6b4d, amDipswGetData);
+        detourFunction(0x086e6bc4, amDipswSetLed); // amDipswSetLED
+
+        detourFunction(0x0821f5cc, stubRetOne); // isEthLinkUp
+        patchMemory(0x082cd3b2, "c0270900");    // tickInitStoreNetwork
+        patchMemory(0x082cd679, "e950010000");  // tickWaitDHCP
+        patchMemory(0x082cedf8, "EB");          // Skip Kickback initialization
+        patchMemory(0x087a024c, "f2");          // Skips initialization
+        patchMemory(0x087a025c, "6f");          // Skips initialization
+        setVariable(0x0855f519, 0x000126e9);    // Avoid Full Screen set from Game
+
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x080789a4, gl_MultiTexCoord2fARB);
+            detourFunction(0x08078a14, gl_Color4ub);
+            detourFunction(0x08078c34, gl_Vertex3f);
+            detourFunction(0x08079354, gl_TexCoord2f);
+            detourFunction(0x080793f4, cg_GLIsProfileSupported);
+            patchMemory(0x0852a33a, "9090");
+            cacheModedShaderFiles();
+            detourFunction(0x08079894, gl_XGetProcAddressARB);
+            detourFunction(0x08079624, gl_ProgramParameters4fvNV);
+        }
+        patchMemory(0x0854ee03, "31C090");      // cgCreateProgram args argument to 0;
+        detourFunction(0x08257470, stubRetOne); // isExistNewerSource (forces shader recompilation)
+    }
+    break;
+    case INITIALD_4_REVG:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x08dde130, 2);                      // amBackupDebugLevel
+            setVariable(0x08dde140, 2);                      // amCreditDebugLevel
+            setVariable(0x08dde398, 2);                      // amDipswDebugLevel
+            setVariable(0x08dde39c, 2);                      // amDongleDebugLevel
+            setVariable(0x08dde3a0, 2);                      // amEepromDebugLevel
+            setVariable(0x08dde3a4, 2);                      // amHwmonitorDebugLevel
+            setVariable(0x08dde3a8, 2);                      // amJvsDebugLevel
+            setVariable(0x08dde3ac, 2);                      // amLibDebugLevel
+            setVariable(0x08dde3b0, 2);                      // amMiscDebugLevel
+            setVariable(0x08dde3b8, 2);                      // amSysDataDebugLevel
+            setVariable(0x08dde3c0, 2);                      // bcLibDebugLevel
+            setVariable(0x08dde3b4, 2);                      // amOsinfoDebugLevel
+            setVariable(0x08dde3c4, 0x0FFFFFFF);             // s_logMask
+            detourFunction(0x08564ea8, _putConsoleSeparate); // Debug Messages
+        }
+        // Security
+        detourFunction(0x0872c8d6, amDongleInit);
+        detourFunction(0x0872b321, amDongleIsAvailable);
+        detourFunction(0x0872bd85, amDongleUpdate);
+        detourFunction(0x0872c79d, amDongleUserInfoEx);
+        memcpy(elfID, (void *)0x087da56c, 4); // Gets gameID from the ELF
+        //  Fixes
+        amDipswContextAddr = (void *)0x08e0d7a8; // Address of amDipswContext
+        detourFunction(0x0872b0b4, amDipswInit);
+        detourFunction(0x0872b138, amDipswExit);
+        detourFunction(0x0872b1ad, amDipswGetData);
+        detourFunction(0x0872b224, amDipswSetLed); // amDipswSetLED
+
+        detourFunction(0x0823813a, stubRetOne); // isEthLinkUp
+        patchMemory(0x082f4396, "c0270900");    // tickInitStoreNetwork
+        patchMemory(0x082f4efb, "e94d010000");  // tickWaitDHCP
+        patchMemory(0x082f6d5b, "EB");          // Skip Kickback initialization
+        patchMemory(0x087e9eac, "c2");          // Skips initialization
+        patchMemory(0x087e9ebc, "3f36");        // Skips initialization
+        setVariable(0x08599819, 0x000126e9);    // Avoid Full Screen set from Game
+
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x0807a298, gl_MultiTexCoord2fARB);
+            detourFunction(0x0807a308, gl_Color4ub);
+            detourFunction(0x0807a538, gl_Vertex3f);
+            detourFunction(0x0807ac48, gl_TexCoord2f);
+            detourFunction(0x0807ace8, cg_GLIsProfileSupported);
+            patchMemory(0x08564340, "9090");
+            cacheModedShaderFiles();
+            detourFunction(0x0807b1b8, gl_XGetProcAddressARB);
+            detourFunction(0x0807af28, gl_ProgramParameters4fvNV);
+        }
+        patchMemory(0x08588f73, "31C090");      // cgCreateProgram args argument to 0;
+        detourFunction(0x08271cec, stubRetOne); // isExistNewerSource (forces shader recompilation)
+    }
+    break;
+    case INITIALD_5_EXP:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x093a93f0, 2);                      // amBackupDebugLevel
+            setVariable(0x093a9400, 2);                      // amCreditDebugLevel
+            setVariable(0x093a9658, 2);                      // amDipswDebugLevel
+            setVariable(0x093a965c, 2);                      // amDongleDebugLevel
+            setVariable(0x093a9660, 2);                      // amEepromDebugLevel
+            setVariable(0x093a9664, 2);                      // amHwmonitorDebugLevel
+            setVariable(0x093a9668, 2);                      // amJvsDebugLevel
+            setVariable(0x093a966c, 2);                      // amLibDebugLevel
+            setVariable(0x093a9670, 2);                      // amMiscDebugLevel
+            setVariable(0x093a9678, 2);                      // amSysDataDebugLevel
+            setVariable(0x093a9680, 2);                      // bcLibDebugLevel
+            setVariable(0x093a9674, 2);                      // amOsinfoDebugLevel
+            setVariable(0x093a9684, 0x0FFFFFFF);             // s_logMask
+            detourFunction(0x08745e28, _putConsoleSeparate); // Debug Messages
+        }
+        // Security
+        detourFunction(0x08911dca, amDongleInit);
+        detourFunction(0x08910815, amDongleIsAvailable);
+        detourFunction(0x08911279, amDongleUpdate);
+        detourFunction(0x08911c91, amDongleUserInfoEx);
+        memcpy(elfID, (void *)0x084e2407, 4); // Get gameID from the ELF
+        // Fixes
+        amDipswContextAddr = (void *)0x093d94c8;
+        detourFunction(0x089105a8, amDipswInit);
+        detourFunction(0x0891062c, amDipswExit);
+        detourFunction(0x089106a1, amDipswGetData);
+        detourFunction(0x08910718, amDipswSetLed); // amDipswSetLed
+        detourFunction(0x08322248, stubRetOne);    // isEthLinkUp
+        detourFunction(0x083084a2, stubRetOne);    // Skip Kickback initialization
+        patchMemory(0x084429d9, "eb60");           // tickInitAddress
+        patchMemory(0x0843fb34, "C0270900");       // tickInitStoreNetwork
+        detourFunction(0x084deddc, stubRetZero);   // doesNeedRollerCleaning
+        detourFunction(0x084dedf8, stubRetZero);   // doesNeedStockerCleaning
+        patchMemory(0x0843f5ad, "c7c300030000");   // Moves Initializing text
+        patchMemory(0x089e314c, "47f3");           // Skips initialization
+        patchMemory(0x08789a49, "e92601000090");   // Prevents Full Screen set from the game
+
+        // Mesa Patches
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x0807a3f0, gl_MultiTexCoord2fARB);
+            detourFunction(0x0807a470, gl_Color4ub);
+            detourFunction(0x0807a6b0, gl_Vertex3f);
+            detourFunction(0x0807ae10, gl_TexCoord2f);
+            detourFunction(0x0807aed0, cg_GLIsProfileSupported);
+            patchMemory(0x087450ef, "9090");
+            cacheModedShaderFiles();
+        }
+
+        detourFunction(0x08389544, stubRetOne); // isExistNewerSource
+        detourFunction(0x0807b370, gl_XGetProcAddressARB);
+        patchMemory(0x08744f2e, "00"); // Fix cutscenes
+    }
+    break;
+    case INITIALD_5_EXP_20:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x093f6fa0, 2);                      // amBackupDebugLevel
+            setVariable(0x093f6fc0, 2);                      // amCreditDebugLevel
+            setVariable(0x093f7218, 2);                      // amDipswDebugLevel
+            setVariable(0x093f721c, 2);                      // amDongleDebugLevel
+            setVariable(0x093f7220, 2);                      // amEepromDebugLevel
+            setVariable(0x093f7224, 2);                      // amHwmonitorDebugLevel
+            setVariable(0x093f7228, 2);                      // amJvsDebugLevel
+            setVariable(0x093f722c, 2);                      // amLibDebugLevel
+            setVariable(0x093f7230, 2);                      // amMiscDebugLevel
+            setVariable(0x093f7238, 2);                      // amSysDataDebugLevel
+            setVariable(0x093f7240, 2);                      // bcLibDebugLevel
+            setVariable(0x093f7234, 2);                      // amOsinfoDebugLevel
+            setVariable(0x093f7244, 0x0FFFFFFF);             // s_logMask
+            detourFunction(0x08762978, _putConsoleSeparate); // Debug Messages
+        }
+        // Security
+        detourFunction(0x0893dd25, amDongleInit);
+        detourFunction(0x0893c5b1, amDongleIsAvailable);
+        detourFunction(0x0893d0d2, amDongleUpdate);
+        detourFunction(0x0893dbeb, amDongleUserInfoEx);
+        memcpy(elfID, (void *)0x084fdec2, 4); // Get gameID from the ELF
+        patchMemory(0x084fde9c, "00");        // Patch KEYCHECK
+        // Fixes
+        amDipswContextAddr = (void *)0x09427128;
+        detourFunction(0x0893c344, amDipswInit);
+        detourFunction(0x0893c3c8, amDipswExit);
+        detourFunction(0x0893c43d, amDipswGetData);
+        detourFunction(0x0893c4b3, amDipswSetLed); // amDipswSetLed
+        detourFunction(0x0832fca6, stubRetOne);    // isEthLinkUp
+        patchMemory(0x08456348, "e991000000");     // tickWaitDHCP
+        patchMemory(0x0845843b, "eb60");           // tickInitAddress
+        patchMemory(0x08455584, "C0270900");       // tickInitStoreNetwork
+        detourFunction(0x08943eb6, stubRetZero);   // amOsinfoExecDhcpNic
+        detourFunction(0x085135e0, stubRetZero);   // isUseServerBox
+        patchMemory(0x084592be, "30B5E3");         // seqInitWheel
+        detourFunction(0x084fa3ae, stubRetZero);   // doesNeedRollerCleaning
+        detourFunction(0x084fa3ca, stubRetZero);   // doesNeedStockerCleaning
+        patchMemory(0x08455001, "c7c300030000");   // Moves Initializing text
+        patchMemory(0x08513a10, "00");             // Network init just once
+        patchMemory(0x08a0f78c, "95");             // Skips initialization
+        patchMemory(0x087a6599, "e92601000090");   // Prevents Full Screen set from the game
+
+        // amsInit
+        detourFunction(0x089382e0, stubRetZero); // Eliminates amsInit Function
+
+        // Mesa Patches
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x0807a6c0, gl_MultiTexCoord2fARB);
+            detourFunction(0x0807a740, gl_Color4ub);
+            detourFunction(0x0807a990, gl_Vertex3f);
+            detourFunction(0x0807b130, gl_TexCoord2f);
+            detourFunction(0x0807b1f0, cg_GLIsProfileSupported);
+            patchMemory(0x08761c3f, "9090");
+            cacheModedShaderFiles();
+        }
+
+        detourFunction(0x08397224, stubRetOne); // isExistNewerSource
+        detourFunction(0x0807b6c0, gl_XGetProcAddressARB);
+        patchMemory(0x08761a7e, "00"); // Fix cutscenes
+    }
+    break;
+    case INITIALD_5_EXP_20A:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x093f6fa0, 2);                      // amBackupDebugLevel
+            setVariable(0x093f6fc0, 2);                      // amCreditDebugLevel
+            setVariable(0x093f7218, 2);                      // amDipswDebugLevel
+            setVariable(0x093f721c, 2);                      // amDongleDebugLevel
+            setVariable(0x093f7220, 2);                      // amEepromDebugLevel
+            setVariable(0x093f7224, 2);                      // amHwmonitorDebugLevel
+            setVariable(0x093f7228, 2);                      // amJvsDebugLevel
+            setVariable(0x093f722c, 2);                      // amLibDebugLevel
+            setVariable(0x093f7230, 2);                      // amMiscDebugLevel
+            setVariable(0x093f7238, 2);                      // amSysDataDebugLevel
+            setVariable(0x093f7240, 2);                      // bcLibDebugLevel
+            setVariable(0x093f7234, 2);                      // amOsinfoDebugLevel
+            setVariable(0x093f7244, 0x0FFFFFFF);             // s_logMask
+            detourFunction(0x08762bc8, _putConsoleSeparate); // Debug Messages
+        }
+        // Security
+        detourFunction(0x0893df75, amDongleInit);
+        detourFunction(0x0893c801, amDongleIsAvailable);
+        detourFunction(0x0893d322, amDongleUpdate);
+        detourFunction(0x0893de3b, amDongleUserInfoEx);
+        memcpy(elfID, (void *)0x084fe0f2, 4); // Get gameID from the ELF
+        patchMemory(0x084fe0cc, "00");        // Patch KEYCHECK
+        // Fixes
+        amDipswContextAddr = (void *)0x09427128;
+        detourFunction(0x0893c594, amDipswInit);
+        detourFunction(0x0893c618, amDipswExit);
+        detourFunction(0x0893c68d, amDipswGetData);
+        detourFunction(0x0893c703, amDipswSetLed); // amDipswSetLed
+        detourFunction(0x0832fe46, stubRetOne);    // isEthLinkUp
+        patchMemory(0x084566d8, "e991000000");     // tickWaitDHCP
+        patchMemory(0x084587cb, "eb60");           // tickInitAddress
+        patchMemory(0x08455914, "C0270900");       // tickInitStoreNetwork
+        detourFunction(0x08944106, stubRetZero);   // amOsinfoExecDhcpNic
+        detourFunction(0x08513810, stubRetZero);   // isUseServerBox
+        patchMemory(0x0845964e, "40b3e3");         // seqInitWheel
+        detourFunction(0x084fa5de, stubRetZero);   // doesNeedRollerCleaning
+        detourFunction(0x084fa5fa, stubRetZero);   // doesNeedStockerCleaning
+        patchMemory(0x08455391, "c7c300030000");   // Moves Initializing text
+        patchMemory(0x08513c40, "00");             // Network init just once
+        patchMemory(0x08a0f9cc, "25");             // Skips initialization
+        patchMemory(0x087a67e9, "e92601000090");   // Prevents Full Screen set from the game
+
+        // amsInit
+        detourFunction(0x08938530, stubRetZero); // Eliminates amsInit Function
+
+        // Mesa Patches
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x0807a6c0, gl_MultiTexCoord2fARB);
+            detourFunction(0x0807a740, gl_Color4ub);
+            detourFunction(0x0807a990, gl_Vertex3f);
+            detourFunction(0x0807b130, gl_TexCoord2f);
+            detourFunction(0x0807b1f0, cg_GLIsProfileSupported);
+            patchMemory(0x08761e8f, "9090");
+            cacheModedShaderFiles();
+        }
+
+        detourFunction(0x083973a4, stubRetOne); // isExistNewerSource
+        detourFunction(0x0807b6c0, gl_XGetProcAddressARB);
+        patchMemory(0x08761cce, "00"); // Fix cutscenes
+    }
+    break;
+    case INITIALD_5_JAP_REVA: // ID5 - DVP-0070A
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x093a92d0, 2);                      // amBackupDebugLevel
+            setVariable(0x093a92e0, 2);                      // amCreditDebugLevel
+            setVariable(0x093a9538, 2);                      // amDipswDebugLevel
+            setVariable(0x093a953c, 2);                      // amDongleDebugLevel
+            setVariable(0x093a9540, 2);                      // amEepromDebugLevel
+            setVariable(0x093a9544, 2);                      // amHwmonitorDebugLevel
+            setVariable(0x093a9548, 2);                      // amJvsDebugLevel
+            setVariable(0x093a954c, 2);                      // amLibDebugLevel
+            setVariable(0x093a9550, 2);                      // amMiscDebugLevel
+            setVariable(0x093a9558, 2);                      // amSysDataDebugLevel
+            setVariable(0x093a9560, 2);                      // bcLibDebugLevel
+            setVariable(0x093a9554, 2);                      // amOsinfoDebugLevel
+            setVariable(0x093a9564, 0x0FFFFFFF);             // s_logMask
+            detourFunction(0x08745238, _putConsoleSeparate); // Debug Messages
+        }
+        // Security
+        detourFunction(0x089111da, amDongleInit);
+        detourFunction(0x0890fc25, amDongleIsAvailable);
+        detourFunction(0x08910689, amDongleUpdate);
+        detourFunction(0x089110a1, amDongleUserInfoEx);
+        memcpy(elfID, (void *)0x084e1707, 4); // Get gameID from the ELF
+        amDipswContextAddr = (void *)0x093d93a8;
+        detourFunction(0x0890f9b8, amDipswInit);
+        detourFunction(0x0890fa3c, amDipswExit);
+        detourFunction(0x0890fab1, amDipswGetData);
+        detourFunction(0x0890fb28, amDipswSetLed); // amDipswSetLed
+        detourFunction(0x08321968, stubRetOne);    // isEthLinkUp
+        patchMemory(0x0843f068, "c0270900");       // tickInitStoreNetwork
+        // patchMemory(0x0843fed0, "e98d000000");  // tickWaitDHCP
+        detourFunction(0x08307b62, stubRetOne);  // Skip Kickback initialization
+        detourFunction(0x084de0dc, stubRetZero); // doesNeedRollerCleaning
+        detourFunction(0x084de0f8, stubRetZero); // doesNeedStockerCleaning
+        patchMemory(0x089e308c, "BA");           // Skips initialization
+        patchMemory(0x08788e59, "e92601000090"); // Prevents Full Screen set from the game
+
+        patchMemory(0x08441f99, "eb60"); // tickInitAddress
+
+        // Mesa Patches
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x0807a3f0, gl_MultiTexCoord2fARB);
+            detourFunction(0x0807a470, gl_Color4ub);
+            detourFunction(0x0807a6b0, gl_Vertex3f);
+            detourFunction(0x0807ae10, gl_TexCoord2f);
+            detourFunction(0x0807aed0, cg_GLIsProfileSupported);
+            patchMemory(0x087444ff, "9090");
+            cacheModedShaderFiles();
+        }
+
+        detourFunction(0x08388cb4, stubRetOne); // isExistNewerSource
+        detourFunction(0x0807b370, gl_XGetProcAddressARB);
+        patchMemory(0x0874433e, "00"); // Fix cutscenes
+    }
+    break;
+    case INITIALD_5_JAP_REVF: // ID5 - DVP-0070F
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x093e52d4, 2);                      // amBackupDebugLevel
+            setVariable(0x093e52e0, 2);                      // amCreditDebugLevel
+            setVariable(0x093e5538, 2);                      // amDipswDebugLevel
+            setVariable(0x093e553c, 2);                      // amDongleDebugLevel
+            setVariable(0x093e5540, 2);                      // amEepromDebugLevel
+            setVariable(0x093e5544, 2);                      // amHwmonitorDebugLevel
+            setVariable(0x093e5548, 2);                      // amJvsDebugLevel
+            setVariable(0x093e554c, 2);                      // amLibDebugLevel
+            setVariable(0x093e5550, 2);                      // amMiscDebugLevel
+            setVariable(0x093e5558, 2);                      // amSysDataDebugLevel
+            setVariable(0x093e5560, 2);                      // bcLibDebugLevel
+            setVariable(0x093e5554, 2);                      // amOsinfoDebugLevel
+            setVariable(0x093e5564, 0x0FFFFFFF);             // s_logMask
+            detourFunction(0x0875f0a8, _putConsoleSeparate); // Debug Messages
+        }
+        // Security
+        detourFunction(0x08937b71, amDongleInit);
+        detourFunction(0x089363fd, amDongleIsAvailable);
+        detourFunction(0x08936f1e, amDongleUpdate);
+        detourFunction(0x08937a37, amDongleUserInfoEx);
+        memcpy(elfID, (void *)0x084fa2e2, 4); // Get gameID from the ELF
+        patchMemory(0x084fa2bc, "00");        // Patch KEYCHECK
+        // Fixes
+        amDipswContextAddr = (void *)0x09415388;
+        detourFunction(0x08936190, amDipswInit);
+        detourFunction(0x08936214, amDipswExit);
+        detourFunction(0x08936289, amDipswGetData);
+        detourFunction(0x089362ff, amDipswSetLed); // amDipswSetLed
+        detourFunction(0x08330368, stubRetOne);    // isEthLinkUp
+        patchMemory(0x084519ee, "C0270900");       // tickInitStoreNetwork
+        // patchMemory(0x08452848, "e991000000");     // tickWaitDHCP
+        detourFunction(0x08316392, stubRetOne);  // Skip Kickback initialization
+        detourFunction(0x084f67ce, stubRetZero); // doesNeedRollerCleaning
+        detourFunction(0x084f67ea, stubRetZero); // doesNeedStockerCleaning
+
+        patchMemory(0x08451501, "c7c300030000"); // Moves Initializing text
+        patchMemory(0x0850ffd0, "00");           // Network init just once
+        patchMemory(0x08a098ac, "95");           // Skips initialization
+        patchMemory(0x087a2cc9, "e92601000090"); // Prevents Full Screen set from the game
+
+        patchMemory(0x0845493b, "eb60");         // tickInitAddress
+        detourFunction(0x0893dd02, stubRetZero); // amOsinfoExecDhcpNic
+        detourFunction(0x0850fba0, stubRetZero); // isUseServerBox
+
+        // Mesa Patches
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x0807a42c, gl_MultiTexCoord2fARB);
+            detourFunction(0x0807a4ac, gl_Color4ub);
+            detourFunction(0x0807a6ec, gl_Vertex3f);
+            detourFunction(0x0807ae4c, gl_TexCoord2f);
+            detourFunction(0x0807af0c, cg_GLIsProfileSupported);
+            patchMemory(0x0875e36f, "9090");
+            cacheModedShaderFiles();
+        }
+
+        detourFunction(0x08397aa4, stubRetOne); // isExistNewerSource
+        detourFunction(0x0807b3bc, gl_XGetProcAddressARB);
+        patchMemory(0x0875e1ae, "00"); // Fix cutscenes
+    }
+    break;
+    case LETS_GO_JUNGLE_REVA:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x08c10604, 2);              // amBackupDebugLevel
+            setVariable(0x08c10620, 2);              // amCreditDebugLevel
+            setVariable(0x08c10878, 2);              // amDipswDebugLevel
+            setVariable(0x08c1087c, 2);              // amDongleDebugLevel
+            setVariable(0x08c10880, 2);              // amEepromDebugLevel
+            setVariable(0x08c10884, 2);              // amHwmonitorDebugLevel
+            setVariable(0x08c10888, 2);              // amJvsDebugLevel
+            setVariable(0x08c1088c, 2);              // amLibDebugLevel
+            setVariable(0x08c10890, 2);              // amMiscDebugLevel
+            setVariable(0x08c10898, 2);              // amSysDataDebugLevel
+            setVariable(0x08c108a0, 2);              // bcLibDebugLevel
+            setVariable(0x08c10894, 2);              // amOsinfoDebugLevel
+            setVariable(0x08c108a4, 0x0FFFFFFF);     // s_logMask
+            detourFunction(0x08074a8c, _putConsole); // Debug Messages
+        }
+        // Security
+        detourFunction(0x084e9fbc, amDongleInit);
+        detourFunction(0x084ea378, amDongleIsAvailable);
+        detourFunction(0x084ea29c, amDongleUpdate);
+        patchMemory(0x0807b86a, "9090"); // Patch initializeArcadeBackup
+        // Fixes
+        amDipswContextAddr = (void *)0x08c43e08; // Address of amDipswContext
+        detourFunction(0x084e9de0, amDipswInit);
+        detourFunction(0x084e9e7c, amDipswExit);
+        detourFunction(0x084e9ef2, amDipswGetData);
+        detourFunction(0x084e9f6a, amDipswSetLed);
+        patchMemory(0x084125f0, "9090"); // No full screen
+
+        // Mesa Patches
+        if (getConfig()->GPUVendor != NVIDIA_GPU || getConfig()->lgjRenderWithMesa)
+        {
+            detourFunction(0x08071790, gl_MultiTexCoord2fARB);
+            detourFunction(0x08071800, gl_Color4ub);
+            detourFunction(0x08071a30, gl_Vertex3f);
+            detourFunction(0x08072080, gl_TexCoord2f);
+            detourFunction(0x08072110, cg_GLIsProfileSupported);
+            detourFunction(0x08071e50, gl_ProgramStringARB);
+            cacheModedShaderFiles();
+        }
+        detourFunction(0x080722e0, gl_ProgramParameters4fvNV);
+        // patchMemory(0x083f4626, "909090909090");
+        detourFunction(0x08072520, gl_XGetProcAddressARB);
+    }
+    break;
+    case LETS_GO_JUNGLE:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x08c083a4, 2);              // amBackupDebugLevel
+            setVariable(0x08c083c0, 2);              // amCreditDebugLevel
+            setVariable(0x08c08618, 2);              // amDipswDebugLevel
+            setVariable(0x08c0861c, 2);              // amDongleDebugLevel
+            setVariable(0x08c08620, 2);              // amEepromDebugLevel
+            setVariable(0x08c08624, 2);              // amHwmonitorDebugLevel
+            setVariable(0x08c08628, 2);              // amJvsDebugLevel
+            setVariable(0x08c0862c, 2);              // amLibDebugLevel
+            setVariable(0x08c08630, 2);              // amMiscDebugLevel
+            setVariable(0x08c08638, 2);              // amSysDataDebugLevel
+            setVariable(0x08c08640, 2);              // bcLibDebugLevel
+            setVariable(0x08c08634, 2);              // amOsinfoDebugLevel
+            setVariable(0x08c08644, 0x0FFFFFFF);     // s_logMask
+            detourFunction(0x08074a8c, _putConsole); // Debug Messages
+        }
+        // Security
+        detourFunction(0x084e50d8, amDongleInit);
+        detourFunction(0x084e5459, amDongleIsAvailable);
+        detourFunction(0x084e537d, amDongleUpdate);
+        patchMemory(0x0807b76a, "9090"); // Patch initializeArcadeBackup
+        // Fixes
+        amDipswContextAddr = (void *)0x08c3bba8; // Address of amDipswContext
+        detourFunction(0x084e4efc, amDipswInit);
+        detourFunction(0x084e4f98, amDipswExit);
+        detourFunction(0x084e500e, amDipswGetData);
+        detourFunction(0x084e5086, amDipswSetLed);
+        patchMemory(0x0840d858, "9090"); // No full screen
+
+        // Mesa Patches
+        if (getConfig()->GPUVendor != NVIDIA_GPU || getConfig()->lgjRenderWithMesa)
+        {
+            detourFunction(0x080716e4, gl_MultiTexCoord2fARB);
+            detourFunction(0x08071754, gl_Color4ub);
+            detourFunction(0x08071984, gl_Vertex3f);
+            detourFunction(0x08071fc4, gl_TexCoord2f);
+            detourFunction(0x08072054, cg_GLIsProfileSupported);
+            detourFunction(0x08071da4, gl_ProgramStringARB);
+            cacheModedShaderFiles();
+        }
+        detourFunction(0x08072214, gl_ProgramParameters4fvNV);
+        // patchMemory(0x083ef88e, "909090909090");
+        detourFunction(0x08072454, gl_XGetProcAddressARB);
+    }
+    break;
+    case LETS_GO_JUNGLE_SPECIAL:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x08c453e4, 2);              // amBackupDebugLevel
+            setVariable(0x08c45400, 2);              // amCreditDebugLevel
+            setVariable(0x08c45658, 2);              // amDipswDebugLevel
+            setVariable(0x08c4565c, 2);              // amDongleDebugLevel
+            setVariable(0x08c45660, 2);              // amEepromDebugLevel
+            setVariable(0x08c45664, 2);              // amHwmonitorDebugLevel
+            setVariable(0x08c45668, 2);              // amJvsDebugLevel
+            setVariable(0x08c4566c, 2);              // amLibDebugLevel
+            setVariable(0x08c45670, 2);              // amMiscDebugLevel
+            setVariable(0x08c45678, 2);              // amSysDataDebugLevel
+            setVariable(0x08c45680, 2);              // bcLibDebugLevel
+            setVariable(0x08c45674, 2);              // amOsinfoDebugLevel
+            setVariable(0x08c45684, 0x0FFFFFFF);     // s_logMask
+            detourFunction(0x08075012, _putConsole); // Debug Messages
+        }
+        // Security
+        detourFunction(0x08510320, amDongleInit);
+        detourFunction(0x085106dc, amDongleIsAvailable);
+        detourFunction(0x08510600, amDongleUpdate);
+        patchMemory(0x0807e609, "909090909090");
+        // Fixes
+        amDipswContextAddr = (void *)0x08c78be8; // Address of amDipswContext
+        detourFunction(0x08510144, amDipswInit);
+        detourFunction(0x085101e0, amDipswExit);
+        detourFunction(0x08510256, amDipswGetData);
+        detourFunction(0x085102ce, amDipswSetLed);
+        patchMemory(0x08438954, "9090"); // No full screen
+
+        // Mesa Patches
+        if (getConfig()->GPUVendor != NVIDIA_GPU || getConfig()->lgjRenderWithMesa)
+        {
+            detourFunction(0x080718e0, gl_MultiTexCoord2fARB);
+            detourFunction(0x08071950, gl_Color4ub);
+            detourFunction(0x08071b80, gl_Vertex3f);
+            detourFunction(0x08072210, gl_TexCoord2f);
+            detourFunction(0x080722a0, cg_GLIsProfileSupported);
+            detourFunction(0x08071fd0, gl_ProgramStringARB);
+            cacheModedShaderFiles();
+        }
+        detourFunction(0x08072480, gl_ProgramParameters4fvNV);
+        patchMemory(0x0841a98a, "909090909090");
+        detourFunction(0x080726c0, gl_XGetProcAddressARB);
+    }
+    break;
+    case MJ4_REVG:
+    {
+        setVariable(0x0acf85d4, 2);
+        setVariable(0x0acf85d0, 2);
+        setVariable(0x0acf85cc, 2);
+        setVariable(0x0acf85c8, 2);
+        setVariable(0x0acf85c0, 2);
+        setVariable(0x0acf85bc, 2);
+
+        // Security
+        detourFunction(0x08710c0a, amDongleInit);
+        detourFunction(0x0870f6c5, amDongleIsAvailable);
+        detourFunction(0x0870f6e2, amDongleIsDevelop);
+        detourFunction(0x087100bb, amDongleUpdate);
+
+        // Fixes and patches to bypss network check
+        amDipswContextAddr = (void *)0x0ad224fc; // Address of amDipswContext
+        detourFunction(0x0870f458, amDipswInit);
+        detourFunction(0x0870f4dc, amDipswExit);
+        detourFunction(0x0870f551, amDipswGetData);
+        detourFunction(0x0870f5c7, amDipswSetLed);
+
+        // detourFunction(0x080e286a, stubRetZero); // skip checks
+        // detourFunction(0x080ed7f8, stubRetZero);
+        // patchMemory(0x080e954b, "75");
+        // patchMemory(0x08a4cb90, "00");
+        // patchMemory(0x080e955d, "909090909090"); // test skip countdown
+
+        // setVariable(0x08534a33, 30);
+        // setVariable(0x08534a42, 2);
+
+        patchMemory(0x080e2891, "eb");
+        patchMemory(0x080ea049, "05");
+        patchMemory(0x08a4cb90, "00");
+
+        patchMemory(0x0872bc4d, "2e2f72616d2f746f2e74787400");     // Patch /home/disk2 folder
+        patchMemory(0x0872bc64, "2e2f72616d2f66726f6d2e74787400"); // Patch /home/disk2 folder
+        patchMemory(0x0872bc7d, "2e2f72616d2f2e746d7000");         // Patch /home/disk2 folder
+        patchMemory(0x0872bccd, "2e2f72616d00");                   // Patch /home/disk2 folder
+        patchMemory(0x0872bcdd, "2e2f666f6f3100");                 // Patch /home/disk2 folder
+        patchMemory(0x0872bcee, "2e2f666f6f3200");                 // Patch /home/disk2 folder
+        patchMemory(0x0872f3de, "2e2f72616d2f746d7000");           // Patch /home/disk2 folder
+        patchMemory(0x08732fd3, "2e2f00");                         // Patch /home/disk2 folder
+
+        // Mesa Patches
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x08050ebc, gl_ProgramStringARB);
+        }
+    }
+    break;
+    case MJ4_EVO:
+    {
+        detourFunction(0x08840b61, amDongleInit);
+        detourFunction(0x0883f3ed, amDongleIsAvailable);
+        detourFunction(0x0883f40a, amDongleIsDevelop);
+        detourFunction(0x0883ff0e, amDongleUpdate);
+
+        // Fixes and patches to bypss network check
+        amDipswContextAddr = (void *)0x0af8ff3c; // Address of amDipswContext
+        detourFunction(0x0883f180, amDipswInit);
+        detourFunction(0x0883f204, amDipswExit);
+        detourFunction(0x0883f279, amDipswGetData);
+        detourFunction(0x0883f2ef, amDipswSetLed);
+
+        patchMemory(0x080ea0d1, "909090909090");
+        detourFunction(0x080e327c, stubRetZero); // skip checks
+        detourFunction(0x080ee4fa, stubRetZero);
+        patchMemory(0x080ea0bf, "75");
+        patchMemory(0x08c035b8, "00");
+
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x08051314, gl_ProgramStringARB);
+        }
+    }
+    break;
     case OUTRUN_2_SP_SDX:
     {
         if (config->showDebugMessages == 1)
@@ -768,7 +1985,8 @@ int initPatch()
         detourFunction(0x0804d148, or2snprintf); // Fixes a bug in snprintf libc 2.39??
 
         // Only apply these patches if skipOutrunCabinetCheck is enabled
-        if (config->skipOutrunCabinetCheck) {
+        if (config->skipOutrunCabinetCheck)
+        {
             // Bypass checks for tower and Force Feedback
             detourFunction(0x08103eaa, stubRetOne);
             detourFunction(0x08105d88, stubRetOne);
@@ -794,6 +2012,141 @@ int initPatch()
 
         // Patch to allow selection of all cabinet types
         patchMemory(0x08054ac4, "9090909090");
+    }
+    break;
+    case PRIMEVAL_HUNT:
+    {
+        // Security
+        detourFunction(0x08141770, amDongleInit);
+        detourFunction(0x08140229, amDongleIsAvailable);
+        detourFunction(0x08140c1f, amDongleUpdate);
+        patchMemory(0x08055264, "EB");
+        // Fixes
+        amDipswContextAddr = (void *)0x0a96d488; // Address of amDipswContext
+        detourFunction(0x0813ffbc, amDipswInit);
+        detourFunction(0x08140040, amDipswExit);
+        detourFunction(0x081400b5, amDipswGetData);
+        detourFunction(0x0814012c, stubRetZero);
+        patchMemory(0x08052cb2, "9090909090");
+        cacheModedShaderFiles();
+    }
+    break;
+    case RAMBO:
+    {
+        // Security
+        detourFunction(0x082c4746, amDongleInit);
+        detourFunction(0x082c3201, amDongleIsAvailable);
+        detourFunction(0x082c3bf7, amDongleUpdate);
+        detourFunction(0x082c460d, amDongleUserInfoEx);
+        detourFunction(0x082c321e, amDongleIsDevelop);
+        detourFunction(0x080e4262, stubRetZero);
+        detourFunction(0x080e3e94, stubRetZero);
+        patchMemory(0x080e3f1d, "EB");
+        patchMemory(0x080e3f79, "01");
+        patchMemory(0x080e3e2e, "EB");
+        // Fixes
+        amDipswContextAddr = (void *)0x082c2f94;
+        detourFunction(0x082c2f94, amDipswInit);
+        detourFunction(0x082c3018, amDipswExit);
+        detourFunction(0x082c308d, amDipswGetData);
+        detourFunction(0x082c3103, amDipswSetLed);
+        cacheModedShaderFiles();
+        // Mesa Patches
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            loadLibCg();
+            cacheNnstdshader();
+            patchMemory(0x08200c17, "9090909090");                     // Stop the folder rename
+            patchMemory(0x084173e7, "66732f636f6d70696c65646d657361"); // Change folder to compiledshdmesa
+            patchMemory(0x080b3d71, "01");                             // Compile using CGC
+            replaceCallAtAddress(0x082015bf, compileWithCGC);
+            replaceCallAtAddress(0x082012c1, compileWithCGC);
+            // patchMemory(0x080b3d65, "00"); // Force recompile shaders
+        }
+    }
+    break;
+    case R_TUNED:
+    {
+        // Security
+        detourFunction(0x08366846, amDongleInit);
+        detourFunction(0x08365301, amDongleIsAvailable);
+        detourFunction(0x08365cf7, amDongleUpdate);
+        // Fixes
+        amDipswContextAddr = (void *)0x08578be8;
+        detourFunction(0x08365094, amDipswInit);
+        detourFunction(0x08365118, amDipswExit);
+        detourFunction(0x08365203, amDipswSetLed);
+        detourFunction(0x0836518d, amDipswGetData);
+        patchMemory(0x8388C90, "2e2f72616d2f746f2e74787400");     // Patch /home/disk2 folder
+        patchMemory(0x8388CA7, "2e2f72616d2f66726f6d2e74787400"); // Patch /home/disk2 folder
+        patchMemory(0x8388CC0, "2e2f72616d2f2e746d7000");         // Patch /home/disk2 folder
+        patchMemory(0x8388D10, "2e2f72616d00");                   // Patch /home/disk2 folder
+        patchMemory(0x8388D20, "2e2f666f6f3100");                 // Patch /home/disk2 folder
+        patchMemory(0x8388D31, "2e2f666f6f3200");                 // Patch /home/disk2 folder
+        patchMemory(0x83C979E, "2e2f00");                         // Patch /home/disk2 folder
+        patchMemory(0x838C498, "2e2f524f4d5f4c414e472f656e00");   // Patch /home/disk0 folder
+
+        // Mesa Patches
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            detourFunction(0x080507e8, gl_ProgramStringARB);
+        }
+        // Disable Force Feedback check?
+        patchMemory(0x0817f8d9, "891c2490909090");
+        patchMemory(0x0817f8e5, "ebc5");
+    }
+    break;
+    case SEGABOOT_2_4_SYM:
+    {
+        if (config->showDebugMessages == 1)
+        {
+            setVariable(0x0808da48, 2);          // amAdtecDebugLevel
+            setVariable(0x0808cf8c, 2);          // amAtaDebugLevel
+            setVariable(0x0808cf90, 2);          // amBackupDebugLevel
+            setVariable(0x0808cf94, 2);          // amChunkDataDebugLevel
+            setVariable(0x0808cfa0, 2);          // amCreditDebugLevel
+            setVariable(0x0808d1f8, 2);          // amDipswDebugLevel
+            setVariable(0x0808d1fc, 2);          // amDiskDebugLevel
+            setVariable(0x0808d200, 2);          // amDongleDebugLevel
+            setVariable(0x0808d204, 2);          // amEepromDebugLevel
+            setVariable(0x0808d208, 2);          // amHmDebugLevel
+            setVariable(0x0808d210, 2);          // amJvsDebugLevel
+            setVariable(0x0808d214, 2);          // amLibDebugLevel
+            setVariable(0x0808d218, 2);          // amMiscDebugLevel
+            setVariable(0x0808d21c, 2);          // amSysDataDebugLevel
+            setVariable(0x0808d220, 2);          // bcLibDebugLevel
+            setVariable(0x0808cf58, 2);          // g_DebugLevel
+            setVariable(0x0808d224, 0x0FFFFFFF); // logmask
+        }
+
+        detourFunction(0x0805e8b0, amDongleInit);
+        detourFunction(0x0805ebc3, amDongleIsAvailable);
+        detourFunction(0x0805eb2a, amDongleUpdate);
+        detourFunction(0x0805c30b, amDipswGetData);
+    }
+    break;
+    case SEGA_RACE_TV:
+    {
+        // Security
+        detourFunction(0x084d5b40, amDongleInit);
+        detourFunction(0x084d45f9, amDongleIsAvailable);
+        detourFunction(0x084d4fef, amDongleUpdate);
+        // Fixes
+        amDipswContextAddr = (void *)0x08df9cec;
+        detourFunction(0x084d438c, amDipswInit);
+        detourFunction(0x084d4410, amDipswExit);
+        detourFunction(0x084d44fc, amDipswSetLed);
+        detourFunction(0x084d4485, amDipswGetData);
+        patchMemory(0x0804edb2, "9090909090"); //__intel_new_proc_init_P
+
+        detourFunction(0x0804e594, gl_XGetProcAddressARB);
+        srtvElfShaderPatcher();
+
+        // Mesa Patches
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            patchMemory(0x082d3ce9, "9090"); // Force GL_NVX_conditional_render
+        }
     }
     break;
     case THE_HOUSE_OF_THE_DEAD_4_REVA:
@@ -1122,6 +2475,8 @@ int initPatch()
         detourFunction(0x084b69f4, amDipswExit);
         detourFunction(0x084b6a69, amDipswGetData);
         detourFunction(0x084b6adf, amDipswSetLed);
+        detourFunction(0x084ba23b, stubRetOne); // amDongleDecryptEx
+        patchMemory(0x081896c2, "01");
 
         // CPU patch to support AMD processors
         patchMemory(0x0804e4a7, "9090909090"); //__intel_new_proc_init_P
@@ -1157,6 +2512,67 @@ int initPatch()
 
         // CPU patch to support AMD processors
         patchMemory(0x0804a042, "9090909090"); //__intel_new_proc_init_P
+    }
+    break;
+    case TOO_SPICY:
+    {
+        // Security
+        detourFunction(0x0831cf02, amDongleInit);
+        detourFunction(0x0831b94d, amDongleIsAvailable);
+        detourFunction(0x0831c3b1, amDongleUpdate);
+        patchMemory(0x081f7f8f, "9090");
+        patchMemory(0x081f7fa7, "9090909090909090");
+        patchMemory(0x081f7fb0, "01");
+        patchMemory(0x081f7fb4, "909090");
+        patchMemory(0x08210f27, "9090");
+        patchMemory(0x08210f3c, "9090909090909090");
+        patchMemory(0x08210f45, "01");
+        patchMemory(0x08210f49, "909090");
+        // Fixes
+        amDipswContextAddr = (void *)0x0c8ed0cc;
+        detourFunction(0x08318f84, amDipswInit);
+        detourFunction(0x08319008, amDipswExit);
+        detourFunction(0x0831907d, amDipswGetData);
+        detourFunction(0x083190f4, amDipswSetLed);
+        detourFunction(0x081f7dba, stubRetOne); // CheckApplicationValid
+
+        // CPU patch to support AMD processors
+        patchMemory(0x08202a51, "9090909090"); //__intel_new_proc_init_P
+
+        // unlock characters
+        detourFunction(0x081cbcd2, stubRetOne);
+
+        // Mesa Patches
+        if (getConfig()->GPUVendor != NVIDIA_GPU)
+        {
+            loadLibCg();
+            cacheNnstdshader();
+            patchMemory(0x081ef9d8, "01");         // Force the game to recompile the shaders using cgc
+            patchMemory(0x08413f04, "646d657361"); // Changes compiledshader folder to compiledshdmesa
+            cacheModedShaderFiles();
+            replaceCallAtAddress(0x08259fe5, compileWithCGC);
+            replaceCallAtAddress(0x0825a089, compileWithCGC);
+        }
+    }
+    break;
+    case TOO_SPICY_TEST:
+    {
+        // Security
+        detourFunction(0x0806a286, amDongleInit);
+        detourFunction(0x08068cd1, amDongleIsAvailable);
+        detourFunction(0x08069735, amDongleUpdate);
+        patchMemory(0x08056989, "9090");
+        patchMemory(0x080569a7, "01");
+        patchMemory(0x080569ab, "909090");
+        // Fixes
+        amDipswContextAddr = (void *)0x080a9988; // Address of amDipswContext
+        detourFunction(0x08068a64, amDipswInit);
+        detourFunction(0x08068ae8, amDipswExit);
+        detourFunction(0x08068b5d, amDipswGetData);
+        detourFunction(0x08068bd4, amDipswSetLed);
+
+        // CPU patch to support AMD processors
+        patchMemory(0x080564c8, "9090909090"); //__intel_new_proc_init_P
     }
     break;
     case VIRTUA_FIGHTER_5:
@@ -1197,117 +2613,27 @@ int initPatch()
         }
     }
     break;
-    case VIRTUA_FIGHTER_5_REVA:
+    case VIRTUA_FIGHTER_5_EXPORT:
     {
         // Security
-        detourFunction(0x084620a8, amDongleInit);
-        detourFunction(0x0846234d, amDongleUpdate);
-        detourFunction(0x08462429, amDongleIsAvailable);
-        detourFunction(0x08462449, amDongleIsDevelop);
+        detourFunction(0x084fca4c, amDongleInit);
+        detourFunction(0x084fcd2c, amDongleUpdate);
+        detourFunction(0x084fce08, amDongleIsAvailable);
+        detourFunction(0x084fce28, amDongleIsDevelop);
 
         // Fixes and patches to bypss network check
-        amDipswContextAddr = (void *)0x0b40b1a8; // Address of amDipswContext
-        detourFunction(0x08461ecc, amDipswInit);
-        detourFunction(0x08461f68, amDipswExit);
-        detourFunction(0x08461fde, amDipswGetData);
-        detourFunction(0x08462056, amDipswSetLed);
-        detourFunction(0x080884e2, stubRetZero); // Stub returns 0
-        detourFunction(0x0809a1a0, stubRetZero); // Stub returns 0
-        detourFunction(0x082fa9fc, stubRetZero); // Stub returns 0
-        detourFunction(0x082fce2c, stubRetZero); // Stub returns 0
-        patchMemory(0x080a6407, "b800000000");
+        amDipswContextAddr = (void *)0x0bd8df28; // Address of amDipswContext
+        detourFunction(0x084fc870, amDipswInit);
+        detourFunction(0x084fc90c, amDipswExit);
+        detourFunction(0x084fc982, amDipswGetData);
+        detourFunction(0x084fc9fa, amDipswSetLed);
+        detourFunction(0x08094d28, stubRetZero);
+        patchMemory(0x080a29a5, "EB");
 
-        // patchMemory(0x, "2e2f72616d2f746573743100"); // Patch /home/disk2 folder
-        // patchMemory(0x, "2e2f72616d2f746573743200"); // Patch /home/disk2 folder
-        patchMemory(0x08489b3b, "2e2f72616d00");         // Patch /home/disk2 folder
-        patchMemory(0x08489bf4, "2e2f72616d2f746d7000"); // Patch /home/disk2 folder
-        patchMemory(0x0852328a, "2e2f00");               // Patch /home/disk2 folder
-        patchMemory(0x084870d9, "2e2f00");               // Patch /home/disk1 folder
-
-        detourFunction(0x080889c8, stubRetZero);
-        patchMemory(0x080a6303, "02");
-        patchMemory(0x080a6356, "9090909090");
-        patchMemory(0x080a6265, "ffffffff");
-        patchMemory(0x080a6298, "ffffffff");
         if (getConfig()->GPUVendor != NVIDIA_GPU)
         {
-            detourFunction(0x08051c4c, gl_ProgramStringARB);
+            detourFunction(0x0805160c, gl_ProgramStringARB);
         }
-    }
-    break;
-    case VIRTUA_FIGHTER_5_REVB:
-    {
-        // Security
-        detourFunction(0x0850fd5c, amDongleInit);
-        detourFunction(0x08510001, amDongleUpdate);
-        detourFunction(0x085100dd, amDongleIsAvailable);
-        detourFunction(0x085100fd, amDongleIsDevelop);
-
-        // Fixes and patches to bypss network check
-        amDipswContextAddr = (void *)0x0bd36c68; // Address of amDipswContext
-        detourFunction(0x0850fb80, amDipswInit);
-        detourFunction(0x0850fc1c, amDipswExit);
-        detourFunction(0x0850fc92, amDipswGetData);
-        detourFunction(0x0850fd0a, amDipswSetLed);
-        detourFunction(0x080936d8, stubRetZero); // Stub returns 0
-        detourFunction(0x080a800c, stubRetZero); // Stub returns 0
-        detourFunction(0x08376746, stubRetZero); // Stub returns 0
-        detourFunction(0x08378a38, stubRetZero); // Stub returns 0
-        patchMemory(0x080b5733, "b800000000");
-
-        patchMemory(0x08533c38, "2e2f72616d00");         // Patch /home/disk2 folder
-        patchMemory(0x08538741, "2e2f72616d2f746d7000"); // Patch /home/disk2 folder
-        patchMemory(0x085e5993, "2e2f00");               // Patch /home/disk2 folder
-        patchMemory(0x08535239, "2e2f00");               // Patch /home/disk1 folder
-
-        detourFunction(0x08093be0, stubRetZero);
-        patchMemory(0x080B562F, "02");
-        patchMemory(0x080b5682, "9090909090");
-        patchMemory(0x080B5591, "ffffffff");
-        patchMemory(0x080B55C4, "ffffffff");
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x08052088, gl_ProgramStringARB);
-        }
-    }
-    break;
-    case VIRTUA_FIGHTER_5_REVE: // Also the public REV C version
-    {
-        // Security
-        detourFunction(0x085c6010, amDongleInit);
-        detourFunction(0x085c62f0, amDongleUpdate);
-        detourFunction(0x085c63cc, amDongleIsAvailable);
-        detourFunction(0x085c63ec, amDongleIsDevelop);
-
-        // Fixes and patches to bypss network check
-        amDipswContextAddr = (void *)0x0d4d2b08; // Address of amDipswContext
-        detourFunction(0x085c5e34, amDipswInit);
-        detourFunction(0x085c5ed0, amDipswExit);
-        detourFunction(0x085c5f46, amDipswGetData);
-        detourFunction(0x085c5fbe, amDipswSetLed);       // Stub amDipswSetLed
-        detourFunction(0x080b3426, stubRetZero);         // Stub returns 0
-        detourFunction(0x080cb6d4, stubRetZero);         // Stub returns 0
-        detourFunction(0x0840889e, stubRetZero);         // Stub returns 0
-        detourFunction(0x0840ab90, stubRetZero);         // Stub returns 0
-        patchMemory(0x080e1743, "EB");
-        patchMemory(0x080e17af, "b800000000");           // Patch IDK what
-
-        patchMemory(0x085eb718, "2e2f72616d00");         // Patch /home/disk2 folder
-        patchMemory(0x085f1b41, "2e2f72616d2f746d7000"); // Patch /home/disk2 folder
-        patchMemory(0x086a196b, "2e2f00");               // Patch /home/disk2 folder
-        patchMemory(0x085ee110, "2e2f00");               // Patch /home/disk1 folder
-
-        detourFunction(0x080b3938, stubRetZero); // ok
-        patchMemory(0x080e1663, "02");
-        patchMemory(0x080e16b6, "9090909090");
-        patchMemory(0x080e15bd, "ffffffff");
-        patchMemory(0x080e15f7, "ffffffff");
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x08052fbc, gl_ProgramStringARB);
-        }
-        //
-        patchMemory(0x080e173c, "B810000000");
     }
     break;
     case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVA:
@@ -1416,29 +2742,6 @@ int initPatch()
         }
     }
     break;
-    case VIRTUA_FIGHTER_5_EXPORT:
-    {
-        // Security
-        detourFunction(0x084fca4c, amDongleInit);
-        detourFunction(0x084fcd2c, amDongleUpdate);
-        detourFunction(0x084fce08, amDongleIsAvailable);
-        detourFunction(0x084fce28, amDongleIsDevelop);
-
-        // Fixes and patches to bypss network check
-        amDipswContextAddr = (void *)0x0bd8df28; // Address of amDipswContext
-        detourFunction(0x084fc870, amDipswInit);
-        detourFunction(0x084fc90c, amDipswExit);
-        detourFunction(0x084fc982, amDipswGetData);
-        detourFunction(0x084fc9fa, amDipswSetLed);
-        detourFunction(0x08094d28, stubRetZero);
-        patchMemory(0x080a29a5, "EB");
-
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x0805160c, gl_ProgramStringARB);
-        }
-    }
-    break;
     case VIRTUA_FIGHTER_5_R:
     {
         // Security
@@ -1537,938 +2840,121 @@ int initPatch()
             detourFunction(0x08052a70, gl_ProgramStringARB);
         }
     }
-    break;	
-    case LETS_GO_JUNGLE_REVA:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x08c10604, 2);              // amBackupDebugLevel
-            setVariable(0x08c10620, 2);              // amCreditDebugLevel
-            setVariable(0x08c10878, 2);              // amDipswDebugLevel
-            setVariable(0x08c1087c, 2);              // amDongleDebugLevel
-            setVariable(0x08c10880, 2);              // amEepromDebugLevel
-            setVariable(0x08c10884, 2);              // amHwmonitorDebugLevel
-            setVariable(0x08c10888, 2);              // amJvsDebugLevel
-            setVariable(0x08c1088c, 2);              // amLibDebugLevel
-            setVariable(0x08c10890, 2);              // amMiscDebugLevel
-            setVariable(0x08c10898, 2);              // amSysDataDebugLevel
-            setVariable(0x08c108a0, 2);              // bcLibDebugLevel
-            setVariable(0x08c10894, 2);              // amOsinfoDebugLevel
-            setVariable(0x08c108a4, 0x0FFFFFFF);     // s_logMask
-            detourFunction(0x08074a8c, _putConsole); // Debug Messages
-        }
-        // Security
-        detourFunction(0x084e9fbc, amDongleInit);
-        detourFunction(0x084ea378, amDongleIsAvailable);
-        detourFunction(0x084ea29c, amDongleUpdate);
-        patchMemory(0x0807b86a, "9090"); // Patch initializeArcadeBackup
-        // Fixes
-        amDipswContextAddr = (void *)0x08c43e08; // Address of amDipswContext
-        detourFunction(0x084e9de0, amDipswInit);
-        detourFunction(0x084e9e7c, amDipswExit);
-        detourFunction(0x084e9ef2, amDipswGetData);
-        detourFunction(0x084e9f6a, amDipswSetLed);
-        patchMemory(0x084125f0, "9090"); // No full screen
-
-        // Mesa Patches
-        if (getConfig()->GPUVendor != NVIDIA_GPU || getConfig()->lgjRenderWithMesa)
-        {
-            detourFunction(0x08071790, gl_MultiTexCoord2fARB);
-            detourFunction(0x08071800, gl_Color4ub);
-            detourFunction(0x08071a30, gl_Vertex3f);
-            detourFunction(0x08072080, gl_TexCoord2f);
-            detourFunction(0x08072110, cg_GLIsProfileSupported);
-            detourFunction(0x08071e50, gl_ProgramStringARB);
-            cacheModedShaderFiles();
-        }
-        detourFunction(0x080722e0, gl_ProgramParameters4fvNV);
-        // patchMemory(0x083f4626, "909090909090");
-        detourFunction(0x08072520, gl_XGetProcAddressARB);
-    }
     break;
-    case LETS_GO_JUNGLE:
+    case VIRTUA_FIGHTER_5_REVA:
     {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x08c083a4, 2);              // amBackupDebugLevel
-            setVariable(0x08c083c0, 2);              // amCreditDebugLevel
-            setVariable(0x08c08618, 2);              // amDipswDebugLevel
-            setVariable(0x08c0861c, 2);              // amDongleDebugLevel
-            setVariable(0x08c08620, 2);              // amEepromDebugLevel
-            setVariable(0x08c08624, 2);              // amHwmonitorDebugLevel
-            setVariable(0x08c08628, 2);              // amJvsDebugLevel
-            setVariable(0x08c0862c, 2);              // amLibDebugLevel
-            setVariable(0x08c08630, 2);              // amMiscDebugLevel
-            setVariable(0x08c08638, 2);              // amSysDataDebugLevel
-            setVariable(0x08c08640, 2);              // bcLibDebugLevel
-            setVariable(0x08c08634, 2);              // amOsinfoDebugLevel
-            setVariable(0x08c08644, 0x0FFFFFFF);     // s_logMask
-            detourFunction(0x08074a8c, _putConsole); // Debug Messages
-        }
         // Security
-        detourFunction(0x084e50d8, amDongleInit);
-        detourFunction(0x084e5459, amDongleIsAvailable);
-        detourFunction(0x084e537d, amDongleUpdate);
-        patchMemory(0x0807b76a, "9090"); // Patch initializeArcadeBackup
-        // Fixes
-        amDipswContextAddr = (void *)0x08c3bba8; // Address of amDipswContext
-        detourFunction(0x084e4efc, amDipswInit);
-        detourFunction(0x084e4f98, amDipswExit);
-        detourFunction(0x084e500e, amDipswGetData);
-        detourFunction(0x084e5086, amDipswSetLed);
-        patchMemory(0x0840d858, "9090"); // No full screen
+        detourFunction(0x084620a8, amDongleInit);
+        detourFunction(0x0846234d, amDongleUpdate);
+        detourFunction(0x08462429, amDongleIsAvailable);
+        detourFunction(0x08462449, amDongleIsDevelop);
 
-        // Mesa Patches
-        if (getConfig()->GPUVendor != NVIDIA_GPU || getConfig()->lgjRenderWithMesa)
-        {
-            detourFunction(0x080716e4, gl_MultiTexCoord2fARB);
-            detourFunction(0x08071754, gl_Color4ub);
-            detourFunction(0x08071984, gl_Vertex3f);
-            detourFunction(0x08071fc4, gl_TexCoord2f);
-            detourFunction(0x08072054, cg_GLIsProfileSupported);
-            detourFunction(0x08071da4, gl_ProgramStringARB);
-            cacheModedShaderFiles();
-        }
-        detourFunction(0x08072214, gl_ProgramParameters4fvNV);
-        // patchMemory(0x083ef88e, "909090909090");
-        detourFunction(0x08072454, gl_XGetProcAddressARB);
-    }
-    break;
-    case LETS_GO_JUNGLE_SPECIAL:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x08c453e4, 2);              // amBackupDebugLevel
-            setVariable(0x08c45400, 2);              // amCreditDebugLevel
-            setVariable(0x08c45658, 2);              // amDipswDebugLevel
-            setVariable(0x08c4565c, 2);              // amDongleDebugLevel
-            setVariable(0x08c45660, 2);              // amEepromDebugLevel
-            setVariable(0x08c45664, 2);              // amHwmonitorDebugLevel
-            setVariable(0x08c45668, 2);              // amJvsDebugLevel
-            setVariable(0x08c4566c, 2);              // amLibDebugLevel
-            setVariable(0x08c45670, 2);              // amMiscDebugLevel
-            setVariable(0x08c45678, 2);              // amSysDataDebugLevel
-            setVariable(0x08c45680, 2);              // bcLibDebugLevel
-            setVariable(0x08c45674, 2);              // amOsinfoDebugLevel
-            setVariable(0x08c45684, 0x0FFFFFFF);     // s_logMask
-            detourFunction(0x08075012, _putConsole); // Debug Messages
-        }
-        // Security
-        detourFunction(0x08510320, amDongleInit);
-        detourFunction(0x085106dc, amDongleIsAvailable);
-        detourFunction(0x08510600, amDongleUpdate);
-        patchMemory(0x0807e609, "909090909090");
-        // Fixes
-        amDipswContextAddr = (void *)0x08c78be8; // Address of amDipswContext
-        detourFunction(0x08510144, amDipswInit);
-        detourFunction(0x085101e0, amDipswExit);
-        detourFunction(0x08510256, amDipswGetData);
-        detourFunction(0x085102ce, amDipswSetLed);
-        patchMemory(0x08438954, "9090"); // No full screen
+        // Fixes and patches to bypss network check
+        amDipswContextAddr = (void *)0x0b40b1a8; // Address of amDipswContext
+        detourFunction(0x08461ecc, amDipswInit);
+        detourFunction(0x08461f68, amDipswExit);
+        detourFunction(0x08461fde, amDipswGetData);
+        detourFunction(0x08462056, amDipswSetLed);
+        detourFunction(0x080884e2, stubRetZero); // Stub returns 0
+        detourFunction(0x0809a1a0, stubRetZero); // Stub returns 0
+        detourFunction(0x082fa9fc, stubRetZero); // Stub returns 0
+        detourFunction(0x082fce2c, stubRetZero); // Stub returns 0
+        patchMemory(0x080a6407, "b800000000");
 
-        // Mesa Patches
-        if (getConfig()->GPUVendor != NVIDIA_GPU || getConfig()->lgjRenderWithMesa)
-        {
-            detourFunction(0x080718e0, gl_MultiTexCoord2fARB);
-            detourFunction(0x08071950, gl_Color4ub);
-            detourFunction(0x08071b80, gl_Vertex3f);
-            detourFunction(0x08072210, gl_TexCoord2f);
-            detourFunction(0x080722a0, cg_GLIsProfileSupported);
-            detourFunction(0x08071fd0, gl_ProgramStringARB);
-            cacheModedShaderFiles();
-        }
-        detourFunction(0x08072480, gl_ProgramParameters4fvNV);
-        patchMemory(0x0841a98a, "909090909090");
-        detourFunction(0x080726c0, gl_XGetProcAddressARB);
-    }
-    break;
-    case INITIALD_4_REVA:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x08d71470, 2);          // amBackupDebugLevel
-            setVariable(0x08d71480, 2);          // amCreditDebugLevel
-            setVariable(0x08d716d8, 2);          // amDipswDebugLevel
-            setVariable(0x08d716dc, 2);          // amDongleDebugLevel
-            setVariable(0x08d716e0, 2);          // amEepromDebugLevel
-            setVariable(0x08d716e4, 2);          // amHwmonitorDebugLevel
-            setVariable(0x08d716e8, 2);          // amJvsDebugLevel
-            setVariable(0x08d716ec, 2);          // amLibDebugLevel
-            setVariable(0x08d716f0, 2);          // amMiscDebugLevel
-            setVariable(0x08d716f8, 2);          // amSysDataDebugLevel
-            setVariable(0x08d71700, 2);          // bcLibDebugLevel
-            setVariable(0x08d716f4, 2);          // amOsinfoDebugLevel
-            setVariable(0x08d71704, 0x0FFFFFFF); // s_logMask
-            detourFunction(0x08524c88, _putConsoleSeparate); // Debug Messages
-        }
-        // Security
-        detourFunction(0x086e20fa, amDongleInit);
-        detourFunction(0x086e0b45, amDongleIsAvailable);
-        detourFunction(0x086e15a9, amDongleUpdate);
-        detourFunction(0x086e1fc1, amDongleUserInfoEx);
-        memcpy(elfID, (void *)0x8318835, 4); // Gets gameID from the ELF
-        //  Fixes
-        amDipswContextAddr = (void *)0x08da0628; // Address of amDipswContext
-        detourFunction(0x086e08d8, amDipswInit);
-        detourFunction(0x086e095c, amDipswExit);
-        detourFunction(0x086e09d1, amDipswGetData);
-        detourFunction(0x086e0a48, amDipswSetLed); // amDipswSetLED
+        // patchMemory(0x, "2e2f72616d2f746573743100"); // Patch /home/disk2 folder
+        // patchMemory(0x, "2e2f72616d2f746573743200"); // Patch /home/disk2 folder
+        patchMemory(0x08489b3b, "2e2f72616d00");         // Patch /home/disk2 folder
+        patchMemory(0x08489bf4, "2e2f72616d2f746d7000"); // Patch /home/disk2 folder
+        patchMemory(0x0852328a, "2e2f00");               // Patch /home/disk2 folder
+        patchMemory(0x084870d9, "2e2f00");               // Patch /home/disk1 folder
 
-        detourFunction(0x0821e52c, stubRetOne); // isEthLinkUp
-        patchMemory(0x082cb222, "c0270900");    // tickInitStoreNetwork
-        patchMemory(0x082cb4e9, "e950010000");  // tickWaitDHCP
-        patchMemory(0x082ccc68, "eb");          // Skip Kickback initialization
-        patchMemory(0x08799acc, "62");          // Skips initialization
-        patchMemory(0x08799adc, "df");          // Skips initialization
-        setVariable(0x085593c9, 0x000126e9);    // Avoid Full Screen set from Game
-
+        detourFunction(0x080889c8, stubRetZero);
+        patchMemory(0x080a6303, "02");
+        patchMemory(0x080a6356, "9090909090");
+        patchMemory(0x080a6265, "ffffffff");
+        patchMemory(0x080a6298, "ffffffff");
         if (getConfig()->GPUVendor != NVIDIA_GPU)
         {
-            detourFunction(0x08078980, gl_MultiTexCoord2fARB);
-            detourFunction(0x080789f0, gl_Color4ub);
-            detourFunction(0x08078c10, gl_Vertex3f);
-            detourFunction(0x08079330, gl_TexCoord2f);
-            detourFunction(0x080793d0, cg_GLIsProfileSupported);
-            patchMemory(0x085241ea, "9090");
-            cacheModedShaderFiles();
-            detourFunction(0x08079870, gl_XGetProcAddressARB);
-            detourFunction(0x08079600, gl_ProgramParameters4fvNV);
+            detourFunction(0x08051c4c, gl_ProgramStringARB);
         }
-        patchMemory(0x08548cb3, "31C090");      // cgCreateProgram args argument to 0;
-        detourFunction(0x0825637a, stubRetOne); // isExistNewerSource (forces shader recompilation)
     }
     break;
-    case INITIALD_4_REVB:
+    case VIRTUA_FIGHTER_5_REVB:
     {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x08d71750, 2);          // amBackupDebugLevel
-            setVariable(0x08d71760, 2);          // amCreditDebugLevel
-            setVariable(0x08d719b8, 2);          // amDipswDebugLevel
-            setVariable(0x08d719bc, 2);          // amDongleDebugLevel
-            setVariable(0x08d719c0, 2);          // amEepromDebugLevel
-            setVariable(0x08d719c4, 2);          // amHwmonitorDebugLevel
-            setVariable(0x08d719c8, 2);          // amJvsDebugLevel
-            setVariable(0x08d719cc, 2);          // amLibDebugLevel
-            setVariable(0x08d719d0, 2);          // amMiscDebugLevel
-            setVariable(0x08d719d8, 2);          // amSysDataDebugLevel
-            setVariable(0x08d719e0, 2);          // bcLibDebugLevel
-            setVariable(0x08d719d4, 2);          // amOsinfoDebugLevel
-            setVariable(0x08d719e4, 0x0FFFFFFF); // s_logMask
-            detourFunction(0x08524ec8, _putConsoleSeparate); // Debug Messages
-        }
         // Security
-        detourFunction(0x086e2336, amDongleInit);
-        detourFunction(0x086e0d81, amDongleIsAvailable);
-        detourFunction(0x086e17e5, amDongleUpdate);
-        detourFunction(0x086e21fd, amDongleUserInfoEx);
-        memcpy(elfID, (void *)0x08318a45, 4); // Gets gameID from the ELF
-        //  Fixes
-        amDipswContextAddr = (void *)0x08da0908; // Address of amDipswContext
-        detourFunction(0x086e0b14, amDipswInit);
-        detourFunction(0x086e0b98, amDipswExit);
-        detourFunction(0x086e0c0d, amDipswGetData);
-        detourFunction(0x086e0c84, amDipswSetLed); // amDipswSetLED
+        detourFunction(0x0850fd5c, amDongleInit);
+        detourFunction(0x08510001, amDongleUpdate);
+        detourFunction(0x085100dd, amDongleIsAvailable);
+        detourFunction(0x085100fd, amDongleIsDevelop);
 
-        detourFunction(0x0821e6dc, stubRetOne); // isEthLinkUp
-        patchMemory(0x082cb412, "c0270900");    // tickInitStoreNetwork
-        patchMemory(0x082cb6d9, "e950010000");  // tickWaitDHCP
-        patchMemory(0x082cce58, "EB");          // Skip Kickback initialization
-        patchMemory(0x08799d8c, "52");          // Skips initialization
-        patchMemory(0x08799d9c, "cf");          // Skips initialization
-        setVariable(0x08559609, 0x000126e9);    // Avoid Full Screen set from Game
+        // Fixes and patches to bypss network check
+        amDipswContextAddr = (void *)0x0bd36c68; // Address of amDipswContext
+        detourFunction(0x0850fb80, amDipswInit);
+        detourFunction(0x0850fc1c, amDipswExit);
+        detourFunction(0x0850fc92, amDipswGetData);
+        detourFunction(0x0850fd0a, amDipswSetLed);
+        detourFunction(0x080936d8, stubRetZero); // Stub returns 0
+        detourFunction(0x080a800c, stubRetZero); // Stub returns 0
+        detourFunction(0x08376746, stubRetZero); // Stub returns 0
+        detourFunction(0x08378a38, stubRetZero); // Stub returns 0
+        patchMemory(0x080b5733, "b800000000");
 
+        patchMemory(0x08533c38, "2e2f72616d00");         // Patch /home/disk2 folder
+        patchMemory(0x08538741, "2e2f72616d2f746d7000"); // Patch /home/disk2 folder
+        patchMemory(0x085e5993, "2e2f00");               // Patch /home/disk2 folder
+        patchMemory(0x08535239, "2e2f00");               // Patch /home/disk1 folder
+
+        detourFunction(0x08093be0, stubRetZero);
+        patchMemory(0x080B562F, "02");
+        patchMemory(0x080b5682, "9090909090");
+        patchMemory(0x080B5591, "ffffffff");
+        patchMemory(0x080B55C4, "ffffffff");
         if (getConfig()->GPUVendor != NVIDIA_GPU)
         {
-            detourFunction(0x080789a4, gl_MultiTexCoord2fARB);
-            detourFunction(0x08078a14, gl_Color4ub);
-            detourFunction(0x08078c34, gl_Vertex3f);
-            detourFunction(0x08079354, gl_TexCoord2f);
-            detourFunction(0x080793f4, cg_GLIsProfileSupported);
-            patchMemory(0x0852442a, "9090");
-            cacheModedShaderFiles();
-            detourFunction(0x08079894, gl_XGetProcAddressARB);
-            detourFunction(0x08079624, gl_ProgramParameters4fvNV);
+            detourFunction(0x08052088, gl_ProgramStringARB);
         }
-        patchMemory(0x08548ef3, "31C090");      // cgCreateProgram args argument to 0;
-        detourFunction(0x0825653a, stubRetOne); // isExistNewerSource (forces shader recompilation)
     }
     break;
-    case INITIALD_4_REVC:
+    case VIRTUA_FIGHTER_5_REVE: // Also the public REV C version
     {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x08d7c8f0, 2);          // amBackupDebugLevel
-            setVariable(0x08d7c900, 2);          // amCreditDebugLevel
-            setVariable(0x08d7cb58, 2);          // amDipswDebugLevel
-            setVariable(0x08d7cb5c, 2);          // amDongleDebugLevel
-            setVariable(0x08d7cb60, 2);          // amEepromDebugLevel
-            setVariable(0x08d7cb64, 2);          // amHwmonitorDebugLevel
-            setVariable(0x08d7cb68, 2);          // amJvsDebugLevel
-            setVariable(0x08d7cb6c, 2);          // amLibDebugLevel
-            setVariable(0x08d7cb70, 2);          // amMiscDebugLevel
-            setVariable(0x08d7cb78, 2);          // amSysDataDebugLevel
-            setVariable(0x08d7cb80, 2);          // bcLibDebugLevel
-            setVariable(0x08d7cb74, 2);          // amOsinfoDebugLevel
-            setVariable(0x08d7cb84, 0x0FFFFFFF); // s_logMask
-            detourFunction(0x0852d738, _putConsoleSeparate); // Debug Messages
-        }
         // Security
-        detourFunction(0x086eabd6, amDongleInit);
-        detourFunction(0x086e9621, amDongleIsAvailable);
-        detourFunction(0x086ea085, amDongleUpdate);
-        detourFunction(0x086eaa9d, amDongleUserInfoEx);
-        memcpy(elfID, (void *)0x08795338, 4); // Gets gameID from the ELF
-        //  Fixes
-        amDipswContextAddr = (void *)0x08dabaa8; // Address of amDipswContext
-        detourFunction(0x086e93b4, amDipswInit);
-        detourFunction(0x086e9438, amDipswExit);
-        detourFunction(0x086e94ad, amDipswGetData);
-        detourFunction(0x086e9524, amDipswSetLed); // amDipswSetLED
+        detourFunction(0x085c6010, amDongleInit);
+        detourFunction(0x085c62f0, amDongleUpdate);
+        detourFunction(0x085c63cc, amDongleIsAvailable);
+        detourFunction(0x085c63ec, amDongleIsDevelop);
 
-        detourFunction(0x0821f0dc, stubRetOne); // isEthLinkUp
-        patchMemory(0x082cfe42, "c0270900");    // tickInitStoreNetwork
-        patchMemory(0x082d0109, "e950010000");  // tickWaitDHCP
-        patchMemory(0x082d1888, "EB");          // Skip Kickback initialization
-        patchMemory(0x087a2eec, "82");          // Skips initialization
-        patchMemory(0x087a2efc, "ff");          // Skips initialization
-        setVariable(0x08561e79, 0x000126e9);    // Avoid Full Screen set from Game
+        // Fixes and patches to bypss network check
+        amDipswContextAddr = (void *)0x0d4d2b08; // Address of amDipswContext
+        detourFunction(0x085c5e34, amDipswInit);
+        detourFunction(0x085c5ed0, amDipswExit);
+        detourFunction(0x085c5f46, amDipswGetData);
+        detourFunction(0x085c5fbe, amDipswSetLed); // Stub amDipswSetLed
+        detourFunction(0x080b3426, stubRetZero);   // Stub returns 0
+        detourFunction(0x080cb6d4, stubRetZero);   // Stub returns 0
+        detourFunction(0x0840889e, stubRetZero);   // Stub returns 0
+        detourFunction(0x0840ab90, stubRetZero);   // Stub returns 0
+        patchMemory(0x080e1743, "EB");
+        patchMemory(0x080e17af, "b800000000"); // Patch IDK what
 
+        patchMemory(0x085eb718, "2e2f72616d00");         // Patch /home/disk2 folder
+        patchMemory(0x085f1b41, "2e2f72616d2f746d7000"); // Patch /home/disk2 folder
+        patchMemory(0x086a196b, "2e2f00");               // Patch /home/disk2 folder
+        patchMemory(0x085ee110, "2e2f00");               // Patch /home/disk1 folder
+
+        detourFunction(0x080b3938, stubRetZero); // ok
+        patchMemory(0x080e1663, "02");
+        patchMemory(0x080e16b6, "9090909090");
+        patchMemory(0x080e15bd, "ffffffff");
+        patchMemory(0x080e15f7, "ffffffff");
         if (getConfig()->GPUVendor != NVIDIA_GPU)
         {
-            detourFunction(0x080789a4, gl_MultiTexCoord2fARB);
-            detourFunction(0x08078a14, gl_Color4ub);
-            detourFunction(0x08078c34, gl_Vertex3f);
-            detourFunction(0x08079354, gl_TexCoord2f);
-            detourFunction(0x080793f4, cg_GLIsProfileSupported);
-            patchMemory(0x0852cc9a, "9090");
-            cacheModedShaderFiles();
-            detourFunction(0x08079894, gl_XGetProcAddressARB);
-            detourFunction(0x08079624, gl_ProgramParameters4fvNV);
+            detourFunction(0x08052fbc, gl_ProgramStringARB);
         }
-        patchMemory(0x08551763, "31C090");      // cgCreateProgram args argument to 0;
-        detourFunction(0x08256ff4, stubRetOne); // isExistNewerSource (forces shader recompilation)
+        //
+        patchMemory(0x080e173c, "B810000000");
     }
     break;
-    case INITIALD_4_REVD:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x08d798b0, 2);          // amBackupDebugLevel
-            setVariable(0x08d798c0, 2);          // amCreditDebugLevel
-            setVariable(0x08d79b18, 2);          // amDipswDebugLevel
-            setVariable(0x08d79b1c, 2);          // amDongleDebugLevel
-            setVariable(0x08d79b20, 2);          // amEepromDebugLevel
-            setVariable(0x08d79b24, 2);          // amHwmonitorDebugLevel
-            setVariable(0x08d79b28, 2);          // amJvsDebugLevel
-            setVariable(0x08d79b2c, 2);          // amLibDebugLevel
-            setVariable(0x08d79b30, 2);          // amMiscDebugLevel
-            setVariable(0x08d79b38, 2);          // amSysDataDebugLevel
-            setVariable(0x08d79b40, 2);          // bcLibDebugLevel
-            setVariable(0x08d79b34, 2);          // amOsinfoDebugLevel
-            setVariable(0x08d79b44, 0x0FFFFFFF); // s_logMask
-            detourFunction(0x0852add8, _putConsoleSeparate); // Debug Messages
-        }
-        // Security
-        detourFunction(0x086e8276, amDongleInit);
-        detourFunction(0x086e6cc1, amDongleIsAvailable);
-        detourFunction(0x086e7725, amDongleUpdate);
-        detourFunction(0x086e813d, amDongleUserInfoEx);
-        memcpy(elfID, (void *)0x087929d8, 4); // Gets gameID from the ELF
-        //  Fixes
-        amDipswContextAddr = (void *)0x08da8a68; // Address of amDipswContext
-        detourFunction(0x086e6a54, amDipswInit);
-        detourFunction(0x086e6ad8, amDipswExit);
-        detourFunction(0x086e6b4d, amDipswGetData);
-        detourFunction(0x086e6bc4, amDipswSetLed); // amDipswSetLED
 
-        detourFunction(0x0821f5cc, stubRetOne); // isEthLinkUp
-        patchMemory(0x082cd3b2, "c0270900");    // tickInitStoreNetwork
-        patchMemory(0x082cd679, "e950010000");  // tickWaitDHCP
-        patchMemory(0x082cedf8, "EB");          // Skip Kickback initialization
-        patchMemory(0x087a024c, "f2");          // Skips initialization
-        patchMemory(0x087a025c, "6f");          // Skips initialization
-        setVariable(0x0855f519, 0x000126e9);    // Avoid Full Screen set from Game
-
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x080789a4, gl_MultiTexCoord2fARB);
-            detourFunction(0x08078a14, gl_Color4ub);
-            detourFunction(0x08078c34, gl_Vertex3f);
-            detourFunction(0x08079354, gl_TexCoord2f);
-            detourFunction(0x080793f4, cg_GLIsProfileSupported);
-            patchMemory(0x0852a33a, "9090");
-            cacheModedShaderFiles();
-            detourFunction(0x08079894, gl_XGetProcAddressARB);
-            detourFunction(0x08079624, gl_ProgramParameters4fvNV);
-        }
-        patchMemory(0x0854ee03, "31C090");      // cgCreateProgram args argument to 0;
-        detourFunction(0x08257470, stubRetOne); // isExistNewerSource (forces shader recompilation)
-    }
-    break;
-    case INITIALD_4_REVG:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x08dde130, 2);          // amBackupDebugLevel
-            setVariable(0x08dde140, 2);          // amCreditDebugLevel
-            setVariable(0x08dde398, 2);          // amDipswDebugLevel
-            setVariable(0x08dde39c, 2);          // amDongleDebugLevel
-            setVariable(0x08dde3a0, 2);          // amEepromDebugLevel
-            setVariable(0x08dde3a4, 2);          // amHwmonitorDebugLevel
-            setVariable(0x08dde3a8, 2);          // amJvsDebugLevel
-            setVariable(0x08dde3ac, 2);          // amLibDebugLevel
-            setVariable(0x08dde3b0, 2);          // amMiscDebugLevel
-            setVariable(0x08dde3b8, 2);          // amSysDataDebugLevel
-            setVariable(0x08dde3c0, 2);          // bcLibDebugLevel
-            setVariable(0x08dde3b4, 2);          // amOsinfoDebugLevel
-            setVariable(0x08dde3c4, 0x0FFFFFFF); // s_logMask
-            detourFunction(0x08564ea8, _putConsoleSeparate); // Debug Messages
-        }
-        // Security
-        detourFunction(0x0872c8d6, amDongleInit);
-        detourFunction(0x0872b321, amDongleIsAvailable);
-        detourFunction(0x0872bd85, amDongleUpdate);
-        detourFunction(0x0872c79d, amDongleUserInfoEx);
-        memcpy(elfID, (void *)0x087da56c, 4); // Gets gameID from the ELF
-        //  Fixes
-        amDipswContextAddr = (void *)0x08e0d7a8; // Address of amDipswContext
-        detourFunction(0x0872b0b4, amDipswInit);
-        detourFunction(0x0872b138, amDipswExit);
-        detourFunction(0x0872b1ad, amDipswGetData);
-        detourFunction(0x0872b224, amDipswSetLed); // amDipswSetLED
-
-        detourFunction(0x0823813a, stubRetOne); // isEthLinkUp
-        patchMemory(0x082f4396, "c0270900");    // tickInitStoreNetwork
-        patchMemory(0x082f4efb, "e94d010000");  // tickWaitDHCP
-        patchMemory(0x082f6d5b, "EB");          // Skip Kickback initialization
-        patchMemory(0x087e9eac, "c2");          // Skips initialization
-        patchMemory(0x087e9ebc, "3f36");        // Skips initialization
-        setVariable(0x08599819, 0x000126e9);    // Avoid Full Screen set from Game
-
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x0807a298, gl_MultiTexCoord2fARB);
-            detourFunction(0x0807a308, gl_Color4ub);
-            detourFunction(0x0807a538, gl_Vertex3f);
-            detourFunction(0x0807ac48, gl_TexCoord2f);
-            detourFunction(0x0807ace8, cg_GLIsProfileSupported);
-            patchMemory(0x08564340, "9090");
-            cacheModedShaderFiles();
-            detourFunction(0x0807b1b8, gl_XGetProcAddressARB);
-            detourFunction(0x0807af28, gl_ProgramParameters4fvNV);
-        }
-        patchMemory(0x08588f73, "31C090");      // cgCreateProgram args argument to 0;
-        detourFunction(0x08271cec, stubRetOne); // isExistNewerSource (forces shader recompilation)
-    }
-    break;
-    case INITIALD_4_EXP_REVB:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x08d93b70, 2);          // amBackupDebugLevel
-            setVariable(0x08d93b80, 2);          // amCreditDebugLevel
-            setVariable(0x08d93dd8, 2);          // amDipswDebugLevel
-            setVariable(0x08d93ddc, 2);          // amDongleDebugLevel
-            setVariable(0x08d93de0, 2);          // amEepromDebugLevel
-            setVariable(0x08d93de4, 2);          // amHwmonitorDebugLevel
-            setVariable(0x08d93de8, 2);          // amJvsDebugLevel
-            setVariable(0x08d93dec, 2);          // amLibDebugLevel
-            setVariable(0x08d93df0, 2);          // amMiscDebugLevel
-            setVariable(0x08d93df8, 2);          // amSysDataDebugLevel
-            setVariable(0x08d93e00, 2);          // bcLibDebugLevel
-            setVariable(0x08d93df4, 2);          // amOsinfoDebugLevel
-            setVariable(0x08d93e04, 0x0FFFFFFF); // s_logMask
-            detourFunction(0x0854a778, _putConsoleSeparate); // Debug Messages (crashes game)
-        }
-        // Security
-        detourFunction(0x0870ee36, amDongleInit);
-        detourFunction(0x0870d881, amDongleIsAvailable);
-        detourFunction(0x0870e2e5, amDongleUpdate);
-        detourFunction(0x0870ecfd, amDongleUserInfoEx);
-        memcpy(elfID, (void *)0x087c0a61, 4); // Gets gameID from the ELF
-
-        // Fixes
-        amDipswContextAddr = (void *)0x08dc2d08;
-        detourFunction(0x0870d614, amDipswInit);
-        detourFunction(0x0870d698, amDipswExit);
-        detourFunction(0x0870d70d, amDipswGetData);
-        detourFunction(0x0870d784, stubRetZero); // amDipswSetLed
-        detourFunction(0x0822fdde, stubRetOne);  // isEthLinkUp
-        // patchMemory(0x082ddfcd, "e954010000");   // tickWaitDHCP
-        patchMemory(0x082df619, "eb60");        // tickInitAddress
-        detourFunction(0x0821a1fa, stubRetOne); // Skip Kickback initialization
-        setVariable(0x0857f0e9, 0x000126e9);    // Avoid Full Screen set from Game
-        patchMemory(0x087bc56c, "ab");          // Skips initialization
-
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x08078860, gl_MultiTexCoord2fARB);
-            detourFunction(0x080788d0, gl_Color4ub);
-            detourFunction(0x08078b00, gl_Vertex3f);
-            detourFunction(0x08079200, gl_TexCoord2f);
-            detourFunction(0x080792a0, cg_GLIsProfileSupported);
-            patchMemory(0x08549c10, "9090");
-            patchMemory(0x0856e843, "31C090"); // cgCreateProgram args argument to 0;
-            cacheModedShaderFiles();
-            detourFunction(0x08079730, gl_XGetProcAddressARB);
-            detourFunction(0x080794d0, gl_ProgramParameters4fvNV);
-        }
-        detourFunction(0x08264e7a, stubRetOne); // isExistNewerSource (forces shader recompilation)
-    }
-    break;
-    case INITIALD_4_EXP_REVC:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x08d93b70, 2);          // amBackupDebugLevel
-            setVariable(0x08d93b80, 2);          // amCreditDebugLevel
-            setVariable(0x08d93dd8, 2);          // amDipswDebugLevel
-            setVariable(0x08d93ddc, 2);          // amDongleDebugLevel
-            setVariable(0x08d93de0, 2);          // amEepromDebugLevel
-            setVariable(0x08d93de4, 2);          // amHwmonitorDebugLevel
-            setVariable(0x08d93de8, 2);          // amJvsDebugLevel
-            setVariable(0x08d93dec, 2);          // amLibDebugLevel
-            setVariable(0x08d93df0, 2);          // amMiscDebugLevel
-            setVariable(0x08d93df8, 2);          // amSysDataDebugLevel
-            setVariable(0x08d93e00, 2);          // bcLibDebugLevel
-            setVariable(0x08d93df4, 2);          // amOsinfoDebugLevel
-            setVariable(0x08d93e04, 0x0FFFFFFF); // s_logMask
-            detourFunction(0x0854a4f8, _putConsoleSeparate); // Debug Messages
-        }
-        // Security
-        detourFunction(0x0870ebb6, amDongleInit);
-        detourFunction(0x0870d601, amDongleIsAvailable);
-        detourFunction(0x0870e065, amDongleUpdate);
-        detourFunction(0x0870ea7d, amDongleUserInfoEx);
-        memcpy(elfID, (void *)0x08337197, 4); // Gets gameID from the ELF
-
-        // Fixes
-        amDipswContextAddr = (void *)0x08dc2d08;
-        detourFunction(0x0870d394, amDipswInit);
-        detourFunction(0x0870d418, amDipswExit);
-        detourFunction(0x0870d48d, amDipswGetData);
-        detourFunction(0x0870d504, stubRetZero); // amDipswSetLed
-        detourFunction(0x0822feae, stubRetOne);  // isEthLinkUp
-        // patchMemory(0x082dde0d, "e954010000");   // tickWaitDHCP
-        patchMemory(0x082df459, "eb60");        // tickInitAddress
-        detourFunction(0x0821a2aa, stubRetOne); // Skip Kickback initialization
-        setVariable(0x0857ee69, 0x000126e9);    // Avoid Full Screen set from Game
-        patchMemory(0x087bc2ec, "eb");          // Skips initialization
-
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x08078860, gl_MultiTexCoord2fARB);
-            detourFunction(0x080788d0, gl_Color4ub);
-            detourFunction(0x08078b00, gl_Vertex3f);
-            detourFunction(0x08079200, gl_TexCoord2f);
-            detourFunction(0x080792a0, cg_GLIsProfileSupported);
-            patchMemory(0x0854b4a0, "9090");
-            patchMemory(0x085700d3, "31C090"); // cgCreateProgram args argument to 0;
-            cacheModedShaderFiles();
-            detourFunction(0x08079730, gl_XGetProcAddressARB);
-            detourFunction(0x080794d0, gl_ProgramParameters4fvNV);
-        }
-        detourFunction(0x08264f62, stubRetOne); // isExistNewerSource (forces shader recompilation)
-    }
-    break;
-    case INITIALD_4_EXP_REVD:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x08d972d0, 2);          // amBackupDebugLevel
-            setVariable(0x08d972e0, 2);          // amCreditDebugLevel
-            setVariable(0x08d97538, 2);          // amDipswDebugLevel
-            setVariable(0x08d9753c, 2);          // amDongleDebugLevel
-            setVariable(0x08d97540, 2);          // amEepromDebugLevel
-            setVariable(0x08d97544, 2);          // amHwmonitorDebugLevel
-            setVariable(0x08d97548, 2);          // amJvsDebugLevel
-            setVariable(0x08d9754c, 2);          // amLibDebugLevel
-            setVariable(0x08d97550, 2);          // amMiscDebugLevel
-            setVariable(0x08d97554, 2);          // amSysDataDebugLevel
-            setVariable(0x08d97558, 2);          // bcLibDebugLevel
-            setVariable(0x08d97560, 2);          // amOsinfoDebugLevel
-            setVariable(0x08d97564, 0x0FFFFFFF); // s_logMask
-            detourFunction(0x0854c008, _putConsoleSeparate); // Debug Messages (crashes game)
-        }
-        // Security
-        detourFunction(0x087106e6, amDongleInit);
-        detourFunction(0x0870f131, amDongleIsAvailable);
-        detourFunction(0x0870fb95, amDongleUpdate);
-        detourFunction(0x087105ad, amDongleUserInfoEx);
-        memcpy(elfID, (void *)0x08338ce7, 4); // Gets gameID from the ELF
-
-        // Fixes
-        amDipswContextAddr = (void *)0x08dc6928;
-        detourFunction(0x0870eec4, amDipswInit);
-        detourFunction(0x0870ef48, amDipswExit);
-        detourFunction(0x0870efbd, amDipswGetData);
-        detourFunction(0x0870f034, stubRetZero); // amDipswSetLed
-        detourFunction(0x08230fde, stubRetOne);  // isEthLinkUp
-        patchMemory(0x082df87d, "e954010000");   // tickWaitDHCP
-        patchMemory(0x082e0ec9, "eb60");        // tickInitAddress
-        detourFunction(0x0821b3ea, stubRetOne); // Skip Kickback initialization
-        setVariable(0x08580979, 0x000126e9);    // Avoid Full Screen set from Game
-        patchMemory(0x087beb6c, "5b");          // Skips initialization
-
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x080788ec, gl_MultiTexCoord2fARB);
-            detourFunction(0x0807895c, gl_Color4ub);
-            detourFunction(0x08078b8c, gl_Vertex3f);
-            detourFunction(0x0807928c, gl_TexCoord2f);
-            detourFunction(0x0807932c, cg_GLIsProfileSupported);
-            patchMemory(0x0854b4a0, "9090");
-            patchMemory(0x085700d3, "31C090"); // cgCreateProgram args argument to 0;
-            cacheModedShaderFiles();
-            detourFunction(0x080797dc, gl_XGetProcAddressARB);
-            detourFunction(0x0807955c, gl_ProgramParameters4fvNV);
-        }
-        detourFunction(0x08266098, stubRetOne); // isExistNewerSource (forces shader recompilation)
-    }
-    break;
-    case INITIALD_5_EXP:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x093a93f0, 2);                      // amBackupDebugLevel
-            setVariable(0x093a9400, 2);                      // amCreditDebugLevel
-            setVariable(0x093a9658, 2);                      // amDipswDebugLevel
-            setVariable(0x093a965c, 2);                      // amDongleDebugLevel
-            setVariable(0x093a9660, 2);                      // amEepromDebugLevel
-            setVariable(0x093a9664, 2);                      // amHwmonitorDebugLevel
-            setVariable(0x093a9668, 2);                      // amJvsDebugLevel
-            setVariable(0x093a966c, 2);                      // amLibDebugLevel
-            setVariable(0x093a9670, 2);                      // amMiscDebugLevel
-            setVariable(0x093a9678, 2);                      // amSysDataDebugLevel
-            setVariable(0x093a9680, 2);                      // bcLibDebugLevel
-            setVariable(0x093a9674, 2);                      // amOsinfoDebugLevel
-            setVariable(0x093a9684, 0x0FFFFFFF);             // s_logMask
-            detourFunction(0x08745e28, _putConsoleSeparate); // Debug Messages
-        }
-        // Security
-        detourFunction(0x08911dca, amDongleInit);
-        detourFunction(0x08910815, amDongleIsAvailable);
-        detourFunction(0x08911279, amDongleUpdate);
-        detourFunction(0x08911c91, amDongleUserInfoEx);
-        memcpy(elfID, (void *)0x084e2407, 4); // Get gameID from the ELF
-        // Fixes
-        amDipswContextAddr = (void *)0x093d94c8;
-        detourFunction(0x089105a8, amDipswInit);
-        detourFunction(0x0891062c, amDipswExit);
-        detourFunction(0x089106a1, amDipswGetData);
-        detourFunction(0x08910718, amDipswSetLed); // amDipswSetLed
-        detourFunction(0x08322248, stubRetOne);    // isEthLinkUp
-        detourFunction(0x083084a2, stubRetOne);    // Skip Kickback initialization
-        patchMemory(0x084429d9, "eb60");           // tickInitAddress
-        patchMemory(0x0843fb34, "C0270900");       // tickInitStoreNetwork
-        detourFunction(0x084deddc, stubRetZero);   // doesNeedRollerCleaning
-        detourFunction(0x084dedf8, stubRetZero);   // doesNeedStockerCleaning
-        patchMemory(0x0843f5ad, "c7c300030000");   // Moves Initializing text
-        patchMemory(0x089e314c, "47f3");           // Skips initialization
-        patchMemory(0x08789a49, "e92601000090");   // Prevents Full Screen set from the game
-
-        // Mesa Patches
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x0807a3f0, gl_MultiTexCoord2fARB);
-            detourFunction(0x0807a470, gl_Color4ub);
-            detourFunction(0x0807a6b0, gl_Vertex3f);
-            detourFunction(0x0807ae10, gl_TexCoord2f);
-            detourFunction(0x0807aed0, cg_GLIsProfileSupported);
-            patchMemory(0x087450ef, "9090");
-            cacheModedShaderFiles();
-        }
-
-        detourFunction(0x08389544, stubRetOne); // isExistNewerSource
-        detourFunction(0x0807b370, gl_XGetProcAddressARB);
-        patchMemory(0x08744f2e, "00"); // Fix cutscenes
-    }
-    break;
-    case INITIALD_5_EXP_20:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x093f6fa0, 2);              // amBackupDebugLevel
-            setVariable(0x093f6fc0, 2);              // amCreditDebugLevel
-            setVariable(0x093f7218, 2);              // amDipswDebugLevel
-            setVariable(0x093f721c, 2);              // amDongleDebugLevel
-            setVariable(0x093f7220, 2);              // amEepromDebugLevel
-            setVariable(0x093f7224, 2);              // amHwmonitorDebugLevel
-            setVariable(0x093f7228, 2);              // amJvsDebugLevel
-            setVariable(0x093f722c, 2);              // amLibDebugLevel
-            setVariable(0x093f7230, 2);              // amMiscDebugLevel
-            setVariable(0x093f7238, 2);              // amSysDataDebugLevel
-            setVariable(0x093f7240, 2);              // bcLibDebugLevel
-            setVariable(0x093f7234, 2);              // amOsinfoDebugLevel
-            setVariable(0x093f7244, 0x0FFFFFFF);     // s_logMask
-            detourFunction(0x08762978, _putConsoleSeparate); // Debug Messages
-        }
-        // Security
-        detourFunction(0x0893dd25, amDongleInit);
-        detourFunction(0x0893c5b1, amDongleIsAvailable);
-        detourFunction(0x0893d0d2, amDongleUpdate);
-        detourFunction(0x0893dbeb, amDongleUserInfoEx);
-        memcpy(elfID, (void *)0x084fdec2, 4); // Get gameID from the ELF
-        patchMemory(0x084fde9c, "00");        // Patch KEYCHECK
-        // Fixes
-        amDipswContextAddr = (void *)0x09427128;
-        detourFunction(0x0893c344, amDipswInit);
-        detourFunction(0x0893c3c8, amDipswExit);
-        detourFunction(0x0893c43d, amDipswGetData);
-        detourFunction(0x0893c4b3, amDipswSetLed); // amDipswSetLed
-        detourFunction(0x0832fca6, stubRetOne);    // isEthLinkUp
-        patchMemory(0x08456348, "e991000000");     // tickWaitDHCP
-        patchMemory(0x0845843b, "eb60");           // tickInitAddress
-        patchMemory(0x08455584, "C0270900");       // tickInitStoreNetwork
-        detourFunction(0x08943eb6, stubRetZero);   // amOsinfoExecDhcpNic
-        detourFunction(0x085135e0, stubRetZero);   // isUseServerBox
-        patchMemory(0x084592be, "30B5E3");         // seqInitWheel
-        detourFunction(0x084fa3ae, stubRetZero);   // doesNeedRollerCleaning
-        detourFunction(0x084fa3ca, stubRetZero);   // doesNeedStockerCleaning
-        patchMemory(0x08455001, "c7c300030000");   // Moves Initializing text
-        patchMemory(0x08513a10, "00");             // Network init just once
-        patchMemory(0x08a0f78c, "95");             // Skips initialization
-        patchMemory(0x087a6599, "e92601000090");   // Prevents Full Screen set from the game
-
-        // amsInit
-        detourFunction(0x089382e0, stubRetZero); // Eliminates amsInit Function
-
-        // Mesa Patches
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x0807a6c0, gl_MultiTexCoord2fARB);
-            detourFunction(0x0807a740, gl_Color4ub);
-            detourFunction(0x0807a990, gl_Vertex3f);
-            detourFunction(0x0807b130, gl_TexCoord2f);
-            detourFunction(0x0807b1f0, cg_GLIsProfileSupported);
-            patchMemory(0x08761c3f, "9090");
-            cacheModedShaderFiles();
-        }
-
-        detourFunction(0x08397224, stubRetOne); // isExistNewerSource
-        detourFunction(0x0807b6c0, gl_XGetProcAddressARB);
-        patchMemory(0x08761a7e, "00"); // Fix cutscenes
-    }
-    break;
-    case INITIALD_5_EXP_20A:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x093f6fa0, 2);              // amBackupDebugLevel
-            setVariable(0x093f6fc0, 2);              // amCreditDebugLevel
-            setVariable(0x093f7218, 2);              // amDipswDebugLevel
-            setVariable(0x093f721c, 2);              // amDongleDebugLevel
-            setVariable(0x093f7220, 2);              // amEepromDebugLevel
-            setVariable(0x093f7224, 2);              // amHwmonitorDebugLevel
-            setVariable(0x093f7228, 2);              // amJvsDebugLevel
-            setVariable(0x093f722c, 2);              // amLibDebugLevel
-            setVariable(0x093f7230, 2);              // amMiscDebugLevel
-            setVariable(0x093f7238, 2);              // amSysDataDebugLevel
-            setVariable(0x093f7240, 2);              // bcLibDebugLevel
-            setVariable(0x093f7234, 2);              // amOsinfoDebugLevel
-            setVariable(0x093f7244, 0x0FFFFFFF);     // s_logMask
-            detourFunction(0x08762bc8, _putConsoleSeparate); // Debug Messages
-        }
-        // Security
-        detourFunction(0x0893df75, amDongleInit);
-        detourFunction(0x0893c801, amDongleIsAvailable);
-        detourFunction(0x0893d322, amDongleUpdate);
-        detourFunction(0x0893de3b, amDongleUserInfoEx);
-        memcpy(elfID, (void *)0x084fe0f2, 4); // Get gameID from the ELF
-        patchMemory(0x084fe0cc, "00");        // Patch KEYCHECK
-        // Fixes
-        amDipswContextAddr = (void *)0x09427128;
-        detourFunction(0x0893c594, amDipswInit);
-        detourFunction(0x0893c618, amDipswExit);
-        detourFunction(0x0893c68d, amDipswGetData);
-        detourFunction(0x0893c703, amDipswSetLed); // amDipswSetLed
-        detourFunction(0x0832fe46, stubRetOne);    // isEthLinkUp
-        patchMemory(0x084566d8, "e991000000");     // tickWaitDHCP
-        patchMemory(0x084587cb, "eb60");           // tickInitAddress
-        patchMemory(0x08455914, "C0270900");       // tickInitStoreNetwork
-        detourFunction(0x08944106, stubRetZero);   // amOsinfoExecDhcpNic
-        detourFunction(0x08513810, stubRetZero);   // isUseServerBox
-        patchMemory(0x0845964e, "40b3e3");         // seqInitWheel
-        detourFunction(0x084fa5de, stubRetZero);   // doesNeedRollerCleaning
-        detourFunction(0x084fa5fa, stubRetZero);   // doesNeedStockerCleaning
-        patchMemory(0x08455391, "c7c300030000");   // Moves Initializing text
-        patchMemory(0x08513c40, "00");             // Network init just once
-        patchMemory(0x08a0f9cc, "25");             // Skips initialization
-        patchMemory(0x087a67e9, "e92601000090");   // Prevents Full Screen set from the game
-
-        // amsInit
-        detourFunction(0x08938530, stubRetZero); // Eliminates amsInit Function
-
-        // Mesa Patches
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x0807a6c0, gl_MultiTexCoord2fARB);
-            detourFunction(0x0807a740, gl_Color4ub);
-            detourFunction(0x0807a990, gl_Vertex3f);
-            detourFunction(0x0807b130, gl_TexCoord2f);
-            detourFunction(0x0807b1f0, cg_GLIsProfileSupported);
-            patchMemory(0x08761e8f, "9090");
-            cacheModedShaderFiles();
-        }
-
-        detourFunction(0x083973a4, stubRetOne); // isExistNewerSource
-        detourFunction(0x0807b6c0, gl_XGetProcAddressARB);
-        patchMemory(0x08761cce, "00"); // Fix cutscenes
-    }
-    break;
-    case INITIALD_5_JAP_REVA: // ID5 - DVP-0070A
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x093a92d0, 2);              // amBackupDebugLevel
-            setVariable(0x093a92e0, 2);              // amCreditDebugLevel
-            setVariable(0x093a9538, 2);              // amDipswDebugLevel
-            setVariable(0x093a953c, 2);              // amDongleDebugLevel
-            setVariable(0x093a9540, 2);              // amEepromDebugLevel
-            setVariable(0x093a9544, 2);              // amHwmonitorDebugLevel
-            setVariable(0x093a9548, 2);              // amJvsDebugLevel
-            setVariable(0x093a954c, 2);              // amLibDebugLevel
-            setVariable(0x093a9550, 2);              // amMiscDebugLevel
-            setVariable(0x093a9558, 2);              // amSysDataDebugLevel
-            setVariable(0x093a9560, 2);              // bcLibDebugLevel
-            setVariable(0x093a9554, 2);              // amOsinfoDebugLevel
-            setVariable(0x093a9564, 0x0FFFFFFF);     // s_logMask
-            detourFunction(0x08745238, _putConsoleSeparate); // Debug Messages
-        }
-        // Security
-        detourFunction(0x089111da, amDongleInit);
-        detourFunction(0x0890fc25, amDongleIsAvailable);
-        detourFunction(0x08910689, amDongleUpdate);
-        detourFunction(0x089110a1, amDongleUserInfoEx);
-        memcpy(elfID, (void *)0x084e1707, 4); // Get gameID from the ELF
-        amDipswContextAddr = (void *)0x093d93a8;
-        detourFunction(0x0890f9b8, amDipswInit);
-        detourFunction(0x0890fa3c, amDipswExit);
-        detourFunction(0x0890fab1, amDipswGetData);
-        detourFunction(0x0890fb28, amDipswSetLed); // amDipswSetLed
-        detourFunction(0x08321968, stubRetOne);    // isEthLinkUp
-        patchMemory(0x0843f068, "c0270900");    // tickInitStoreNetwork
-        // patchMemory(0x0843fed0, "e98d000000");  // tickWaitDHCP
-        detourFunction(0x08307b62, stubRetOne);  // Skip Kickback initialization
-        detourFunction(0x084de0dc, stubRetZero); // doesNeedRollerCleaning
-        detourFunction(0x084de0f8, stubRetZero); // doesNeedStockerCleaning
-        patchMemory(0x089e308c, "BA");           // Skips initialization
-        patchMemory(0x08788e59, "e92601000090"); // Prevents Full Screen set from the game
-
-        patchMemory(0x08441f99, "eb60"); // tickInitAddress
-
-        // Mesa Patches
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x0807a3f0, gl_MultiTexCoord2fARB);
-            detourFunction(0x0807a470, gl_Color4ub);
-            detourFunction(0x0807a6b0, gl_Vertex3f);
-            detourFunction(0x0807ae10, gl_TexCoord2f);
-            detourFunction(0x0807aed0, cg_GLIsProfileSupported);
-            patchMemory(0x087444ff, "9090");
-            cacheModedShaderFiles();
-        }
-
-        detourFunction(0x08388cb4, stubRetOne); // isExistNewerSource
-        detourFunction(0x0807b370, gl_XGetProcAddressARB);
-        patchMemory(0x0874433e, "00"); // Fix cutscenes
-    }
-    break;
-    case INITIALD_5_JAP_REVF: // ID5 - DVP-0070F
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x093e52d4, 2);              // amBackupDebugLevel
-            setVariable(0x093e52e0, 2);              // amCreditDebugLevel
-            setVariable(0x093e5538, 2);              // amDipswDebugLevel
-            setVariable(0x093e553c, 2);              // amDongleDebugLevel
-            setVariable(0x093e5540, 2);              // amEepromDebugLevel
-            setVariable(0x093e5544, 2);              // amHwmonitorDebugLevel
-            setVariable(0x093e5548, 2);              // amJvsDebugLevel
-            setVariable(0x093e554c, 2);              // amLibDebugLevel
-            setVariable(0x093e5550, 2);              // amMiscDebugLevel
-            setVariable(0x093e5558, 2);              // amSysDataDebugLevel
-            setVariable(0x093e5560, 2);              // bcLibDebugLevel
-            setVariable(0x093e5554, 2);              // amOsinfoDebugLevel
-            setVariable(0x093e5564, 0x0FFFFFFF);     // s_logMask
-            detourFunction(0x0875f0a8, _putConsoleSeparate); // Debug Messages
-        }
-        // Security
-        detourFunction(0x08937b71, amDongleInit);
-        detourFunction(0x089363fd, amDongleIsAvailable);
-        detourFunction(0x08936f1e, amDongleUpdate);
-        detourFunction(0x08937a37, amDongleUserInfoEx);
-        memcpy(elfID, (void *)0x084fa2e2, 4); // Get gameID from the ELF
-        patchMemory(0x084fa2bc, "00");        // Patch KEYCHECK
-        // Fixes
-        amDipswContextAddr = (void *)0x09415388;
-        detourFunction(0x08936190, amDipswInit);
-        detourFunction(0x08936214, amDipswExit);
-        detourFunction(0x08936289, amDipswGetData);
-        detourFunction(0x089362ff, amDipswSetLed); // amDipswSetLed
-        detourFunction(0x08330368, stubRetOne);    // isEthLinkUp
-        patchMemory(0x084519ee, "C0270900");       // tickInitStoreNetwork
-        // patchMemory(0x08452848, "e991000000");     // tickWaitDHCP
-        detourFunction(0x08316392, stubRetOne);  // Skip Kickback initialization
-        detourFunction(0x084f67ce, stubRetZero); // doesNeedRollerCleaning
-        detourFunction(0x084f67ea, stubRetZero); // doesNeedStockerCleaning
-
-        patchMemory(0x08451501, "c7c300030000"); // Moves Initializing text
-        patchMemory(0x0850ffd0, "00");           // Network init just once
-        patchMemory(0x08a098ac, "95");           // Skips initialization
-        patchMemory(0x087a2cc9, "e92601000090"); // Prevents Full Screen set from the game
-
-        patchMemory(0x0845493b, "eb60");         // tickInitAddress
-        detourFunction(0x0893dd02, stubRetZero); // amOsinfoExecDhcpNic
-        detourFunction(0x0850fba0, stubRetZero); // isUseServerBox
-
-        // Mesa Patches
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x0807a42c, gl_MultiTexCoord2fARB);
-            detourFunction(0x0807a4ac, gl_Color4ub);
-            detourFunction(0x0807a6ec, gl_Vertex3f);
-            detourFunction(0x0807ae4c, gl_TexCoord2f);
-            detourFunction(0x0807af0c, cg_GLIsProfileSupported);
-            patchMemory(0x0875e36f, "9090");
-            cacheModedShaderFiles();
-        }
-
-        detourFunction(0x08397aa4, stubRetOne); // isExistNewerSource
-        detourFunction(0x0807b3bc, gl_XGetProcAddressARB);
-        patchMemory(0x0875e1ae, "00"); // Fix cutscenes
-    }
-    break;
-    case SEGABOOT_2_4_SYM:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x0808da48, 2);          // amAdtecDebugLevel
-            setVariable(0x0808cf8c, 2);          // amAtaDebugLevel
-            setVariable(0x0808cf90, 2);          // amBackupDebugLevel
-            setVariable(0x0808cf94, 2);          // amChunkDataDebugLevel
-            setVariable(0x0808cfa0, 2);          // amCreditDebugLevel
-            setVariable(0x0808d1f8, 2);          // amDipswDebugLevel
-            setVariable(0x0808d1fc, 2);          // amDiskDebugLevel
-            setVariable(0x0808d200, 2);          // amDongleDebugLevel
-            setVariable(0x0808d204, 2);          // amEepromDebugLevel
-            setVariable(0x0808d208, 2);          // amHmDebugLevel
-            setVariable(0x0808d210, 2);          // amJvsDebugLevel
-            setVariable(0x0808d214, 2);          // amLibDebugLevel
-            setVariable(0x0808d218, 2);          // amMiscDebugLevel
-            setVariable(0x0808d21c, 2);          // amSysDataDebugLevel
-            setVariable(0x0808d220, 2);          // bcLibDebugLevel
-            setVariable(0x0808cf58, 2);          // g_DebugLevel
-            setVariable(0x0808d224, 0x0FFFFFFF); // logmask
-        }
-
-        detourFunction(0x0805e8b0, amDongleInit);
-        detourFunction(0x0805ebc3, amDongleIsAvailable);
-        detourFunction(0x0805eb2a, amDongleUpdate);
-        detourFunction(0x0805c30b, amDipswGetData);
-    }
-    break;
     case VIRTUA_TENNIS_3:
     {
         if (config->showDebugMessages == 1)
@@ -2750,489 +3236,6 @@ int initPatch()
             detourFunction(0x0804cdc4, gl_TexCoord2f);
             patchMemory(0x0806a0ca, "31FF90");
             cacheModedShaderFiles();
-        }
-    }
-    break;
-    case RAMBO:
-    {
-        // Security
-        detourFunction(0x082c4746, amDongleInit);
-        detourFunction(0x082c3201, amDongleIsAvailable);
-        detourFunction(0x082c3bf7, amDongleUpdate);
-        detourFunction(0x082c460d, amDongleUserInfoEx);
-        detourFunction(0x082c321e, amDongleIsDevelop);
-        detourFunction(0x080e4262, stubRetZero);
-        detourFunction(0x080e3e94, stubRetZero);
-        patchMemory(0x080e3f1d, "EB");
-        patchMemory(0x080e3f79, "01");
-        patchMemory(0x080e3e2e, "EB");
-        // Fixes
-        amDipswContextAddr = (void *)0x082c2f94;
-        detourFunction(0x082c2f94, amDipswInit);
-        detourFunction(0x082c3018, amDipswExit);
-        detourFunction(0x082c308d, amDipswGetData);
-        detourFunction(0x082c3103, amDipswSetLed);
-        cacheModedShaderFiles();
-        // Mesa Patches
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            loadLibCg();
-            cacheNnstdshader();
-            patchMemory(0x08200c17, "9090909090");                     // Stop the folder rename
-            patchMemory(0x084173e7, "66732f636f6d70696c65646d657361"); // Change folder to compiledshdmesa
-            patchMemory(0x080b3d71, "01");                             // Compile using CGC
-            replaceCallAtAddress(0x082015bf, compileWithCGC);
-            replaceCallAtAddress(0x082012c1, compileWithCGC);
-            // patchMemory(0x080b3d65, "00"); // Force recompile shaders
-        }
-    }
-    break;
-    case TOO_SPICY:
-    {
-        // Security
-        detourFunction(0x0831cf02, amDongleInit);
-        detourFunction(0x0831b94d, amDongleIsAvailable);
-        detourFunction(0x0831c3b1, amDongleUpdate);
-        patchMemory(0x081f7f8f, "9090");
-        patchMemory(0x081f7fa7, "9090909090909090");
-        patchMemory(0x081f7fb0, "01");
-        patchMemory(0x081f7fb4, "909090");
-        patchMemory(0x08210f27, "9090");
-        patchMemory(0x08210f3c, "9090909090909090");
-        patchMemory(0x08210f45, "01");
-        patchMemory(0x08210f49, "909090");
-        // Fixes
-        amDipswContextAddr = (void *)0x0c8ed0cc;
-        detourFunction(0x08318f84, amDipswInit);
-        detourFunction(0x08319008, amDipswExit);
-        detourFunction(0x0831907d, amDipswGetData);
-        detourFunction(0x083190f4, amDipswSetLed);
-        detourFunction(0x081f7dba, stubRetOne); // CheckApplicationValid
-
-        // CPU patch to support AMD processors
-        patchMemory(0x08202a51, "9090909090"); //__intel_new_proc_init_P
-
-        // unlock characters
-        detourFunction(0x081cbcd2, stubRetOne);
-
-        // Mesa Patches
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            loadLibCg();
-            cacheNnstdshader();
-            patchMemory(0x081ef9d8, "01");         // Force the game to recompile the shaders using cgc
-            patchMemory(0x08413f04, "646d657361"); // Changes compiledshader folder to compiledshdmesa
-            cacheModedShaderFiles();
-            replaceCallAtAddress(0x08259fe5, compileWithCGC);
-            replaceCallAtAddress(0x0825a089, compileWithCGC);
-        }
-    }
-    break;
-    case TOO_SPICY_TEST:
-    {
-        // Security
-        detourFunction(0x0806a286, amDongleInit);
-        detourFunction(0x08068cd1, amDongleIsAvailable);
-        detourFunction(0x08069735, amDongleUpdate);
-        patchMemory(0x08056989, "9090");
-        patchMemory(0x080569a7, "01");
-        patchMemory(0x080569ab, "909090");
-        // Fixes
-        amDipswContextAddr = (void *)0x080a9988; // Address of amDipswContext
-        detourFunction(0x08068a64, amDipswInit);
-        detourFunction(0x08068ae8, amDipswExit);
-        detourFunction(0x08068b5d, amDipswGetData);
-        detourFunction(0x08068bd4, amDipswSetLed);
-
-        // CPU patch to support AMD processors
-        patchMemory(0x080564c8, "9090909090"); //__intel_new_proc_init_P
-    }
-    break;
-    case PRIMEVAL_HUNT:
-    {
-        // Security
-        detourFunction(0x08141770, amDongleInit);
-        detourFunction(0x08140229, amDongleIsAvailable);
-        detourFunction(0x08140c1f, amDongleUpdate);
-        patchMemory(0x08055264, "EB");
-        // Fixes
-        amDipswContextAddr = (void *)0x0a96d488; // Address of amDipswContext
-        detourFunction(0x0813ffbc, amDipswInit);
-        detourFunction(0x08140040, amDipswExit);
-        detourFunction(0x081400b5, amDipswGetData);
-        detourFunction(0x0814012c, stubRetZero);
-        patchMemory(0x08052cb2, "9090909090");
-        cacheModedShaderFiles();
-    }
-    break;
-    case GHOST_SQUAD_EVOLUTION:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            // Debug
-            detourFunction(0x080984fe, _putConsole);
-        }
-        // Security
-        detourFunction(0x08183046, amDongleInit);
-        detourFunction(0x08181a91, amDongleIsAvailable);
-        detourFunction(0x081824f5, amDongleUpdate);
-        detourFunction(0x080e7ee8, stubRetOne); // stub check_dongle_validate
-        patchMemory(0x080e7db2, "01");
-        // Fixes
-        amDipswContextAddr = (void *)0x0aeafc28; // Address of amDipswContext
-        detourFunction(0x08181824, amDipswInit);
-        detourFunction(0x081818a8, amDipswExit);
-        detourFunction(0x0818191d, amDipswGetData);
-        detourFunction(0x08181994, stubRetZero);
-        patchMemory(0x080f37dd, "75"); // patch to prevent memory assignment error
-        // Stop the extra inputs by removing io_glut_init
-        detourFunction(0x080e7f94, stubRetZero);
-
-        cacheModedShaderFiles();
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            gsEvoElfShaderPatcher();
-            detourFunction(0x0804c334, gl_ProgramStringARB);
-        }
-    }
-    break;
-    case HARLEY_DAVIDSON:
-    {
-        // Security
-        detourFunction(0x08395ede, amDongleInit);
-        detourFunction(0x083949b6, amDongleIsDevelop);
-        detourFunction(0x0818ba08, stubRetZero);
-        detourFunction(0x0818b9ce, stubRetZero);
-
-        // Fixes
-        amDipswContextAddr = (void *)0x0abe35a8;
-        detourFunction(0x0839472c, amDipswInit);
-        detourFunction(0x083947b0, amDipswExit);
-        detourFunction(0x08394825, amDipswGetData);
-        detourFunction(0x08395da5, amDongleUserInfoEx);
-
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            cacheModedShaderFiles();
-            loadLibCg();
-            cacheNnstdshader();
-            patchMemory(0x082d4437, "9090909090");                     // Stop the folder rename
-            patchMemory(0x088a6127, "66732f636f6d70696c65646d657361"); // Change folder to compiledshdmesa
-            patchMemory(0x082646b3, "01");                             // Compile using CGC
-            replaceCallAtAddress(0x082d48ac, compileWithCGC);
-            replaceCallAtAddress(0x082d4b3b, compileWithCGC);
-        }
-        // Turns off the opponent marker at higher resolutions because it is out of place.
-        if (getConfig()->width > 1360)
-            detourFunction(0x080f19a6, stubRetZero);
-    }
-    break;
-    case HUMMER:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x0a6e9fac, 2); // amBackupDebugLevel
-            setVariable(0x0a6e9fc0, 2); // amCreditDebugLevel
-            setVariable(0x0a6ea218, 2); // amDipswDebugLevel
-            setVariable(0x0a6ea21c, 2); // amDongleDebugLevel
-            setVariable(0x0a6ea220, 2); // amEepromDebugLevel
-            setVariable(0x0a6ea224, 2); // amHwmonitorDebugLevel
-            setVariable(0x0a6ea228, 2); // amJvsDebugLevel
-            setVariable(0x0a6ea22c, 2); // amLibDebugLevel
-            setVariable(0x0a6ea230, 2); // amMiscDebugLevel
-            setVariable(0x0a6ea234, 2); // amOsinfoDebugLevel
-            setVariable(0x0a6ea238, 2); // amSysDataDebugLevel
-            setVariable(0x0a6ea240, 2); // bcLibDebugLevel
-        }
-
-        // Security
-        detourFunction(0x083dcbf6, amDongleInit);
-        detourFunction(0x083db641, amDongleIsAvailable);
-        detourFunction(0x083dc0a5, amDongleUpdate);
-        detourFunction(0x083db65e, amDongleIsDevelop);
-        detourFunction(0x083dcabd, amDongleUserInfoEx);
-        detourFunction(0x080f4e04, stubRetMinusOne);   // checkError
-        detourFunction(0x083dc5aa, amDongleDecryptEx); // Return 0
-        detourFunction(0x083dbddd, amDongleSetIv);     // Retrun 0
-
-        // Security Board
-        amDipswContextAddr = (void *)0x0a6f2c88;
-        detourFunction(0x083db3d4, amDipswInit);
-        detourFunction(0x083db458, amDipswExit);
-        detourFunction(0x083db4cd, amDipswGetData);
-        detourFunction(0x083db544, amDipswSetLed);
-
-        // Networking
-        detourFunction(0x083e339d, stubRetZero); // amOsinfoModifyNetworkAdr
-        detourFunction(0x083e3a2f, stubRetZero); // amOsinfoModifyNetworkProperty
-
-        // While we can't get into the test menu, immidiately return from the
-        // call to clSteerErrorDisp::run that complains about the calibration
-        // values.
-        patchMemory(0x082e8f48, "C3");
-        // Fixes Black screen after finishing the race
-        patchMemory(0x08078b4c, "C3");
-
-        detourFunction(0x082b5e4a, stubReturn); // adx_err_callback
-        detourFunction(0x082d199c, stubReturn); // clSerialLindbergh::send
-        detourFunction(0x082d1ab4, stubReturn); // clSerialLindbergh::receive
-
-        // Shader patching
-        cacheModedShaderFiles();
-        detourFunction(0x0804f480, gl_XGetProcAddressARB);
-    }
-    break;
-    case HUMMER_SDLX:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x0a6eac0c, 2); // amBackupDebugLevel
-            setVariable(0x0a6eac20, 2); // amCreditDebugLevel
-            setVariable(0x0a6eae78, 2); // amDipswDebugLevel
-            setVariable(0x0a6eae7c, 2); // amDongleDebugLevel
-            setVariable(0x0a6eae80, 2); // amEepromDebugLevel
-            setVariable(0x0a6eae84, 2); // amHwmonitorDebugLevel
-            setVariable(0x0a6eae88, 2); // amJvsDebugLevel
-            setVariable(0x0a6eae8c, 2); // amLibDebugLevel
-            setVariable(0x0a6eae90, 2); // amMiscDebugLevel
-            setVariable(0x0a6eae94, 2); // amOsinfoDebugLevel
-            setVariable(0x0a6eae98, 2); // amSysDataDebugLevel
-            setVariable(0x0a6eaea0, 2); // bcLibDebugLevel
-        }
-
-        // Security
-        detourFunction(0x083dd7d2, amDongleInit);
-        detourFunction(0x083dc21d, amDongleIsAvailable);
-        detourFunction(0x083dcc81, amDongleUpdate);
-        detourFunction(0x083dc23a, amDongleIsDevelop);
-        detourFunction(0x083dd699, amDongleUserInfoEx);
-        detourFunction(0x080f4ea8, stubRetMinusOne);   // checkError
-        detourFunction(0x083dd186, amDongleDecryptEx); // Return 0
-        detourFunction(0x083dc9b9, amDongleSetIv);     // Retrun 0
-
-        // Security Board
-        amDipswContextAddr = (void *)0x0a6f38e8;
-        detourFunction(0x083dbfb0, amDipswInit);
-        detourFunction(0x083dc034, amDipswExit);
-        detourFunction(0x083dc0a9, amDipswGetData);
-        detourFunction(0x083dc120, amDipswSetLed);
-
-        // Networking
-        detourFunction(0x083e3f79, stubRetZero); // amOsinfoModifyNetworkAdr
-        detourFunction(0x083e460b, stubRetZero); // amOsinfoModifyNetworkProperty
-
-        // While we can't get into the test menu, immidiately return from the
-        // call to clSteerErrorDisp::run that complains about the calibration
-        // values.
-        patchMemory(0x082e99ec, "C3");
-        // Fixes Black screen after finishing the race
-        patchMemory(0x08078b84, "C3");
-
-        detourFunction(0x082b650a, stubReturn); // adx_err_callback
-        detourFunction(0x082d2414, stubReturn); // clSerialLindbergh::send
-        detourFunction(0x082d252c, stubReturn); // clSerialLindbergh::receive
-
-        // Shader patching
-        cacheModedShaderFiles();
-        detourFunction(0x0804f480, gl_XGetProcAddressARB);
-    }
-    break;
-    case HUMMER_EXTREME:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x0a79a834, 2); // amAdtecDebugLevel
-            setVariable(0x0a79a838, 2); // amAtaDebugLevel
-            setVariable(0x0a79a83c, 2); // amBackupDebugLevel
-            setVariable(0x0a79a840, 2); // amCreditDebugLevel
-            setVariable(0x0a79aa98, 2); // amDipswDebugLevel
-            setVariable(0x0a79aa9c, 2); // amDongleDebugLevel
-            setVariable(0x0a79aaa0, 2); // amEepromDebugLevel
-            setVariable(0x0a79aaa4, 2); // amHwmonitorDebugLevel
-            setVariable(0x0a79aaa8, 2); // amJvsDebugLevel
-            setVariable(0x0a79aaac, 2); // amLibDebugLevel
-            setVariable(0x0a79aab0, 2); // amMiscDebugLevel
-            setVariable(0x0a79aab4, 2); // amOsinfoDebugLevel
-            setVariable(0x0a79a830, 2); // amsLibDebugLevel
-            setVariable(0x0a79aab8, 2); // amSysDataDebugLevel
-            setVariable(0x0a79aac0, 2); // bcLibDebugLevel
-        }
-
-        // Security
-        detourFunction(0x0831c0d1, amDongleInit);
-        detourFunction(0x0831a95d, amDongleIsAvailable);
-        detourFunction(0x0831b47e, amDongleUpdate);
-        detourFunction(0x0831a97a, amDongleIsDevelop);
-        detourFunction(0x0831bf97, amDongleUserInfoEx);
-        detourFunction(0x0831668c, stubRetZero);       // amsInit
-        detourFunction(0x08170654, stubRetMinusOne);   // checkError
-        detourFunction(0x0831b982, amDongleDecryptEx); // Return 0
-        detourFunction(0x0831b08b, amDongleSetIv);     // Retrun 0
-        patchMemory(0x082b4d51, "00");
-        patchMemory(0x082b5163, "00");
-        patchMemory(0x082b5306, "00");
-        patchMemory(0x082b570f, "00");
-        patchMemory(0x082b57c8, "909090909090");
-
-        // Security Board
-        amDipswContextAddr = (void *)0x0a7aefe8;
-        detourFunction(0x0831a6f0, amDipswInit);
-        detourFunction(0x0831a774, amDipswExit);
-        detourFunction(0x0831a7e9, amDipswGetData);
-        detourFunction(0x0831a85f, amDipswSetLed);
-
-        // Networking
-        detourFunction(0x08323886, stubRetZero); // amOsinfoModifyNetworkAdr
-        detourFunction(0x0832386b, stubRetZero); // amOsinfoModifyNetworkProperty
-
-        // While we can't get into the test menu, immidiately return from the
-        // call to clSteerErrorDisp::run that complains about the calibration
-        // values.
-        patchMemory(0x080e8b40, "C3");
-        // Fixes Black screen after finishing the race
-        patchMemory(0x0811d0c0, "C3");
-
-        // Shader patching
-        cacheModedShaderFiles();
-        detourFunction(0x0807a9dc, gl_XGetProcAddressARB);
-    }
-    break;
-    case HUMMER_EXTREME_MDX:
-    {
-        if (config->showDebugMessages == 1)
-        {
-            setVariable(0x0a7ae7b4, 2); // amAdtecDebugLevel
-            setVariable(0x0a7ae7b8, 2); // amAtaDebugLevel
-            setVariable(0x0a7ae7bc, 2); // amBackupDebugLevel
-            setVariable(0x0a7ae7c0, 2); // amCreditDebugLevel
-            setVariable(0x0a7aea18, 2); // amDipswDebugLevel
-            setVariable(0x0a7aea1c, 2); // amDongleDebugLevel
-            setVariable(0x0a7aea20, 2); // amEepromDebugLevel
-            setVariable(0x0a7aea24, 2); // amHwmonitorDebugLevel
-            setVariable(0x0a7aea28, 2); // amJvsDebugLevel
-            setVariable(0x0a7aea2c, 2); // amLibDebugLevel
-            setVariable(0x0a7aea30, 2); // amMiscDebugLevel
-            setVariable(0x0a7aea34, 2); // amOsinfoDebugLevel
-            setVariable(0x0a7ae7b0, 2); // amsLibDebugLevel
-            setVariable(0x0a7aea38, 2); // amSysDataDebugLevel
-            setVariable(0x0a7aea40, 2); // bcLibDebugLevel
-        }
-
-        // Security
-        detourFunction(0x0832b411, amDongleInit);
-        detourFunction(0x08329c9d, amDongleIsAvailable);
-        detourFunction(0x0832a7be, amDongleUpdate);
-        detourFunction(0x08329cba, amDongleIsDevelop);
-        detourFunction(0x0832b2d7, amDongleUserInfoEx);
-        detourFunction(0x083259cc, stubRetZero);       // amsInit
-        detourFunction(0x0817a0b6, stubRetMinusOne);   // checkError
-        detourFunction(0x0832acc2, amDongleDecryptEx); // Return 0
-        detourFunction(0x0832a3cb, amDongleSetIv);     // Retrun 0
-        patchMemory(0x082c2465, "00");
-        patchMemory(0x082c2877, "00");
-        patchMemory(0x082c2a16, "00");
-        patchMemory(0x082c2e1f, "00");
-        patchMemory(0x082c2ed8, "909090909090");
-
-        patchMemory(0x080de537, "909090909090");
-
-        // Security Board
-        amDipswContextAddr = (void *)0x0a7c2f68;
-        detourFunction(0x08329a30, amDipswInit);
-        detourFunction(0x08329ab4, amDipswExit);
-        detourFunction(0x08329b29, amDipswGetData);
-        detourFunction(0x08329b9f, amDipswSetLed);
-
-        // Networking
-        detourFunction(0x08332bc6, stubRetZero); // amOsinfoModifyNetworkAdr
-        detourFunction(0x08332bab, stubRetZero); // amOsinfoModifyNetworkProperty
-
-        // While we can't get into the test menu, immidiately return from the
-        // call to clSteerErrorDisp::run that complains about the calibration
-        // values.
-        patchMemory(0x080ebe20, "C3");
-        // Fixes Black screen after finishing the race
-        patchMemory(0x081260f0, "C3");
-
-        // Shader patching
-        cacheModedShaderFiles();
-        detourFunction(0x0807a9dc, gl_XGetProcAddressARB);
-    }
-    break;
-    case MJ4_REVG:
-    {
-        setVariable(0x0acf85d4, 2);
-        setVariable(0x0acf85d0, 2);
-        setVariable(0x0acf85cc, 2);
-        setVariable(0x0acf85c8, 2);
-        setVariable(0x0acf85c0, 2);
-        setVariable(0x0acf85bc, 2);
-
-        // Security
-        detourFunction(0x08710c0a, amDongleInit);
-        detourFunction(0x0870f6c5, amDongleIsAvailable);
-        detourFunction(0x0870f6e2, amDongleIsDevelop);
-        detourFunction(0x087100bb, amDongleUpdate);
-
-        // Fixes and patches to bypss network check
-        amDipswContextAddr = (void *)0x0ad224fc; // Address of amDipswContext
-        detourFunction(0x0870f458, amDipswInit);
-        detourFunction(0x0870f4dc, amDipswExit);
-        detourFunction(0x0870f551, amDipswGetData);
-        detourFunction(0x0870f5c7, amDipswSetLed);
-
-        // detourFunction(0x080e286a, stubRetZero); // skip checks
-        // detourFunction(0x080ed7f8, stubRetZero);
-        // patchMemory(0x080e954b, "75");
-        // patchMemory(0x08a4cb90, "00");
-        // patchMemory(0x080e955d, "909090909090"); // test skip countdown
-
-        // setVariable(0x08534a33, 30);
-        // setVariable(0x08534a42, 2);
-
-        patchMemory(0x080e2891, "eb");
-        patchMemory(0x080ea049, "05");
-        patchMemory(0x08a4cb90, "00");
-
-        patchMemory(0x0872bc4d, "2e2f72616d2f746f2e74787400");     // Patch /home/disk2 folder
-        patchMemory(0x0872bc64, "2e2f72616d2f66726f6d2e74787400"); // Patch /home/disk2 folder
-        patchMemory(0x0872bc7d, "2e2f72616d2f2e746d7000");         // Patch /home/disk2 folder
-        patchMemory(0x0872bccd, "2e2f72616d00");                   // Patch /home/disk2 folder
-        patchMemory(0x0872bcdd, "2e2f666f6f3100");                 // Patch /home/disk2 folder
-        patchMemory(0x0872bcee, "2e2f666f6f3200");                 // Patch /home/disk2 folder
-        patchMemory(0x0872f3de, "2e2f72616d2f746d7000");           // Patch /home/disk2 folder
-        patchMemory(0x08732fd3, "2e2f00");                         // Patch /home/disk2 folder
-
-        // Mesa Patches
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x08050ebc, gl_ProgramStringARB);
-        }
-    }
-    break;
-    case MJ4_EVO:
-    {
-        detourFunction(0x08840b61, amDongleInit);
-        detourFunction(0x0883f3ed, amDongleIsAvailable);
-        detourFunction(0x0883f40a, amDongleIsDevelop);
-        detourFunction(0x0883ff0e, amDongleUpdate);
-
-        // Fixes and patches to bypss network check
-        amDipswContextAddr = (void *)0x0af8ff3c; // Address of amDipswContext
-        detourFunction(0x0883f180, amDipswInit);
-        detourFunction(0x0883f204, amDipswExit);
-        detourFunction(0x0883f279, amDipswGetData);
-        detourFunction(0x0883f2ef, amDipswSetLed);
-
-        patchMemory(0x080ea0d1, "909090909090");
-        detourFunction(0x080e327c, stubRetZero); // skip checks
-        detourFunction(0x080ee4fa, stubRetZero);
-        patchMemory(0x080ea0bf, "75");
-        patchMemory(0x08c035b8, "00");
-
-        if (getConfig()->GPUVendor != NVIDIA_GPU)
-        {
-            detourFunction(0x08051314, gl_ProgramStringARB);
         }
     }
     break;

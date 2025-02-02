@@ -1,4 +1,4 @@
-#include <limits.h>
+#include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,6 +41,28 @@ const char* GpuTypeStrings [] = {
     "ERROR_GPU"
 };
 
+/**
+ * Function to calculate CRC32 checksum in memory.
+ */
+uint32_t get_crc32(const char *s, ssize_t n)
+{
+    uint32_t crc = 0xFFFFFFFF;
+
+    for (size_t i = 0; i < n; i++)
+    {
+        char ch = s[i];
+        for (size_t j = 0; j < 8; j++)
+        {
+            uint32_t b = (ch ^ crc) & 1;
+            crc >>= 1;
+            if (b)
+                crc = crc ^ 0xEDB88320;
+            ch >>= 1;
+        }
+    }
+    return ~crc;
+}
+
 static char *getNextToken(char *buffer, char *seperator, char **saveptr)
 {
     char *token = strtok_r(buffer, seperator, saveptr);
@@ -62,370 +84,6 @@ static int detectGame(uint32_t elf_crc)
 
     switch (elf_crc)
     {
-
-    case SEGABOOT_2_4:
-    {
-        config.gameTitle = "Segaboot 2.4";
-        config.gameStatus = WORKING;
-        return 0;
-    }
-    break;
-
-    case SEGABOOT_2_4_SYM:
-    {
-        config.gameTitle = "Segaboot 2.4 with symbols";
-        config.gameStatus = WORKING;
-        return 0;
-    }
-    break;
-
-    case THE_HOUSE_OF_THE_DEAD_4_REVA:
-    case THE_HOUSE_OF_THE_DEAD_4_REVA_TEST:
-    {
-        config.gameTitle = "The House of the Dead 4 Rev A";
-        config.gameID = "SBLC";
-        config.gameDVP = "DVP-0003A";
-        config.gameReleaseYear = "2005";
-        config.gameNativeResolutions = "640x480, 1280x768";
-        config.gameType = SHOOTING;
-        config.gameStatus = WORKING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case THE_HOUSE_OF_THE_DEAD_4_REVB:
-    case THE_HOUSE_OF_THE_DEAD_4_REVB_TEST:
-    {
-        config.gameTitle = "The House of the Dead 4 Rev B";
-        config.gameID = "SBLC";
-        config.gameDVP = "DVP-0003B";
-        config.gameReleaseYear = "2005";
-        config.gameNativeResolutions = "640x480, 1280x768";
-        config.gameType = SHOOTING;
-        config.gameStatus = WORKING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case THE_HOUSE_OF_THE_DEAD_4_REVC:
-    case THE_HOUSE_OF_THE_DEAD_4_REVC_TEST:
-    {
-        config.gameTitle = "The House of the Dead 4 Rev C";
-        config.gameID = "SBLC";
-        config.gameDVP = "DVP-0003C";
-        config.gameReleaseYear = "2005";
-        config.gameNativeResolutions = "640x480, 1280x768";
-        config.gameType = SHOOTING;
-        config.gameStatus = WORKING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case THE_HOUSE_OF_THE_DEAD_4_SPECIAL:
-    case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_TEST:
-    {
-        config.gameTitle = "The House of the Dead 4 Special";
-        config.emulateRideboard = 1;
-        config.gameID = "SBLS";
-        config.gameDVP = "DVP-0010";
-        config.gameReleaseYear = "2006";
-        config.gameNativeResolutions = "1024x768";
-        config.gameStatus = WORKING;
-        config.gameType = SHOOTING;
-        config.width = 1024;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB:
-    case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB_TEST:
-    {
-        config.gameTitle = "The House of the Dead 4 Special Rev B";
-        config.emulateRideboard = 1;
-        config.gameID = "SBLS";
-        config.gameDVP = "DVP-0010B";
-        config.gameReleaseYear = "2006";
-        config.gameNativeResolutions = "1024x768";
-        config.gameStatus = WORKING;
-        config.gameType = SHOOTING;
-        config.width = 1024;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case THE_HOUSE_OF_THE_DEAD_EX:
-    case THE_HOUSE_OF_THE_DEAD_EX_TEST:
-
-    {
-        config.gameTitle = "Ai Sareruyori Ai Shitai: The House of the Dead EX";
-        config.gameStatus = WORKING;
-        config.gameType = SHOOTING;
-        config.gameID = "SBRC";
-        config.gameDVP = "DVP-0063";
-        config.gameReleaseYear = "2008";
-        config.gameNativeResolutions = "1280x768";
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case OUTRUN_2_SP_SDX_REVA:
-    case OUTRUN_2_SP_SDX_REVA_TEST:
-    case OUTRUN_2_SP_SDX_REVA_TEST2:
-    {
-        config.gameTitle = "Outrun 2 SP SDX Rev A";
-        config.gameDVP = "DVP-0015A";
-        config.gameID = "SBMB";
-        config.gameReleaseYear = "2006";
-        config.gameNativeResolutions = "800x480";
-        config.emulateDriveboard = 1;
-        config.emulateMotionboard = 1;
-        config.gameStatus = WORKING;
-        config.gameType = DRIVING;
-        config.width = 800;
-        config.height = 480;
-        return 0;
-    }
-    break;
-
-    case OUTRUN_2_SP_SDX:
-    case OUTRUN_2_SP_SDX_TEST:
-    {
-        config.gameTitle = "Outrun 2 SP SDX";
-        config.gameDVP = "DVP-0015";
-        config.gameID = "SBMB";
-        config.gameReleaseYear = "2006";
-        config.gameNativeResolutions = "800x480";
-        config.emulateDriveboard = 1;
-        config.emulateMotionboard = 1;
-        config.gameStatus = WORKING;
-        config.gameType = DRIVING;
-        config.width = 800;
-        config.height = 480;
-        return 0;
-    }
-    break;
-
-    case VIRTUA_FIGHTER_5:
-    {
-        config.gameTitle = "Virtua Fighter 5";
-        config.gameDVP = "DVP-0008";
-        config.gameID = "SBLM";
-        config.gameReleaseYear = "2005";
-        config.gameNativeResolutions = "1280x768";
-        config.gameStatus = WORKING;
-        config.gameType = FIGHTING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case VIRTUA_FIGHTER_5_REVA:
-    {
-        config.gameTitle = "Virtua Fighter 5 Rev A";
-        config.gameDVP = "DVP-0008A";
-        config.gameID = "SBLM";
-        config.gameReleaseYear = "2005";
-        config.gameNativeResolutions = "1280x768";
-        config.gameStatus = WORKING;
-        config.gameType = FIGHTING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case VIRTUA_FIGHTER_5_REVB:
-    {
-        config.gameTitle = "Virtua Fighter 5 Rev B";
-        config.gameDVP = "DVP-0008B";
-        config.gameID = "SBLM";
-        config.gameReleaseYear = "2005";
-        config.gameNativeResolutions = "1280x768";
-        config.gameStatus = WORKING;
-        config.gameType = FIGHTING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case VIRTUA_FIGHTER_5_REVE:
-    {
-        config.gameTitle = "Virtua Fighter 5 Rev E (Public Version C)";
-        config.gameDVP = "DVP-0008E";
-        config.gameID = "SBLM";
-        config.gameReleaseYear = "2005";
-        config.gameNativeResolutions = "1280x768";
-        config.gameStatus = WORKING;
-        config.gameType = FIGHTING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case VIRTUA_FIGHTER_5_EXPORT:
-    {
-        config.gameTitle = "Virtua Fighter 5 Export";
-        config.gameDVP = "DVP-0043";
-        config.gameID = "SBLM";
-        config.gameReleaseYear = "2005";
-        config.gameNativeResolutions = "1280x768";
-        config.gameStatus = WORKING;
-        config.gameType = FIGHTING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case VIRTUA_FIGHTER_5_R:
-    {
-        config.gameTitle = "Virtua Fighter 5 R";
-        config.gameDVP = "DVP-XXXX";
-        config.gameID = "SBQU";
-        config.gameReleaseYear = "2008";
-        config.gameNativeResolutions = "1280x768";
-        config.gameStatus = WORKING;
-        config.gameType = FIGHTING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case VIRTUA_FIGHTER_5_R_REVD:
-    {
-        config.gameTitle = "Virtua Fighter 5 R Rev D";
-        config.gameDVP = "DVP-XXXX";
-        config.gameID = "SBQU";
-        config.gameReleaseYear = "2008";
-        config.gameNativeResolutions = "1280x768";
-        config.gameStatus = WORKING;
-        config.gameType = FIGHTING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case VIRTUA_FIGHTER_5_R_REVG:
-    {
-        config.gameTitle = "Virtua Fighter 5 R Rev G";
-        config.gameDVP = "DVP-XXXX";
-        config.gameID = "SBQU";
-        config.gameReleaseYear = "2008";
-        config.gameNativeResolutions = "1280x768";
-        config.gameStatus = WORKING;
-        config.gameType = FIGHTING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-	
-    case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN:
-    {
-        config.gameTitle = "Virtua Fighter 5 Final Showdown";
-        config.gameDVP = "DVP-SBUV";
-        config.gameID = "SBUV";
-        config.gameReleaseYear = "2010";
-        config.gameNativeResolutions = "1280x768";
-        config.gameType = FIGHTING;
-        config.gameStatus = WORKING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVA:
-    {
-        config.gameTitle = "Virtua Fighter 5 Final Showdown REV A";
-        config.gameDVP = "DVP-5019A";
-        config.gameID = "SBUV";
-        config.gameReleaseYear = "2010";
-        config.gameNativeResolutions = "1280x768";
-        config.gameType = FIGHTING;
-        config.gameStatus = WORKING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB:
-    {
-        config.gameTitle = "Virtua Fighter 5 Final Showdown REV B";
-        config.gameDVP = "DVP-5020";
-        config.gameID = "SBXX";
-        config.gameReleaseYear = "2010";
-        config.gameNativeResolutions = "1280x768";
-        config.gameType = FIGHTING;
-        config.gameStatus = WORKING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB_6000:
-    {
-        config.gameTitle = "Virtua Fighter 5 Final Showdown REV B ver 6.0000";
-        config.gameDVP = "DVP-5020";
-        config.gameID = "SBXX";
-        config.gameReleaseYear = "2010";
-        config.gameNativeResolutions = "1280x768";
-        config.gameType = FIGHTING;
-        config.gameStatus = WORKING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case LETS_GO_JUNGLE:
-    {
-        config.gameTitle = "Let's Go Jungle! Lost on the Island of Spice!";
-        config.gameDVP = "DVP-0011";
-        config.gameID = "SBLU";
-        config.gameReleaseYear = "2006";
-        config.gameNativeResolutions = "1360x768";
-        config.gameType = SHOOTING;
-        config.gameStatus = WORKING;
-        config.width = 1360;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case LETS_GO_JUNGLE_SPECIAL:
-    {
-        config.gameTitle = "Let's Go Jungle! Special!";
-        config.emulateRideboard = 1;
-        config.gameID = "SBNR";
-        config.gameDVP = "DVP-0036";
-        config.gameReleaseYear = "2007";
-        config.gameNativeResolutions = "1024x768";
-        config.gameType = SHOOTING;
-        config.gameStatus = WORKING;
-        config.width = 1024;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
     case AFTER_BURNER_CLIMAX:
     {
         config.gameTitle = "After Burner Climax";
@@ -534,6 +192,138 @@ static int detectGame(uint32_t elf_crc)
     }
     break;
 
+    case GHOST_SQUAD_EVOLUTION:
+    {
+        config.gameTitle = "Ghost Squad Evolution";
+        config.gameStatus = WORKING;
+        config.gameDVP = "DVP-0029A";
+        config.gameID = "SBNJ";
+        config.gameReleaseYear = "2007";
+        config.gameNativeResolutions = "640x480";
+        config.gameLindberghColour = RED;
+        config.gameType = SHOOTING;
+        config.jvsIOType = SEGA_TYPE_1;
+        config.width = 640;
+        config.height = 480;
+        return 0;
+    }
+    break;
+
+    case HARLEY_DAVIDSON:
+    {
+        config.gameTitle = "Harley-Davidson: King of the Road";
+        config.gameDVP = "DVP-5007";
+        config.gameID = "SBRG";
+        config.gameReleaseYear = "2009";
+        config.gameNativeResolutions = "1360x768";
+        config.gameLindberghColour = RED;
+        config.gameType = HARLEY;
+        config.gameStatus = WORKING;
+        config.width = 1360;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case HUMMER:
+    {
+        config.gameTitle = "Hummer";
+        config.gameID = "SBQN";
+        config.gameDVP = "DVP-0057B";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "1280x768";
+        config.gameType = DRIVING;
+        config.gameStatus = WORKING;
+        config.width = 1280;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case HUMMER_EXTREME:
+    {
+        config.gameTitle = "Hummer Extreme";
+        config.gameID = "SBST";
+        config.gameDVP = "DVP-0079";
+        config.gameReleaseYear = "2009";
+        config.gameNativeResolutions = "";
+        config.gameType = DRIVING;
+        config.gameStatus = WORKING;
+        return 0;
+    }
+    break;
+
+    case HUMMER_EXTREME_MDX:
+    {
+        config.gameTitle = "Hummer Extreme MDX";
+        config.gameID = "SBST";
+        config.gameDVP = "DVP-0083";
+        config.gameReleaseYear = "2009";
+        config.gameNativeResolutions = "1280x768";
+        config.gameType = DRIVING;
+        config.gameStatus = WORKING;
+        return 0;
+    }
+    break;
+
+    case HUMMER_SDLX:
+    {
+        config.gameTitle = "Hummer SDLX";
+        config.gameID = "SBST";
+        config.gameDVP = "DVP-0057";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "";
+        config.gameType = DRIVING;
+        config.gameStatus = WORKING;
+        return 0;
+    }
+    break;
+
+    case INITIALD_4_EXP_REVB:
+    {
+        config.gameTitle = "Initial D Arcade Stage 4 Export Rev B";
+        config.gameID = "SBNK";
+        config.gameDVP = "DVP-0030B";
+        config.gameReleaseYear = "2007";
+        config.gameNativeResolutions = "1360x768";
+        config.gameStatus = WORKING;
+        config.gameType = DRIVING;
+        config.width = 1360;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case INITIALD_4_EXP_REVC:
+    {
+        config.gameTitle = "Initial D Arcade Stage 4 Export Rev C";
+        config.gameID = "SBNK";
+        config.gameDVP = "DVP-0030C";
+        config.gameReleaseYear = "2007";
+        config.gameNativeResolutions = "1360x768";
+        config.gameStatus = WORKING;
+        config.gameType = DRIVING;
+        config.width = 1360;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case INITIALD_4_EXP_REVD:
+    {
+        config.gameTitle = "Initial D Arcade Stage 4 Export Rev D";
+        config.gameID = "SBNK";
+        config.gameDVP = "DVP-0030D";
+        config.gameReleaseYear = "2007";
+        config.gameNativeResolutions = "1360x768";
+        config.gameStatus = WORKING;
+        config.gameType = DRIVING;
+        config.width = 1360;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
     case INITIALD_4_REVA:
     {
         config.gameTitle = "Initial D Arcade Stage 4 Rev A";
@@ -609,12 +399,42 @@ static int detectGame(uint32_t elf_crc)
     }
     break;
 
-    case INITIALD_4_EXP_REVB:
+    case INITIALD_5_EXP:
     {
-        config.gameTitle = "Initial D Arcade Stage 4 Export Rev B";
-        config.gameID = "SBNK";
-        config.gameDVP = "DVP-0030B";
-        config.gameReleaseYear = "2007";
+        config.gameTitle = "Initial D5 EXP";
+        config.gameStatus = WORKING;
+        config.gameDVP = "DVP-0075";
+        config.gameID = "SBRY";
+        config.gameReleaseYear = "2009";
+        config.gameNativeResolutions = "1360x768";
+        config.gameType = DRIVING;
+        config.width = 1360;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case INITIALD_5_EXP_20:
+    {
+        config.gameTitle = "Initial D5 EXP 2.0";
+        config.gameStatus = WORKING;
+        config.gameDVP = "DVP-0084";
+        config.gameID = "SBTS";
+        config.gameReleaseYear = "2009";
+        config.gameNativeResolutions = "1360x768";
+        config.gameType = DRIVING;
+        config.width = 1360;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case INITIALD_5_EXP_20A:
+    {
+        config.gameTitle = "Initial D5 5 EXP 2.0";
+        config.gameDVP = "DVP-0084A";
+        config.gameID = "SBQN";
+        config.gameReleaseYear = "2009";
         config.gameNativeResolutions = "1360x768";
         config.gameStatus = WORKING;
         config.gameType = DRIVING;
@@ -624,12 +444,12 @@ static int detectGame(uint32_t elf_crc)
     }
     break;
 
-    case INITIALD_4_EXP_REVC:
+    case INITIALD_5_JAP_REVA:
     {
-        config.gameTitle = "Initial D Arcade Stage 4 Export Rev C";
-        config.gameID = "SBNK";
-        config.gameDVP = "DVP-0030C";
-        config.gameReleaseYear = "2007";
+        config.gameTitle = "Initial D Arcade Stage 5 Rev A";
+        config.gameDVP = "DVP-0070A";
+        config.gameID = "SBQZ";
+        config.gameReleaseYear = "2009";
         config.gameNativeResolutions = "1360x768";
         config.gameStatus = WORKING;
         config.gameType = DRIVING;
@@ -639,12 +459,12 @@ static int detectGame(uint32_t elf_crc)
     }
     break;
 
-    case INITIALD_4_EXP_REVD:
+    case INITIALD_5_JAP_REVF:
     {
-        config.gameTitle = "Initial D Arcade Stage 4 Export Rev D";
-        config.gameID = "SBNK";
-        config.gameDVP = "DVP-0030D";
-        config.gameReleaseYear = "2007";
+        config.gameTitle = "Initial D Arcade Stage 5 Rev F";
+        config.gameDVP = "DVP-0070F";
+        config.gameID = "SBQZ";
+        config.gameReleaseYear = "2009";
         config.gameNativeResolutions = "1360x768";
         config.gameStatus = WORKING;
         config.gameType = DRIVING;
@@ -654,16 +474,121 @@ static int detectGame(uint32_t elf_crc)
     }
     break;
 
-    case SEGA_RACE_TV:
+    case LETS_GO_JUNGLE:
     {
-        config.gameTitle = "SEGA Race TV";
+        config.gameTitle = "Let's Go Jungle! Lost on the Island of Spice!";
+        config.gameDVP = "DVP-0011";
+        config.gameID = "SBLU";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "1360x768";
+        config.gameType = SHOOTING;
+        config.gameStatus = WORKING;
+        config.width = 1360;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case LETS_GO_JUNGLE_REVA:
+    {
+        config.gameTitle = "Let's Go Jungle! Lost on the Island of Spice! Rev A";
+        config.gameDVP = "DVP-0011A";
+        config.gameID = "SBLU";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "1360x768";
+        config.gameType = SHOOTING;
+        config.gameStatus = WORKING;
+        config.width = 1360;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case LETS_GO_JUNGLE_SPECIAL:
+    {
+        config.gameTitle = "Let's Go Jungle! Special!";
+        config.emulateRideboard = 1;
+        config.gameID = "SBNR";
+        config.gameDVP = "DVP-0036";
+        config.gameReleaseYear = "2007";
+        config.gameNativeResolutions = "1024x768";
+        config.gameType = SHOOTING;
+        config.gameStatus = WORKING;
+        config.width = 1024;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case MJ4_EVO:
+    {
+        config.gameTitle = "SEGA Network Taisen Mahjong MJ4 Evolution";
+        config.gameDVP = "DVP-0081";
+        config.gameID = "SBTA";
+        config.gameStatus = WORKING;
+        config.gameType = MAHJONG;
+        return 0;
+    }
+    break;
+
+    case MJ4_REVG:
+    {
+        config.gameTitle = "SEGA Network Taisen Mahjong MJ4";
+        config.gameDVP = "DVP-0049G";
+        config.gameID = "SBPN";
+        config.gameStatus = WORKING;
+        config.gameType = MAHJONG;
+        return 0;
+    }
+    break;
+
+    case OUTRUN_2_SP_SDX:
+    case OUTRUN_2_SP_SDX_TEST:
+    {
+        config.gameTitle = "Outrun 2 SP SDX";
+        config.gameDVP = "DVP-0015";
+        config.gameID = "SBMB";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "800x480";
         config.emulateDriveboard = 1;
-        config.gameDVP = "DVP-0044";
-        config.gameID = "SBPF";
+        config.emulateMotionboard = 1;
+        config.gameStatus = WORKING;
+        config.gameType = DRIVING;
+        config.width = 800;
+        config.height = 480;
+        return 0;
+    }
+    break;
+
+    case OUTRUN_2_SP_SDX_REVA:
+    case OUTRUN_2_SP_SDX_REVA_TEST:
+    case OUTRUN_2_SP_SDX_REVA_TEST2:
+    {
+        config.gameTitle = "Outrun 2 SP SDX Rev A";
+        config.gameDVP = "DVP-0015A";
+        config.gameID = "SBMB";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "800x480";
+        config.emulateDriveboard = 1;
+        config.emulateMotionboard = 1;
+        config.gameStatus = WORKING;
+        config.gameType = DRIVING;
+        config.width = 800;
+        config.height = 480;
+        return 0;
+    }
+    break;
+
+    case PRIMEVAL_HUNT:
+    {
+        config.gameTitle = "Primeval Hunt";
+        config.gameDVP = "DVP-0048A";
+        config.gameID = "SBPP";
         config.gameReleaseYear = "2008";
         config.gameNativeResolutions = "640x480";
+        config.gameLindberghColour = RED;
         config.gameStatus = WORKING;
-        config.gameType = DRIVING;
+        config.gameType = SHOOTING;
         config.width = 640;
         config.height = 480;
         return 0;
@@ -702,6 +627,136 @@ static int detectGame(uint32_t elf_crc)
     }
     break;
 
+    case SEGABOOT_2_4:
+    {
+        config.gameTitle = "Segaboot 2.4";
+        config.gameStatus = WORKING;
+        return 0;
+    }
+    break;
+
+    case SEGABOOT_2_4_SYM:
+    {
+        config.gameTitle = "Segaboot 2.4 with symbols";
+        config.gameStatus = WORKING;
+        return 0;
+    }
+    break;
+
+    case SEGA_RACE_TV:
+    {
+        config.gameTitle = "SEGA Race TV";
+        config.emulateDriveboard = 1;
+        config.gameDVP = "DVP-0044";
+        config.gameID = "SBPF";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "640x480";
+        config.gameStatus = WORKING;
+        config.gameType = DRIVING;
+        config.width = 640;
+        config.height = 480;
+        return 0;
+    }
+    break;
+
+    case THE_HOUSE_OF_THE_DEAD_4_REVA:
+    case THE_HOUSE_OF_THE_DEAD_4_REVA_TEST:
+    {
+        config.gameTitle = "The House of the Dead 4 Rev A";
+        config.gameID = "SBLC";
+        config.gameDVP = "DVP-0003A";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "640x480, 1280x768";
+        config.gameType = SHOOTING;
+        config.gameStatus = WORKING;
+        config.width = 1280;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case THE_HOUSE_OF_THE_DEAD_4_REVB:
+    case THE_HOUSE_OF_THE_DEAD_4_REVB_TEST:
+    {
+        config.gameTitle = "The House of the Dead 4 Rev B";
+        config.gameID = "SBLC";
+        config.gameDVP = "DVP-0003B";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "640x480, 1280x768";
+        config.gameType = SHOOTING;
+        config.gameStatus = WORKING;
+        config.width = 1280;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case THE_HOUSE_OF_THE_DEAD_4_REVC:
+    case THE_HOUSE_OF_THE_DEAD_4_REVC_TEST:
+    {
+        config.gameTitle = "The House of the Dead 4 Rev C";
+        config.gameID = "SBLC";
+        config.gameDVP = "DVP-0003C";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "640x480, 1280x768";
+        config.gameType = SHOOTING;
+        config.gameStatus = WORKING;
+        config.width = 1280;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case THE_HOUSE_OF_THE_DEAD_4_SPECIAL:
+    case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_TEST:
+    {
+        config.gameTitle = "The House of the Dead 4 Special";
+        config.emulateRideboard = 1;
+        config.gameID = "SBLS";
+        config.gameDVP = "DVP-0010";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "1024x768";
+        config.gameStatus = WORKING;
+        config.gameType = SHOOTING;
+        config.width = 1024;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB:
+    case THE_HOUSE_OF_THE_DEAD_4_SPECIAL_REVB_TEST:
+    {
+        config.gameTitle = "The House of the Dead 4 Special Rev B";
+        config.emulateRideboard = 1;
+        config.gameID = "SBLS";
+        config.gameDVP = "DVP-0010B";
+        config.gameReleaseYear = "2006";
+        config.gameNativeResolutions = "1024x768";
+        config.gameStatus = WORKING;
+        config.gameType = SHOOTING;
+        config.width = 1024;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case THE_HOUSE_OF_THE_DEAD_EX:
+    case THE_HOUSE_OF_THE_DEAD_EX_TEST:
+    {
+        config.gameTitle = "Ai Sareruyori Ai Shitai: The House of the Dead EX";
+        config.gameStatus = WORKING;
+        config.gameType = SHOOTING;
+        config.gameID = "SBRC";
+        config.gameDVP = "DVP-0063";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "640x480, 1280x768";
+        config.width = 1360;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
     case TOO_SPICY:
     case TOO_SPICY_TEST:
     {
@@ -713,6 +768,171 @@ static int detectGame(uint32_t elf_crc)
         config.gameLindberghColour = RED;
         config.gameStatus = WORKING;
         config.gameType = SHOOTING;
+        config.width = 1280;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case VIRTUA_FIGHTER_5:
+    {
+        config.gameTitle = "Virtua Fighter 5";
+        config.gameDVP = "DVP-0008";
+        config.gameID = "SBLM";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "1280x768";
+        config.gameStatus = WORKING;
+        config.gameType = FIGHTING;
+        config.width = 1280;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case VIRTUA_FIGHTER_5_EXPORT:
+    {
+        config.gameTitle = "Virtua Fighter 5 Export";
+        config.gameDVP = "DVP-0043";
+        config.gameID = "SBLM";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "1280x768";
+        config.gameStatus = WORKING;
+        config.gameType = FIGHTING;
+        config.width = 1280;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVA:
+    {
+        config.gameTitle = "Virtua Fighter 5 Final Showdown REV A";
+        config.gameDVP = "DVP-5019A";
+        config.gameID = "SBUV";
+        config.gameReleaseYear = "2010";
+        config.gameNativeResolutions = "1280x768";
+        config.gameType = FIGHTING;
+        config.gameStatus = WORKING;
+        config.width = 1280;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB:
+    {
+        config.gameTitle = "Virtua Fighter 5 Final Showdown REV B";
+        config.gameDVP = "DVP-5020";
+        config.gameID = "SBXX";
+        config.gameReleaseYear = "2010";
+        config.gameNativeResolutions = "1280x768";
+        config.gameType = FIGHTING;
+        config.gameStatus = WORKING;
+        config.width = 1280;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB_6000:
+    {
+        config.gameTitle = "Virtua Fighter 5 Final Showdown REV B ver 6.0000";
+        config.gameDVP = "DVP-5020";
+        config.gameID = "SBXX";
+        config.gameReleaseYear = "2010";
+        config.gameNativeResolutions = "1280x768";
+        config.gameType = FIGHTING;
+        config.gameStatus = WORKING;
+        config.width = 1280;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case VIRTUA_FIGHTER_5_R:
+    {
+        config.gameTitle = "Virtua Fighter 5 R";
+        config.gameDVP = "DVP-XXXX";
+        config.gameID = "SBQU";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "1280x768";
+        config.gameStatus = WORKING;
+        config.gameType = FIGHTING;
+        config.width = 1280;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case VIRTUA_FIGHTER_5_R_REVD:
+    {
+        config.gameTitle = "Virtua Fighter 5 R Rev D";
+        config.gameDVP = "DVP-XXXX";
+        config.gameID = "SBQU";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "1280x768";
+        config.gameStatus = WORKING;
+        config.gameType = FIGHTING;
+        config.width = 1280;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case VIRTUA_FIGHTER_5_R_REVG:
+    {
+        config.gameTitle = "Virtua Fighter 5 R Rev G";
+        config.gameDVP = "DVP-XXXX";
+        config.gameID = "SBQU";
+        config.gameReleaseYear = "2008";
+        config.gameNativeResolutions = "1280x768";
+        config.gameStatus = WORKING;
+        config.gameType = FIGHTING;
+        config.width = 1280;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case VIRTUA_FIGHTER_5_REVA:
+    {
+        config.gameTitle = "Virtua Fighter 5 Rev A";
+        config.gameDVP = "DVP-0008A";
+        config.gameID = "SBLM";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "1280x768";
+        config.gameStatus = WORKING;
+        config.gameType = FIGHTING;
+        config.width = 1280;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case VIRTUA_FIGHTER_5_REVB:
+    {
+        config.gameTitle = "Virtua Fighter 5 Rev B";
+        config.gameDVP = "DVP-0008B";
+        config.gameID = "SBLM";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "1280x768";
+        config.gameStatus = WORKING;
+        config.gameType = FIGHTING;
+        config.width = 1280;
+        config.height = 768;
+        return 0;
+    }
+    break;
+
+    case VIRTUA_FIGHTER_5_REVE:
+    {
+        config.gameTitle = "Virtua Fighter 5 Rev E (Public Version C)";
+        config.gameDVP = "DVP-0008E";
+        config.gameID = "SBLM";
+        config.gameReleaseYear = "2005";
+        config.gameNativeResolutions = "1280x768";
+        config.gameStatus = WORKING;
+        config.gameType = FIGHTING;
         config.width = 1280;
         config.height = 768;
         return 0;
@@ -781,222 +1001,6 @@ static int detectGame(uint32_t elf_crc)
         return 0;
     }
     break;
-
-    case PRIMEVAL_HUNT:
-    {
-        config.gameTitle = "Primeval Hunt";
-        config.gameDVP = "DVP-0048A";
-        config.gameID = "SBPP";
-        config.gameReleaseYear = "2008";
-        config.gameNativeResolutions = "640x480";
-        config.gameLindberghColour = RED;
-        config.gameStatus = WORKING;
-        config.gameType = SHOOTING;
-        config.width = 640;
-        config.height = 480;
-        return 0;
-    }
-    break;
-
-    case GHOST_SQUAD_EVOLUTION:
-    {
-        config.gameTitle = "Ghost Squad Evolution";
-        config.gameStatus = WORKING;
-        config.gameDVP = "DVP-0029A";
-        config.gameID = "SBNJ";
-        config.gameReleaseYear = "2007";
-        config.gameNativeResolutions = "640x480";
-        config.gameLindberghColour = RED;
-        config.gameType = SHOOTING;
-        config.jvsIOType = SEGA_TYPE_1;
-        config.width = 640;
-        config.height = 480;
-        return 0;
-    }
-    break;
-
-    case INITIALD_5_JAP_REVA:
-    {
-        config.gameTitle = "Initial D Arcade Stage 5 Rev A";
-        config.gameDVP = "DVP-0070A";
-        config.gameID = "SBQZ";
-        config.gameReleaseYear = "2009";
-        config.gameNativeResolutions = "1360x768";
-        config.gameStatus = WORKING;
-        config.gameType = DRIVING;
-        config.width = 1360;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case INITIALD_5_JAP_REVF:
-    {
-        config.gameTitle = "Initial D Arcade Stage 5 Rev F";
-        config.gameDVP = "DVP-0070F";
-        config.gameID = "SBQZ";
-        config.gameReleaseYear = "2009";
-        config.gameNativeResolutions = "1360x768";
-        config.gameStatus = WORKING;
-        config.gameType = DRIVING;
-        config.width = 1360;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case INITIALD_5_EXP:
-    {
-        config.gameTitle = "Initial D5 EXP";
-        config.gameStatus = WORKING;
-        config.gameDVP = "DVP-0075";
-        config.gameID = "SBRY";
-        config.gameReleaseYear = "2009";
-        config.gameNativeResolutions = "1360x768";
-        config.gameType = DRIVING;
-        config.width = 1360;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case INITIALD_5_EXP_20:
-    {
-        config.gameTitle = "Initial D5 EXP 2.0";
-        config.gameStatus = WORKING;
-        config.gameDVP = "DVP-0084";
-        config.gameID = "SBTS";
-        config.gameReleaseYear = "2009";
-        config.gameNativeResolutions = "1360x768";
-        config.gameType = DRIVING;
-        config.width = 1360;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case INITIALD_5_EXP_20A:
-    {
-        config.gameTitle = "Initial D5 5 EXP 2.0";
-        config.gameDVP = "DVP-0084A";
-        config.gameID = "SBQN";
-        config.gameReleaseYear = "2009";
-        config.gameNativeResolutions = "1360x768";
-        config.gameStatus = WORKING;
-        config.gameType = DRIVING;
-        config.width = 1360;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case HUMMER:
-    {
-        config.gameTitle = "Hummer";
-        config.gameID = "SBQN";
-        config.gameDVP = "DVP-0057B";
-        config.gameReleaseYear = "2008";
-        config.gameNativeResolutions = "1280x768";
-        config.gameType = DRIVING;
-        config.gameStatus = WORKING;
-        config.width = 1280;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case HUMMER_SDLX:
-    {
-        config.gameTitle = "Hummer SDLX";
-        config.gameID = "SBST";
-        config.gameDVP = "DVP-0057";
-        config.gameReleaseYear = "2008";
-        config.gameNativeResolutions = "";
-        config.gameType = DRIVING;
-        config.gameStatus = WORKING;
-        return 0;
-    }
-    break;
-
-    case HUMMER_EXTREME:
-    {
-        config.gameTitle = "Hummer Extreme";
-        config.gameID = "SBST";
-        config.gameDVP = "DVP-0079";
-        config.gameReleaseYear = "2009";
-        config.gameNativeResolutions = "";
-        config.gameType = DRIVING;
-        config.gameStatus = WORKING;
-        return 0;
-    }
-    break;
-
-    case HUMMER_EXTREME_MDX:
-    {
-        config.gameTitle = "Hummer Extreme MDX";
-        config.gameID = "SBST";
-        config.gameDVP = "DVP-0083";
-        config.gameReleaseYear = "2009";
-        config.gameNativeResolutions = "1280x768";
-        config.gameType = DRIVING;
-        config.gameStatus = WORKING;
-        return 0;
-    }
-    break;
-
-    case LETS_GO_JUNGLE_REVA:
-    {
-        config.gameTitle = "Let's Go Jungle! Lost on the Island of Spice! Rev A";
-        config.gameDVP = "DVP-0011A";
-        config.gameID = "SBLU";
-        config.gameReleaseYear = "2006";
-        config.gameNativeResolutions = "1360x768";
-        config.gameType = SHOOTING;
-        config.gameStatus = WORKING;
-        config.width = 1360;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case HARLEY_DAVIDSON:
-    {
-        config.gameTitle = "Harley-Davidson: King of the Road";
-        config.gameDVP = "DVP-5007";
-        config.gameID = "SBRG";
-        config.gameReleaseYear = "2009";
-        config.gameNativeResolutions = "1360x768";
-        config.gameLindberghColour = RED;
-        config.gameType = HARLEY;
-        config.gameStatus = WORKING;
-        config.width = 1360;
-        config.height = 768;
-        return 0;
-    }
-    break;
-
-    case MJ4_REVG:
-    {
-        config.gameTitle = "SEGA Network Taisen Mahjong MJ4";
-        config.gameDVP = "DVP-0049G";
-        config.gameID = "SBPN";
-        config.gameStatus = WORKING;
-        config.gameType = MAHJONG;
-        return 0;
-    }
-    break;
-
-    case MJ4_EVO:
-    {
-        config.gameTitle = "SEGA Network Taisen Mahjong MJ4 Evolution";
-        config.gameDVP = "DVP-0081";
-        config.gameID = "SBTA";
-        config.gameStatus = WORKING;
-        config.gameType = MAHJONG;
-        return 0;
-    }
-    break;
-
     default:
     {
         config.crc32 = UNKNOWN;

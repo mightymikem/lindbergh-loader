@@ -1,5 +1,4 @@
 #include <dirent.h>
-#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,6 +39,151 @@ char *games[] = {"main.exe",
                  "hodexRI.elf",
                   "a.elf",
                  "END"};
+
+/**
+ * An array containin clean games elf's CRC32
+ */
+uint32_t cleanElfCRC32[] = {
+    0x51C4D2F6, // DVP-0003A | hod4M.elf
+    0x1348BCA8, // DVP-0003A | hod4testM.elf
+    0x0AAE384E, // DVP-0003B | hod4M.elf
+    0x352AA797, // DVP-0003B | hod4testM.elf
+    0x42EED61A, // DVP-0003C | hod4M.elf
+    0x6DA6E511, // DVP-0003C | hod4testM.elf
+    0x0E4BF4B1, // DVP-0005  | vt3_Lindbergh
+    0x9E48AB5B, // DVP-0005  | vt3_testmode
+    0xE4C64D01, // DVP-0005A | vt3_Lindbergh
+    0x9C0E77E5, // DVP-0005A | vt3_testmode
+    0xA4BDB9E2, // DVP-0005B | vt3_Lindbergh
+    0x74E25472, // DVP-0005B | vt3_testmode
+    0x987AE3FF, // DVP-0005C | vt3_Lindbergh
+    0x1E4271A4, // DVP-0005C | vt3_testmode
+    0xD409B70C, // DVP-0008  | vf5
+    0x08EBC0DB, // DVP-0008A | vf5
+    0xA47FBA2D, // DVP-0008B | vf5
+    0x8CA46167, // DVP-0008C | vf5
+    0x75946796, // DVP-0008E | vf5
+    0x2C8F5D57, // DVP-0009  | abc
+    0x13D90755, // DVP-0009A | abc
+    0x633AD6FB, // DVP-0009B | abc
+    0xD39825A8, // DVP-0010  | hod4M.elf
+    0x0745CF0A, // DVP-0010  | hod4testM.elf
+    0x13E59583, // DVP-0010B | hod4M.elf
+    0x302FEB00, // DVP-0010B | hod4testM.elf
+    0x04E08C99, // DVP-0011  | lgj_final
+    0x0C3D3CC3, // DVP-0011A | lgj_final
+    0xD9660B2E, // DVP-0015  | JenTest
+    0x821C3404, // DVP-0015  | Jennifer
+    0x13AF8581, // DVP-0015A | JenTest
+    0xB2CE9B23, // DVP-0015A | Jennifer
+    0xCC32DEAE, // DVP-0018  | abc
+    0x17114BC1, // DVP-0018A | abc
+    0x22905D60, // DVP-0019A | id4.elf
+    0x43582D48, // DVP-0019B | id4.elf
+    0x2D2A18C1, // DVP-0019C | id4.elf
+    0x9BFD0D98, // DVP-0019D | id4.elf
+    0x9CF9BBCC, // DVP-0019G | id4.elf
+    0xFA0F6AB0, // DVP-0027A | apacheM.elf
+    0x9D414D18, // DVP-0029A | vsg
+    0xC345E213, // DVP-0030B | id4.elf
+    0x98E6A516, // DVP-0030C | id4.elf
+    0xF67365C9, // DVP-0030D | id4.elf
+    0x8BDD31BA, // DVP-0031  | abc
+    0x3DF37873, // DVP-0031A | abc
+    0xDD8BB792, // DVP-0036A | lgjsp_app
+    0xB0A96E34, // DVP-0043  | vf5
+    0xF99E5635, // DVP-0044  | drive.elf
+    0x4143F6B4, // DVP-0048A | main.exe
+    0x653BC83B, // DVP-0057  | a.elf
+    0x04D88552, // DVP-0057B | a.elf
+    0x089D6051, // DVP-0060  | dsr
+    0x317F3B90, // DVP-0063  | hodexRI.elf
+    0x3A5EEC69, // DVP-0063  | hodextestR.elf
+    0x81E02850, // DVP-0069  | ramboM.elf
+    0xE4F202BB, // DVP-0070A | id5.elf
+    0x2E6732A3, // DVP-0070F | id5.elf
+    0xF99A3CDB, // DVP-0075  | id5.elf
+    0x05647A8E, // DVP-0079  | hummer_Master.elf
+    0x4442EA15, // DVP-0083  | hummer_Master.elf
+    0x8DF6BBF9, // DVP-0084  | id5.elf
+    0x2AF8004E, // DVP-0084A | id5.elf
+    0xB95528F4, // DVP-5004  | vf5
+    0x012E4898, // DVP-5004D | vf5
+    0x74465F9F, // DVP-5004G | vf5
+    0x75B48E22, // DVP-5007  | chopperM.elf
+    0xFCB9D941, // DVP-5019A | vf5
+    0xAB70901C, // DVP-5020  | vf5
+    0x6BAA510D, // DVP-5020  | vf5 | Ver 6.000
+};
+
+int cleanElfCRC32Count = sizeof(cleanElfCRC32) / sizeof(uint32_t);
+
+uint32_t calcCrc32(uint32_t crc, uint8_t data)
+{
+    crc ^= data; // No shift needed; working in LSB-first order
+    for (int i = 0; i < 8; i++)
+    {
+        if (crc & 1)
+        {
+            crc = (crc >> 1) ^ 0xEDB88320;
+        }
+        else
+        {
+            crc = (crc >> 1);
+        }
+    }
+    return crc;
+}
+
+int lookupCrcTable(uint32_t crc)
+{
+    for (int x = 0; x < cleanElfCRC32Count; x++)
+    {
+        if (cleanElfCRC32[x] == crc)
+            return 1;
+    }
+    return 0;
+}
+
+void isCleanElf(char *command)
+{
+    const char *space_pos = strchr(command, ' ');
+    size_t length = space_pos ? (size_t)(space_pos - command) : strlen(command);
+
+    char elfName[256];
+    strncpy(elfName, command, length);
+    elfName[length] = '\0';
+
+    FILE *file = fopen(elfName, "rb");
+    if (!file)
+    {
+        log_error("Could not calculate the Elf CRC32.");
+        return;
+    }
+
+    uint32_t crc = 0xFFFFFFFF;
+    uint8_t buffer[4096];
+    size_t bytesRead;
+
+    while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0)
+    {
+        for (size_t i = 0; i < bytesRead; i++)
+        {
+            crc = calcCrc32(crc, buffer[i]);
+        }
+    }
+
+    fclose(file);
+    crc = crc ^ 0xFFFFFFFF;
+
+    if (!lookupCrcTable(crc))
+    {
+        printf("\033[1;31m");
+        printf("Warning: The ELF you are running is not Clean and might cause unwanted behavior.\n");
+        printf("         Make sure you ELF and game dump are clean before reporting issues.\n");
+        printf("\033[0m");
+    }
+}
 
 /**
  * Tests if the game uses a seperate elf for test mode
@@ -311,6 +455,8 @@ int main(int argc, char *argv[])
     if (testMode)
         testModePath(command);
 
+    isCleanElf(command);
+
     if (gdb)
     {
         char temp[128];
@@ -318,6 +464,7 @@ int main(int argc, char *argv[])
         strcat(temp, command);
         strcpy(command, temp);
     }
+
     if (extConfigPath[0] != '\0')
     {
         setenv(LINDBERGH_CONFIG_PATH,extConfigPath,1);

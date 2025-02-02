@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 #include <stdint.h>
+#include <sys/types.h>
 
 #define MAX_PATH_LENGTH 1024
 #define INPUT_STRING_LENGTH 256
@@ -71,7 +72,6 @@
 #define VIRTUA_FIGHTER_5_REVB 0x8953bd52                     // DVP-0008B
 #define VIRTUA_FIGHTER_5_REVE 0x4c2edbf6                     // DVP-0008E
 #define VIRTUA_FIGHTER_5_EXPORT 0xec474630                   // DVP-0043
-#define VIRTUA_FIGHTER_5_FINAL_SHOWDOWN 0x48                 // DVP-5019 or does not exist
 #define VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVA 0xbae2be62      // DVP-5019A
 #define VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB 0x7cee1d81      // DVP-5020
 #define VIRTUA_FIGHTER_5_FINAL_SHOWDOWN_REVB_6000 0x34c0d02  // DVP-5020 ver 6.00 (Weird public version)
@@ -279,6 +279,7 @@ typedef struct
     int borderEnabled;
 } EmulatorConfig;
 
+uint32_t get_crc32(const char *s, ssize_t n);
 KeyMapping getDefaultKeymap();
 int initConfig(const char* configFilePath);
 EmulatorConfig *getConfig();
