@@ -42,7 +42,7 @@ jobs:
 
       # Archive the build directory as an artifact for debugging
       - name: Archive build directory
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-output
           path: ./build
