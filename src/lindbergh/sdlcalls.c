@@ -196,17 +196,17 @@ void FFBConstantEffect(int direction, double strength)
     int strengthFinal = strength;
     int steerDirectionFinal = direction >= 0.5 ? 1 : -1;
 
-    	SDL_HapticEffect constantEffect;
-	SDL_memset(&constantEffect, 0, sizeof(SDL_HapticEffect));
-	constantEffect.type = SDL_HAPTIC_CONSTANT;
-	constantEffect.constant.direction.type = SDL_HAPTIC_CARTESIAN;
-	constantEffect.constant.direction.dir[0] = steerDirectionFinal;
-	constantEffect.constant.length = 120;
-	constantEffect.constant.delay = 0;
-    	constantEffect.constant.level = strengthFinal;
+    SDL_HapticEffect constantEffect;
+    SDL_memset(&constantEffect, 0, sizeof(SDL_HapticEffect));
+    constantEffect.type = SDL_HAPTIC_CONSTANT;
+    constantEffect.constant.direction.type = SDL_HAPTIC_CARTESIAN;
+    constantEffect.constant.direction.dir[0] = steerDirectionFinal;
+    constantEffect.constant.length = 120;
+    constantEffect.constant.delay = 0;
+    constantEffect.constant.level = strengthFinal;
 
-	SDL_HapticUpdateEffect(haptic, effects.effect_constant_id, &constantEffect);
-	SDL_HapticRunEffect(haptic, effects.effect_constant_id, 1);
+    SDL_HapticUpdateEffect(haptic, hapticConstantEffectID, &constantEffect);
+    SDL_HapticRunEffect(haptic, hapticConstantEffectID, 1);
 }
 
 void initSDL(int *argcp, char **argv)
