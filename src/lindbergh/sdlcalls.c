@@ -242,9 +242,9 @@ void initSDL(int *argcp, char **argv)
         exit(1);
     }
 
-    if(gGameType == DRIVING && getConfig()->inputMode == 2)
+    if(gGameType == DRIVING)
     {
-       //Only driving games for now, and only inputMode 2 (Wheels etc)
+       //Only driving games for now
        SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");
        if(SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) < 0)
        {
