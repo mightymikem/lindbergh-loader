@@ -31,8 +31,8 @@ char SDLgameTitle[256] = {0};
 extern fps_limit fpsLimit;
 
 bool ffbActive = false;
-SDL_Joystick *joystick = NULL;
-SDL_Haptic *haptic = NULL;
+SDL_Joystick* joystick = NULL;
+SDL_Haptic* haptic = NULL;
 int hapticConstantEffectID = -1;
 
 void GLAPIENTRY openglDebugCallback2(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
@@ -157,11 +157,9 @@ int startFFB()
 {
     for (int i = 0; i < SDL_NumJoysticks(); ++i) {
         if (SDL_IsGameController(i)) {
-            SDL_GameController *controller = SDL_GameControllerOpen(i);
-            if (controller) {
-                *joystick = SDL_GameControllerGetJoystick(controller);
-                *haptic = SDL_HapticOpenFromJoystick(joystick);
-            }
+            joystick = SDL_JoystickOpen(i);
+            int joystickIndex = SDL_JoystickInstanceID(joystick);
+            haptic = SDL_HapticOpen(joystickIndex);
         }
     }
     if(haptic == NULL)
@@ -191,7 +189,7 @@ void FFBConstantEffect(int direction, double strength)
     {
         return;
     }
-    printf("FFB move %f %f\n", direction, strength);
+    
     //not sure what strength values are
     int strengthFinal = strength;
     int steerDirectionFinal = direction >= 0.5 ? 1 : -1;
