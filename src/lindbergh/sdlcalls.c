@@ -31,9 +31,12 @@ char SDLgameTitle[256] = {0};
 extern fps_limit fpsLimit;
 
 bool ffbActive = false;
+bool rumbleActive = false;
+
 SDL_Joystick* joystick = NULL;
 SDL_Haptic* haptic = NULL;
 int hapticConstantEffectID = -1;
+int hapticRumbleEffectID = -1; 
 
 void GLAPIENTRY openglDebugCallback2(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                                      const GLchar *message, const void *userParam)
@@ -162,14 +165,34 @@ int startFFB()
             haptic = SDL_HapticOpen(joystickIndex);
         }
     }
+
+    if(joystick == NULL)
+    {
+        fprintf(stderr, "Failed to open joystick: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    fprintf(stderr, "Joystick found, testing rumble + haptic: %s\n", SDL_JoystickName(joystick));
+
+    if(SDL_JoystickHasRumble(joystick) == SDL_FALSE)
+    {
+        fprintf(stderr, "Joystick does not support rumble: %s\n", SDL_GetError());
+        rumbleActive = false;
+    }
+    else
+    {
+        fprintf(stderr, "Joystick found with rumble support: %s\n", SDL_JoystickName(joystick));
+        rumbleActive = true;
+    }
+
     if(haptic == NULL)
     {
         fprintf(stderr, "Failed to open haptic device: %s\n", SDL_GetError());
         return 0;
     }
+    fprintf(stderr, "Haptic device found: %s\n", SDL_JoystickName(joystick));
+
     ffbActive = true;
-
-
     SDL_HapticEffect effect;
     SDL_memset(&effect, 0, sizeof(SDL_HapticEffect));
     effect.type = SDL_HAPTIC_CONSTANT;
@@ -205,6 +228,21 @@ void FFBConstantEffect(int direction, double strength)
 
     SDL_HapticUpdateEffect(haptic, hapticConstantEffectID, &constantEffect);
     SDL_HapticRunEffect(haptic, hapticConstantEffectID, 1);
+}
+
+void FFBRumbleEffect(double highfrequency, double lowfrequency, double length)
+{
+    //putting FFBRumbleEffect in but not used yet
+    if(!rumbleActive)
+    {
+        return;
+    }
+
+    int Rumble = SDL_JoystickRumble(joystick, lowfrequency, highfrequency, length);
+    if(Rumble != 0)
+    {
+        rumbleActive = false;
+    }
 }
 
 void initSDL(int *argcp, char **argv)
@@ -249,8 +287,6 @@ void initSDL(int *argcp, char **argv)
            fprintf(stderr, "SDL could not initialize game controller! SDL_Error: %s\n", SDL_GetError());
        }
        startFFB();
-
-
     }
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); // Double buffering
