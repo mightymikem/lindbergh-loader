@@ -30,6 +30,11 @@ Window x11Window;
 char SDLgameTitle[256] = {0};
 extern fps_limit fpsLimit;
 
+bool ffbActive = false;
+SDL_Joystick *joystick = NULL;
+SDL_Haptic *haptic = NULL;
+int hapticConstantEffectID = -1;
+
 void GLAPIENTRY openglDebugCallback2(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                                      const GLchar *message, const void *userParam)
 {
@@ -148,9 +153,69 @@ int loadNewCursor(char *cursorFileName)
     return 1;
 }
 
+int startFFB()
+{
+    for (int i = 0; i < SDL_NumJoysticks(); ++i) {
+        if (SDL_IsGameController(i)) {
+            SDL_GameController *controller = SDL_GameControllerOpen(i);
+            if (controller) {
+                *joystick = SDL_GameControllerGetJoystick(controller);
+                *haptic = SDL_HapticOpenFromJoystick(joystick);
+            }
+        }
+    }
+    if(haptic == NULL)
+    {
+        fprintf(stderr, "Failed to open haptic device: %s\n", SDL_GetError());
+        return 0;
+    }
+    ffbActive = true;
+
+
+    SDL_HapticEffect effect;
+	SDL_memset(&effect, 0, sizeof(SDL_HapticEffect));
+	tempEffect.type = SDL_HAPTIC_FRICTION;
+	tempEffect.condition.type = SDL_HAPTIC_FRICTION;
+	tempEffect.condition.direction.type = SDL_HAPTIC_CARTESIAN;
+	tempEffect.condition.delay = 0;
+	tempEffect.condition.length = SDL_HAPTIC_INFINITY;
+	tempEffect.condition.left_sat[0] = 0xFFFF;
+	tempEffect.condition.right_sat[0] = 0xFFFF;
+    tempEffect.condition.left_coeff[0] = (short)(coeff);
+	tempEffect.condition.right_coeff[0] = (short)(coeff);
+	hapticConstantEffectID = SDL_HapticNewEffect(haptic, &effect);
+    
+    return 1;
+}
+
+void FFBConstantEffect(int direction, double strength)
+{
+    if(!ffbActive)
+    {
+        return;
+    }
+    printf("FFB move %f %f\n", direction, strength);
+    //not sure what strength values are
+    int strengthFinal = strength;
+    int steerDirectionFinal = direction >= 0.5 ? 1 : -1;
+
+    SDL_HapticEffect constantEffect;
+	SDL_memset(&constantEffect, 0, sizeof(SDL_HapticEffect));
+	constantEffect.type = SDL_HAPTIC_CONSTANT;
+	constantEffect.constant.direction.type = SDL_HAPTIC_CARTESIAN;
+	constantEffect.constant.direction.dir[0] = steerDirectionFinal;
+	constantEffect.constant.length = 120;
+	constantEffect.constant.delay = 0;
+    constantEffect.constant.level = strengthFinal;
+
+	SDL_HapticUpdateEffect(haptic, effects.effect_constant_id, &constantEffect);
+	SDL_HapticRunEffect(haptic, effects.effect_constant_id, 1);
+}
+
 void initSDL(int *argcp, char **argv)
 {
     int gId = getConfig()->crc32;
+    int gGameType = getConfig()->gameType;
 
     void FGAPIENTRY (*_glutInit)(int *argcp, char **argv) = dlsym(RTLD_NEXT, "glutInit");
 
@@ -176,8 +241,21 @@ void initSDL(int *argcp, char **argv)
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-        fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        fprintf(stderr, "SDL could not initialize video! SDL_Error: %s\n", SDL_GetError());
         exit(1);
+    }
+
+    if(gGameType == DRIVING && getConfig()->inputMode == 2)
+    {
+       //Only driving games for now, and only inputMode 2 (Wheels etc)
+       SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");
+       if(SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) < 0)
+       {
+           fprintf(stderr, "SDL could not initialize game controller! SDL_Error: %s\n", SDL_GetError());
+       }
+       startFFB();
+
+
     }
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); // Double buffering
@@ -253,6 +331,11 @@ void initSDL(int *argcp, char **argv)
 
 void sdlQuit()
 {
+    if (ffbActive)
+    {
+        SDL_HapticClose(haptic);
+        SDL_JoystickClose(joystick);
+    }
     SDL_DestroyWindow(SDLwindow);
     SDL_Quit();
     exit(0);

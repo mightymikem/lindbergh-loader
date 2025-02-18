@@ -2,6 +2,7 @@
 
 #include "driveboard.h"
 #include "jvs.h"
+#include "sdlcalls.h"
 
 #define DRIVEBOARD_READY 0x00
 #define DRIVEBOARD_NOT_INIT 0x11
@@ -81,7 +82,10 @@ ssize_t driveboardWrite(int fd, const void *buf, size_t count)
 
             steerValue += force;
             setAnalogue(ANALOGUE_1, (int)(steerValue * 1024));
+            FFBConstantEffect(steerValue,force);
         }
+
+
 
         //printf("Driveboard move %f %f\n", steerValue, force);
     }
@@ -97,7 +101,7 @@ ssize_t driveboardWrite(int fd, const void *buf, size_t count)
 
         if (buffer[1] == 0)
             force = ((1 - ((double)buffer[2] / 128.0)) * 2) / 100;
-
+        FFBConstantEffect(steerValue,force);
         //printf("Driveboard set force%f %f\n", steerValue, force);
     }
     break;

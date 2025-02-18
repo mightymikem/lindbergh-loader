@@ -277,6 +277,7 @@ typedef struct
     float whiteBorderPercentage;
     float blackBorderPercentage;
     int borderEnabled;
+    int ffbEnabled;
 } EmulatorConfig;
 
 uint32_t get_crc32(const char *s, ssize_t n);

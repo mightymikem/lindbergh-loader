@@ -1544,6 +1544,7 @@ int initConfig(const char* configFilePath)
     config.crc32 = elf_crc;
     config.skipOutrunCabinetCheck = 0;
     config.borderEnabled = 0;
+    config.ffbEnabled = 0;
     config.whiteBorderPercentage = 0.02;
     config.blackBorderPercentage = 0.0;
     if (detectGame(config.crc32) != 0)
