@@ -34,7 +34,7 @@ lindbergh.so: $(OBJS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 libsegaapi.so: src/libsegaapi/libsegaapi.o
-	gcc -m32 -O0 -g src/libsegaapi/libsegaapi.c -lFAudio -fPIC -shared -o $(BUILD)/libsegaapi.so
+	$(CC) -m32 -O0 -g src/libsegaapi/libsegaapi.c -lFAudio -L/app/lib32 -fPIC -shared -o $(BUILD)/libsegaapi.so
 
 libkswapapi.so: src/libkswapapi/libkswapapi.o
 	$(CC) src/libkswapapi/libkswapapi.o -fPIC -shared -o $(BUILD)/libkswapapi.so
