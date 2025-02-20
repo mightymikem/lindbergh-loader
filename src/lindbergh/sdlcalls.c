@@ -183,6 +183,14 @@ int startFFB()
     {
         fprintf(stderr, "Joystick found with rumble support: %s\n", SDL_JoystickName(joystick));
         rumbleActive = true;
+
+        int rumbleTest = SDL_JoystickRumble(joystick, 0.5, 0.5, 1000);
+        if(rumbleTest != 0)
+        {
+            fprintf(stderr, "Failed to rumble joystick: %s\n", SDL_GetError());
+            rumbleActive = false;
+        }
+
     }
 
     if(haptic == NULL)
